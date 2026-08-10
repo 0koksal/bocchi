@@ -44,10 +44,6 @@ export function TitleBar({ appVersion }: TitleBarProps) {
     window.api.closeWindow()
   }
 
-  const handleOpenExternal = (url: string) => {
-    window.api.openExternal(url)
-  }
-
   return (
     <div className="fixed top-0 left-0 right-0 h-10 bg-surface border-b-2 border-border flex items-center justify-between select-none z-50 shadow-md dark:shadow-none">
       <div
