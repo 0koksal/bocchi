@@ -26,8 +26,8 @@ Bocchi is a modern, user-friendly desktop application for changing League of Leg
 
 ## 📸 Screenshots
 
-![Main Interface](./screenshots/main-interface.png)
-
+![Main Interface](./screenshots/Screenshot_1.jpg)
+![Main Interface2](./screenshots/Screenshot_2.jpg)
 ## 🚀 Installation
 
 ### Download
