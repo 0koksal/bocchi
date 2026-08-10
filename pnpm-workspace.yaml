@@ -1,0 +1,12 @@
+allowBuilds:
+  electron: false
+  electron-overlay-window: false
+  esbuild: false
+
+ignoredBuiltDependencies:
+  - xxhash-addon
+
+onlyBuiltDependencies:
+  - electron
+  - electron-overlay-window
+  - esbuild

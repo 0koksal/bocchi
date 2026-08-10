@@ -1,0 +1,4 @@
+- Removed hosted DLL file per DMCA takedown
+- Users must now manually place their own cslol-dll.dll in the tools folder
+- Added DLL required notice to Tools Download modal with folder open button
+- Fixed CI build reliability by caching electron-builder binaries

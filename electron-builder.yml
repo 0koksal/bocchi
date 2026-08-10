@@ -1,0 +1,54 @@
+appId: com.bocchi.app
+productName: Bocchi
+directories:
+  buildResources: build
+fileAssociations:
+  - ext: wad
+    name: 'League of Legends WAD File'
+    description: 'League of Legends WAD archive'
+    role: Editor
+  - ext: wad.client
+    name: 'League of Legends Client WAD'
+    description: 'League of Legends client WAD archive'
+    role: Editor
+  - ext: zip
+    name: 'League Skin Archive'
+    description: 'League of Legends skin mod archive'
+    role: Editor
+  - ext: fantome
+    name: 'Fantome Skin File'
+    description: 'Fantome mod file for League of Legends'
+    role: Editor
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+asarUnpack:
+  - resources/**
+win:
+  executableName: Bocchi
+  target:
+    - nsis
+  icon: build/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: Bocchi-${version}-setup.${ext}
+  shortcutName: Bocchi
+  uninstallDisplayName: Bocchi - League of Legends Skin Changer
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  deleteAppDataOnUninstall: false
+  perMachine: false
+  allowElevation: true
+npmRebuild: false
+publish:
+  provider: github
+  owner: hoangvu12
+  repo: bocchi
+  releaseType: release
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/

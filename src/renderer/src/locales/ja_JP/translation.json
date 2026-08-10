@@ -1,0 +1,661 @@
+{
+  "app": {
+    "title": "CSLOL スキンランチャー",
+    "loading": "読み込み中...",
+    "ready": "準備完了"
+  },
+  "actions": {
+    "browse": "参照",
+    "download": "ダウンロード",
+    "update": "更新",
+    "apply": "適用",
+    "stop": "停止",
+    "close": "閉じる",
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "restore": "元に戻す",
+    "search": "検索",
+    "filter": "フィルター",
+    "sort": "並び替え",
+    "clearAll": "すべてクリア",
+    "clearFilters": "フィルターをクリア",
+    "save": "保存",
+    "saveChanges": "変更を保存",
+    "delete": "削除",
+    "deleteAll": "すべてのスキンを削除",
+    "deleteAllForChampion": "{{champion}}のすべてのスキンを削除",
+    "decline": "拒否",
+    "accept": "承認",
+    "join": "参加",
+    "leave": "退出",
+    "create": "作成",
+    "copy": "コピー",
+    "later": "後で",
+    "skipForNow": "今はスキップ",
+    "downloadAndInstall": "ダウンロードしてインストール",
+    "multiSelect": "複数選択",
+    "exitMultiSelect": "複数選択を終了",
+    "deleteSelected": "選択を削除",
+    "selectAll": "すべて選択",
+    "clearSelection": "選択をクリア",
+    "cancel": "キャンセル"
+  },
+  "nav": {
+    "favorites": "お気に入り",
+    "settings": "設定",
+    "about": "について"
+  },
+  "champion": {
+    "searchPlaceholder": "チャンピオンを検索",
+    "noData": "チャンピオンデータが見つかりません",
+    "downloadData": "チャンピオンデータをダウンロード",
+    "updateData": "データを更新",
+    "version": "バージョン",
+    "allChampions": "すべてのチャンピオン",
+    "customMods": "カスタムMOD"
+  },
+  "skin": {
+    "searchPlaceholder": "すべてのチャンピオンからスキンを検索...",
+    "apply": "スキンを適用",
+    "applied": "適用済み",
+    "downloaded": "ダウンロード済み",
+    "favorite": "お気に入りに追加",
+    "unfavorite": "お気に入りから削除",
+    "clickToApply": "任意のスキンをクリックして即座に適用",
+    "showing_one": "{{count}}個のスキンを表示",
+    "showing_other": "{{count}}個のスキンを表示",
+    "notAvailable": "利用不可",
+    "notAvailableMessage": "このスキンはMODとして利用できません",
+    "unavailableTooltip": "このスキンにはMODファイルがありません"
+  },
+  "status": {
+    "detectingGame": "ゲームパスを検出中...",
+    "gameDetected": "ゲームパスが自動的に検出されました",
+    "gameNotFound": "ゲームパスが見つかりません。手動で参照してください。",
+    "downloading": "{{name}}をダウンロード中...",
+    "applying": "{{name}}を適用中...",
+    "applied": "{{name}}を正常に適用しました！",
+    "stopping": "パッチャーを停止中...",
+    "stopped": "パッチャーが停止しました",
+    "cancelling": "操作をキャンセル中...",
+    "cancelled": "操作がキャンセルされました",
+    "failedToCancel": "キャンセルに失敗しました: {{error}}",
+    "error": "エラー: {{message}}",
+    "fetchingData": "チャンピオンデータを取得中...",
+    "dataFetched": "{{count}}個のチャンピオンのデータを正常に取得しました！",
+    "gamePathSet": "ゲームパスが正常に設定されました！",
+    "pleaseSetGamePath": "最初にゲームパスを設定してください",
+    "downloadingTools": "cslol-toolsをダウンロード中",
+    "toolsDownloaded": "ツールが正常にダウンロードされました！",
+    "stoppingCurrentPatcher": "現在のパッチャーを停止中",
+    "failedToStopPatcher": "パッチャーの停止に失敗しました: {{error}}",
+    "deletedCustomMod": "カスタムMODを削除しました: {{name}}",
+    "deletedSkin": "スキンを削除しました: {{name}}",
+    "failedToDeleteMod": "MODの削除に失敗しました: {{error}}",
+    "failedToDeleteSkin": "スキンの削除に失敗しました: {{error}}",
+    "autoSelectedSkinsCleanedUp": "自動選択されたスキン{{count}}個をクリーンアップしました",
+    "autoAcceptedMatch": "マッチが自動的に承認されました！"
+  },
+  "tools": {
+    "required": "CS:LOLツールが必要です",
+    "description": "スキンを適用するにはCS:LOL MODツールが必要です。今すぐダウンロードしますか？",
+    "downloading": "ツールをダウンロード中... {{progress}}%",
+    "downloadTools": "ツールをダウンロード",
+    "downloadFailed": "ダウンロードに失敗しました",
+    "retryDownload": "再試行",
+    "manualDownload": "手動でダウンロード",
+    "maxRetries": "最大再試行回数に達しました",
+    "extractTo": "展開先:",
+    "havingTrouble": "問題がありますか？他にもできることがあります："
+  },
+  "downloadAll": {
+    "title": "すべてのスキンをダウンロード",
+    "button": "すべてダウンロード",
+    "optionsTitle": "すべてのスキンをダウンロード",
+    "optionsDescription": "ダウンロードするスキンを選択し、ダウンロード設定を構成します。",
+    "infoTitle": "ダウンロード情報",
+    "infoDescription": "約{{count}}個のスキンがダウンロードされます（~{{size}}）。",
+    "filterOptions": "フィルターオプション",
+    "excludeChromas": "クロマを除外",
+    "excludeChromasDesc": "ダウンロードサイズを減らすためにクロマバリアントをスキップ",
+    "excludeVariants": "バリアントを除外",
+    "excludeVariantsDesc": "プレステージエディションと特別なバリアントをスキップ",
+    "excludeLegacy": "レガシースキンを除外",
+    "excludeLegacyDesc": "レガシーと期間限定スキンをスキップ",
+    "excludeEsports": "Esportsスキンを除外",
+    "excludeEsportsDesc": "チャンピオンシップとプロチームスキンをスキップ",
+    "onlyFavorites": "お気に入りのみ",
+    "onlyFavoritesDesc": "お気に入りのスキンのみをダウンロード",
+    "performanceOptions": "パフォーマンスオプション",
+    "concurrency": "同時ダウンロード",
+    "concurrencyDesc": "同時ダウンロード数（高い = 速いがリソース消費大）",
+    "startDownload": "ダウンロード開始",
+    "progress": "{{total}}個中{{completed}}個",
+    "speed": "速度",
+    "timeRemaining": "残り時間",
+    "failedDownloads": "{{count}}個の失敗",
+    "pause": "一時停止",
+    "resume": "再開",
+    "cancel": "キャンセル",
+    "completed": "ダウンロード完了",
+    "downloadingRepository": "リポジトリをダウンロード中",
+    "extracting": "ファイルを展開中",
+    "processingSkins": "スキンを処理中",
+    "downloadProgress": "リポジトリアーカイブをダウンロード中",
+    "extractProgress": "アーカイブを展開中",
+    "processed": "処理済み",
+    "skipped": "スキップ",
+    "retryFailed": "失敗した項目を再試行"
+  },
+  "settings": {
+    "title": "設定",
+    "description": "アプリの設定を構成する",
+    "gamePath": "ゲームパス",
+    "language": "言語",
+    "theme": "テーマ",
+    "notifications": "通知",
+    "leagueClient": {
+      "title": "リーグクライアント統合",
+      "description": "League of Legendsクライアントと連携する機能を有効にする"
+    },
+    "championDetection": {
+      "title": "チャンピオン検出",
+      "description": "リーグクライアントでチャンピオンを選択した時に通知を自動的に表示"
+    },
+    "autoViewSkins": {
+      "title": "スキン自動表示",
+      "description": "チャンピオンが検出された時にスキンを自動的に表示"
+    },
+    "autoAcceptMatch": {
+      "title": "マッチを自動承認",
+      "description": "マッチが見つかったときに準備確認を自動的に承認"
+    },
+    "autoPick": {
+      "title": "自動ピック",
+      "description": "チャンピオン選択中に自動的にチャンピオンを選択",
+      "force": "強制ピック",
+      "forceDescription": "チームの選択を無視して、既に選択されていてもピック",
+      "championPriority": "ピック優先リスト"
+    },
+    "autoBan": {
+      "title": "自動バン",
+      "description": "チャンピオン選択中に自動的にチャンピオンをバン",
+      "force": "強制バン",
+      "forceDescription": "チームの意図を無視して、チームメイトがプレイしたくてもバン",
+      "championPriority": "バン優先リスト"
+    },
+    "selectChampion": "チャンピオンを選択",
+    "addChampion": "チャンピオンを追加",
+    "smartApply": {
+      "title": "スマート適用",
+      "description": "チームのチャンピオンのスキンのみを読み込む（読み込み時間を短縮）"
+    },
+    "autoApply": {
+      "title": "自動適用",
+      "description": "すべてのチャンピオンがロックされた時にスキンを自動的に適用"
+    },
+    "autoApplyTriggerTime": {
+      "title": "自動適用トリガー時間",
+      "description": "ゲーム開始前にスキンを自動的に適用するまでの秒数（5～30秒）"
+    },
+    "autoRandomSkin": {
+      "title": "自動ランダムスキン",
+      "description": "チャンピオンが検出された時にランダムなスキンを自動的に選択"
+    },
+    "autoRandomRaritySkin": {
+      "title": "自動ランダムレアリティスキン",
+      "description": "チャンピオンが検出された時にレアリティ（エピック、レジェンダリーなど）を持つランダムなスキンを自動的に選択"
+    },
+    "autoRandomFavoriteSkin": {
+      "title": "自動ランダムお気に入りスキン",
+      "description": "チャンピオンが検出された時にお気に入りからランダムなスキンを自動的に選択"
+    },
+    "autoRandomHighestWinRateSkin": {
+      "title": "自動ランダム高勝率スキン",
+      "description": "勝率の高い上位3つのスキンからランダムに選択します"
+    },
+    "autoRandomHighestPickRateSkin": {
+      "title": "自動ランダム高ピック率スキン",
+      "description": "最も人気のある上位3つのスキンからランダムに選択します"
+    },
+    "autoRandomMostPlayedSkin": {
+      "title": "自動ランダム最多使用スキン",
+      "description": "最も使用されている上位3つのスキンからランダムに選択します"
+    },
+    "inGameOverlay": {
+      "title": "ゲーム内オーバーレイ",
+      "description": "スキン通知を高速化するためにLeagueクライアントにオーバーレイを事前アタッチ（自動ランダム機能が必要）"
+    },
+    "allowMultipleSkinsPerChampion": {
+      "title": "複数のスキンを同じチャンピオンに許可",
+      "description": "有効にすると、同じチャンピオンに複数のスキンを同時に使用できます"
+    },
+    "autoFixModIssues": {
+      "title": "インポート時にMODの問題を自動修正",
+      "description": "MODをインポートする際に不足しているヘルスバー、マテリアル、VFXエフェクトを自動的に修正"
+    },
+    "modToolsTimeout": {
+      "title": "Mod Toolsのタイムアウト",
+      "description": "MODのインポートとオーバーレイ作成の最大待機時間",
+      "hint": "多くのMODがある場合やシステムが遅い場合は、この値を増やしてください。エラー検出を速くする場合は減らしてください。"
+    },
+    "cacheManagement": {
+      "title": "スキンキャッシュ管理",
+      "description": "高速なMOD適用のために使用されるキャッシュされたスキンファイルを管理",
+      "info": "キャッシュには{{count}}個のMODが含まれ、{{size}}MBを使用しています",
+      "clearCache": "キャッシュをクリア",
+      "clearing": "クリア中...",
+      "confirmClear": "スキンキャッシュをクリアしてもよろしいですか？これにより、次回適用時にすべてのスキンが再インポートされ、時間がかかる場合があります。",
+      "clearSuccess": "スキンキャッシュが正常にクリアされました",
+      "clearError": "スキンキャッシュのクリアに失敗しました"
+    },
+    "applicationUpdate": {
+      "title": "アプリケーションアップデート",
+      "description": "現在のバージョン: {{version}}"
+    },
+    "autoAccept": {
+      "title": "自動マッチ承認",
+      "description": "マッチが見つかった時に準備確認を自動的に承認する"
+    },
+    "tabs": {
+      "general": "一般",
+      "leagueClient": "リーグクライアント",
+      "skinManagement": "スキン管理"
+    },
+    "randomSkinSelection": {
+      "title": "ランダムスキン選択",
+      "none": "無効"
+    },
+    "minimizeToTray": {
+      "title": "トレイに最小化",
+      "description": "閉じるボタンをクリックした時、アプリを閉じる代わりにシステムトレイに隠す"
+    },
+    "autoExtractImages": {
+      "title": "プレビュー画像の自動抽出",
+      "description": "スキンをインポートする際にWADファイルからプレビュー画像を自動的に抽出（変換ツールが必要）"
+    }
+  },
+  "tray": {
+    "show": "Bocchiを表示",
+    "hide": "Bocchiを非表示",
+    "language": "言語",
+    "checkForUpdates": "アップデートを確認",
+    "openSettings": "設定を開く",
+    "quit": "Bocchiを終了"
+  },
+  "errors": {
+    "generic": "エラーが発生しました",
+    "downloadFailed": "ダウンロードに失敗しました",
+    "connectionError": "接続エラー",
+    "pathNotSet": "最初にゲームパスを設定してください",
+    "operationTimeout": "操作がタイムアウトしました。もう一度お試しください。",
+    "skinNotAvailable": "スキンはlol-skinsリポジトリで利用できないか、マッピングが間違っています"
+  },
+  "fileUpload": {
+    "selectChampion": "チャンピオンを選択",
+    "uploadButton": "カスタムMODをアップロード",
+    "importTitle": "カスタムMODをインポート",
+    "importDescription": "オプションでチャンピオンを選択し、MODにカスタム名を設定してください。",
+    "selectedFile": "選択されたファイル",
+    "championPlaceholder": "特定のチャンピオンなし",
+    "customName": "カスタム名",
+    "customNamePlaceholder": "スキン名を入力...",
+    "importing": "インポート中...",
+    "import": "インポート",
+    "noFileSelected": "ファイルが選択されていません",
+    "invalidFile": "無効なファイル形式",
+    "importSuccess": "スキンが正常にインポートされました！",
+    "importFailed": "スキンのインポートに失敗しました",
+    "previewImage": "プレビュー画像",
+    "browseImage": "参照",
+    "noImageSelected": "画像が選択されていません",
+    "extractImage": "画像を抽出",
+    "extractingImage": "抽出中...",
+    "extractImageError": "画像の抽出に失敗しました: {{error}}",
+    "batchImportTitle": "複数ファイルのインポート",
+    "importingProgress": "{{total}}個中{{current}}個目のファイルをインポート中...",
+    "batchComplete": "インポート完了！",
+    "succeeded": "成功",
+    "failed": "失敗",
+    "failedFiles": "失敗したファイル:",
+    "close": "閉じる",
+    "fixModIssues": "MODの問題を修正",
+    "fixModIssuesDescription": "不足しているヘルスバー、マテリアル、VFXエフェクトを修正"
+  },
+  "editCustomSkin": {
+    "title": "カスタムMODを編集",
+    "modName": "MOD名",
+    "modNamePlaceholder": "MOD名を入力",
+    "champion": "チャンピオン",
+    "selectChampion": "チャンピオンを選択",
+    "noSpecificChampion": "特定のチャンピオンなし（カスタムモッド）",
+    "previewImage": "プレビュー画像（オプション）",
+    "selectImage": "画像を選択",
+    "newImageSelected": "新しい画像が選択されました",
+    "modMaintenance": "MODメンテナンス",
+    "fixModIssues": "MODの問題を修正",
+    "fixing": "修正中...",
+    "fixDescription": "不足しているヘルスバー、マテリアル、VFXエフェクトを修正",
+    "startingFix": "修正プロセスを開始中...",
+    "fixCompleted": "修正が正常に完了しました！",
+    "fixFailed": "修正に失敗しました：{{error}}",
+    "fixError": "MODの修正中にエラーが発生しました",
+    "saveChanges": "変更を保存"
+  },
+  "common": {
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "save": "保存",
+    "saving": "保存中..."
+  },
+  "cancel": "キャンセル",
+  "success": "成功",
+  "error": "エラー",
+  "update": {
+    "available": "アップデート利用可能",
+    "description": "Bocchiの新しいバージョンがダウンロード可能です。",
+    "whatsNew": "新機能",
+    "downloading": "ダウンロード中...",
+    "updateNow": "今すぐ更新",
+    "checkForUpdates": "アップデートを確認",
+    "checking": "アップデートを確認中...",
+    "noUpdates": "最新バージョンです！",
+    "error": "アップデートの確認に失敗しました",
+    "championDataAvailable": "チャンピオンデータ更新が利用可能",
+    "championDataDescription": "チャンピオンデータの新しいバージョンが利用可能です。この更新には最新のチャンピオン、スキン、その他のゲームコンテンツが含まれています。",
+    "currentVersion": "現在のバージョン: ",
+    "updating": "更新中..."
+  },
+  "skins": {
+    "selected_one": "{{count}}個のスキンが選択されています",
+    "selected_other": "{{count}}個のスキンが選択されています",
+    "toDownload": "({{count}}個をダウンロード)",
+    "downloaded": "ダウンロード済みスキン",
+    "notDownloaded": "未ダウンロード",
+    "repository": "リポジトリスキン",
+    "customImports": "カスタムインポート",
+    "total": "合計: {{count}}個のスキン",
+    "searchPlaceholder": "チャンピオンまたはスキン名で検索...",
+    "noSkinsFound": "スキンが見つかりません",
+    "userImport": "ユーザーインポート",
+    "custom": "カスタム",
+    "deleting": "削除中...",
+    "chromas_one": "{{count}}個のクロマが利用可能",
+    "chromas_other": "{{count}}個のクロマが利用可能",
+    "selectChroma": "{{skinName}}のクロマを選択",
+    "chooseChroma_one": "{{count}}個の利用可能なクロマから選択",
+    "chooseChroma_other": "{{count}}個の利用可能なクロマから選択",
+    "selectVariant": "{{skinName}}のバリエーションを選択",
+    "chooseVariant": "{{count}}個の利用可能な{{type}}から選択",
+    "exaltedVariant": "崇高バリエーション",
+    "formVariant": "フォームバリエーション",
+    "mySkins": "マイスキン",
+    "roomSkins": "ルームスキン",
+    "manage": "管理",
+    "manageDownloaded": "ダウンロード済みスキンを管理",
+    "downloadedCount": "ダウンロード済みスキン ({{count}})",
+    "allSkins": "すべてのスキン",
+    "autoSelected": "自動",
+    "generateMetadata": "メタデータを生成",
+    "generating": "生成中...",
+    "checkForUpdates": "アップデートを確認",
+    "checking": "確認中...",
+    "updateAvailable": "アップデートが利用可能",
+    "update": "アップデート",
+    "updating": "アップデート中...",
+    "updateAll": "すべてアップデート ({{count}})",
+    "updatingCount": "{{count}}個をアップデート中...",
+    "downloadedBeforeTracking": "アップデート追跡前にダウンロード済み"
+  },
+  "filters": {
+    "title": "フィルターと並び替え",
+    "active": "アクティブ",
+    "downloadStatus": "ダウンロード状態",
+    "all": "すべて",
+    "downloaded": "ダウンロード済み",
+    "notDownloaded": "未ダウンロード",
+    "chromas": "クロマ",
+    "hasChromas": "クロマあり",
+    "noChromas": "クロマなし",
+    "championType": "チャンピオンタイプ",
+    "sortBy": "並び替え",
+    "nameAsc": "名前 (昇順)",
+    "nameDesc": "名前 (降順)",
+    "skinNumAsc": "スキン番号 (昇順)",
+    "skinNumDesc": "スキン番号 (降順)",
+    "championName": "チャンピオン名",
+    "rarityAsc": "レアリティ (低→高)",
+    "rarityDesc": "レアリティ (高→低)",
+    "winRateDesc": "勝率 (高→低)",
+    "winRateAsc": "勝率 (低→高)",
+    "pickRateDesc": "ピック率 (高→低)",
+    "pickRateAsc": "ピック率 (低→高)",
+    "totalGamesDesc": "プレイ回数 (多→少)",
+    "totalGamesAsc": "プレイ回数 (少→多)",
+    "rarity": "レアリティ",
+    "rarities": {
+      "epic": "エピック",
+      "legendary": "レジェンダリー",
+      "ultimate": "アルティメット",
+      "mythic": "ミシック",
+      "transcendent": "超越",
+      "exalted": "崇高"
+    },
+    "availability": "Availability",
+    "showUnavailable": "Show unavailable skins"
+  },
+  "patcher": {
+    "applying": "適用中...",
+    "stopping": "停止中...",
+    "cancelling": "キャンセル中...",
+    "cancelApply": "キャンセル",
+    "stopPatcher": "パッチャーを停止",
+    "apply_one": "{{count}}個のスキンを適用",
+    "apply_other": "{{count}}個のスキンを適用",
+    "messages": "パッチャーメッセージ:"
+  },
+  "presets": {
+    "title": "プリセット",
+    "saveAsPreset": "プリセットとして保存",
+    "loadPreset": "プリセットを読み込み",
+    "managePresets": "プリセットを管理",
+    "noPresets": "まだプリセットが保存されていません",
+    "createFirst": "スキンを選択して「プリセットとして保存」をクリックして最初のプリセットを作成してください",
+    "saveDialog": {
+      "title": "プリセットを保存",
+      "description": "{{count}}個の選択されたスキンをプリセットとして保存",
+      "nameLabel": "プリセット名",
+      "namePlaceholder": "プリセット名を入力",
+      "descriptionLabel": "説明（任意）",
+      "descriptionPlaceholder": "このプリセットの説明を入力"
+    },
+    "errors": {
+      "nameRequired": "プリセット名は必須です",
+      "saveFailed": "プリセットの保存に失敗しました",
+      "loadFailed": "プリセットの読み込みに失敗しました",
+      "deleteFailed": "プリセットの削除に失敗しました",
+      "exportFailed": "プリセットのエクスポートに失敗しました",
+      "importFailed": "プリセットのインポートに失敗しました"
+    },
+    "saveSuccess": "プリセット「{{name}}」を正常に保存しました",
+    "saveFailed": "プリセットの保存に失敗しました",
+    "loadSuccess": "プリセット「{{name}}」を正常に読み込みました",
+    "deleteConfirm": "プリセット「{{name}}」を削除してもよろしいですか？",
+    "deleteSuccess": "プリセットを正常に削除しました",
+    "exportSuccess": "プリセットを正常にエクスポートしました",
+    "importSuccess": "プリセットを正常にインポートしました",
+    "skinCount_one": "{{count}}個のスキン",
+    "skinCount_other": "{{count}}個のスキン",
+    "lastUpdated": "最終更新: {{date}}",
+    "actions": {
+      "apply": "適用",
+      "edit": "編集",
+      "duplicate": "複製",
+      "export": "エクスポート",
+      "delete": "削除"
+    },
+    "importPreset": "プリセットをインポート",
+    "noResults": "プリセットが見つかりません",
+    "duplicateSuccess": "プリセット「{{name}}」を正常に複製しました",
+    "duplicateFailed": "プリセットの複製に失敗しました"
+  },
+  "room": {
+    "joinCreate": "参加/作成",
+    "p2pRoom": "P2Pルーム",
+    "description": "新しいルームを作成するか、既存のルームに参加して他の人とスキンを共有します。",
+    "displayName": "表示名",
+    "displayNamePlaceholder": "名前を入力",
+    "createNew": "新しいルームを作成",
+    "creating": "作成中...",
+    "createRoom": "ルームを作成",
+    "joinExisting": "既存のルームに参加",
+    "roomIdPlaceholder": "ルームIDを入力 (例: ABC123)",
+    "joining": "参加中...",
+    "joinRoom": "ルームに参加",
+    "roomId": "ルーム: {{id}}",
+    "copyRoomId": "ルームIDをコピー",
+    "members_one": "{{count}}人のメンバー",
+    "members_other": "{{count}}人のメンバー"
+  },
+  "fileTransfer": {
+    "incoming": "ファイル転送受信中",
+    "description": "ピアがカスタムMODを共有しようとしています",
+    "file": "ファイル:",
+    "size": "サイズ:",
+    "champion": "チャンピオン:",
+    "skin": "スキン:",
+    "transferring": "ファイル転送中...",
+    "completed": "転送完了！"
+  },
+  "customMod": {
+    "edit": "カスタムMODを編集",
+    "modName": "MOD名",
+    "modNamePlaceholder": "MOD名を入力",
+    "previewImage": "プレビュー画像 (オプション)",
+    "selectImage": "画像を選択",
+    "newImageSelected": "新しい画像が選択されました"
+  },
+  "social": {
+    "joinDiscord": "Discordに参加",
+    "viewGithub": "GitHubで表示",
+    "donate": "寄付"
+  },
+  "lcu": {
+    "connected": "リーグクライアントに接続中",
+    "disconnected": "リーグクライアントから切断",
+    "championHovered": "チャンピオン選択中",
+    "championLocked": "チャンピオンロック済み",
+    "viewSkins": "スキンを表示",
+    "connecting": "リーグクライアントに接続中...",
+    "connectionFailed": "リーグクライアントへの接続に失敗しました",
+    "status": "LCUステータス",
+    "notConnected": "接続されていません",
+    "inChampSelect": "チャンピオン選択中",
+    "disabled": "無効",
+    "tooltipNotConnected": "League of Legendsクライアントを起動して、チャンピオン選択中の自動チャンピオン検出を有効にしてください",
+    "tooltipConnected": "リーグクライアントに接続中。チャンピオンを選択すると通知が表示されます",
+    "tooltipInChampSelect": "現在チャンピオン選択中です。チャンピオンを選択して通知を表示してください",
+    "tooltipDisabled": "チャンピオン検出が無効になっています。設定で有効にして、チャンピオン選択時に通知を受け取るようにしてください",
+    "championLockedDescription": "{{champion}}をロックしました。利用可能なスキンを見てみますか？",
+    "championHoveredDescription": "{{champion}}を表示中です。利用可能なスキンを見てみますか？",
+    "randomSkin": "ランダムスキン",
+    "randomRaritySkin": "ランダムレアリティスキン",
+    "readyCheckAccepted": "マッチが自動的に承認されました！"
+  },
+  "smartApply": {
+    "willApply": "スマート: {{count}}/{{total}}",
+    "applying": "{{champions}}の{{count}}個のスキンを適用中",
+    "success": "{{total}}個中{{applied}}個のスキンを適用しました",
+    "failed": "スキンの適用に失敗しました",
+    "noSkinsToApply": "チームに適用するスキンがありません",
+    "noSkinsForTeam": "チームチャンピオンのスキンが選択されていません"
+  },
+  "confirmations": {
+    "confirmDeleteAll": "本当にすべてのスキンを削除しますか？この操作は元に戻せません。",
+    "confirmDeleteChampion": "本当に{{champion}}のすべてのスキンを削除しますか？この操作は元に戻せません。",
+    "confirmDeleteSkin": "\"{{skin}}\"を削除してもよろしいですか？"
+  },
+  "importMethod": {
+    "title": "カスタムModをインポート",
+    "description": "カスタムModのインポート方法を選択してください",
+    "fileTab": "ファイルから",
+    "urlTab": "URLから",
+    "dropFiles": "ここにファイルをドロップ",
+    "or": "または",
+    "browseFiles": "ファイルを参照",
+    "supportedFormats": "サポートされている形式:",
+    "enterDirectUrl": "直接ダウンロードURLを入力",
+    "directUrlPlaceholder": "https://example.com/mod.zip",
+    "enterUrl": "URLを入力してください",
+    "invalidUrl": "無効なURL。Modファイルへの直接ダウンロードリンクを提供してください",
+    "downloadFailed": "Modのダウンロードに失敗しました",
+    "downloading": "ダウンロード中...",
+    "download": "ダウンロード＆インポート",
+    "directDownloadNote": "直接ダウンロードリンクのみサポートされています",
+    "clipboardError": "クリップボードの読み取りに失敗しました"
+  },
+  "messages": {
+    "editFunctionalityComingSoon": "編集機能は近日公開予定！",
+    "noSkinsSelectedYet": "まだスキンが選択されていません。上のスキンをクリックして選択に追加してください。",
+    "autoSyncedCount": "({{count}}個自動同期済み)",
+    "auto": "自動"
+  },
+  "accessibility": {
+    "close": "閉じる"
+  },
+  "p2p": {
+    "status": {
+      "disconnected": "Disconnected",
+      "retrying": "Reconnecting...",
+      "connected": "Connected",
+      "roomReady": "Room Ready",
+      "direct": "Direct (Fast)",
+      "relay": "Relay (Slower)",
+      "unknown": "Unknown"
+    },
+    "tooltip": {
+      "connectionType": "Connection type: {{type}}",
+      "latency": "Latency: {{ms}}ms",
+      "packetLoss": "Packet loss: {{percent}}%",
+      "bandwidth": "Bandwidth: {{mbps}} Mbps",
+      "clickForDetails": "Click for diagnostics"
+    },
+    "diagnostics": {
+      "title": "P2P Connection Diagnostics",
+      "connectionStatus": "Connection Status",
+      "status": "Status",
+      "type": "Type",
+      "attempts": "Connection Attempts",
+      "quality": "Connection Quality",
+      "latency": "Latency",
+      "packetLoss": "Packet Loss",
+      "bandwidth": "Bandwidth",
+      "network": "Network Information",
+      "natType": "NAT Type",
+      "relayHelp": "Your connection is being relayed through a server. This may result in higher latency but ensures connectivity.",
+      "directHelp": "You have a direct peer-to-peer connection. This provides the best performance.",
+      "connectingHelp": "Establishing connection. Please wait...",
+      "waitingForPeers": "Waiting for other members to join the room...",
+      "troubleshooting": "Troubleshooting Tips",
+      "tip1": "Check your firewall settings",
+      "tip2": "Ensure your network allows UDP traffic",
+      "tip3": "Try restarting your router if connection issues persist",
+      "symmetricNatWarning": "Your network uses Symmetric NAT which requires relay servers for connectivity"
+    },
+    "settings": {
+      "title": "P2P Settings",
+      "customServers": "Custom TURN Servers",
+      "addServer": "Add Server",
+      "serverUrl": "Server URL",
+      "username": "Username",
+      "credential": "Credential",
+      "meteredApiKey": "Metered API Key",
+      "meteredApiKeyHelp": "Get 50GB/month free at metered.ca",
+      "testConnection": "Test Connection",
+      "serverAdded": "Server added successfully",
+      "serverRemoved": "Server removed",
+      "testSuccess": "Connection test successful",
+      "testFailed": "Connection test failed"
+    }
+  }
+}

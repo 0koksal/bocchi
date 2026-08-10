@@ -1,0 +1,855 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FixedSizeGrid as Grid } from 'react-window'
+import { useTranslation } from 'react-i18next'
+import { useSetAtom } from 'jotai'
+import { toast } from 'sonner'
+import type { Champion, Skin } from '../App'
+import type { SelectedSkin } from '../store/atoms'
+import { downloadedSkinsAtom } from '../store/atoms/skin.atoms'
+import { isOldFormatCustomId } from '../utils/customModId'
+import { ChromaColorPie } from './ChromaColorPie'
+import { ChromaSelectionDialog } from './ChromaSelectionDialog'
+import { VariantSelectionDialog } from './VariantSelectionDialog'
+import { Button } from './ui/button'
+import { generateSkinFilename } from '../../../shared/utils/skinFilename'
+import { getChampionDisplayName } from '../utils/championUtils'
+
+interface VirtualizedSkinGridProps {
+  skins: Array<{ champion: Champion; skin: Skin }>
+  viewMode: 'compact' | 'comfortable' | 'spacious' | 'list'
+  downloadedSkins: Array<{ championName: string; skinName: string; localPath?: string }>
+  selectedSkins: SelectedSkin[]
+  favorites: Set<string>
+  loading: boolean
+  onSkinClick: (champion: Champion, skin: Skin, chromaId?: string, variantId?: string) => void
+  onToggleFavorite: (champion: Champion, skin: Skin) => void
+  onToggleChromaFavorite?: (
+    champion: Champion,
+    skin: Skin,
+    chromaId: string,
+    chromaName: string
+  ) => void
+  onToggleVariantFavorite?: (
+    champion: Champion,
+    skin: Skin,
+    variantId: string,
+    variantName: string
+  ) => void
+  onDeleteCustomSkin?: (skinPath: string, skinName: string) => void
+  onEditCustomSkin?: (skinPath: string, currentName: string) => void
+  containerWidth: number
+  containerHeight: number
+}
+
+export const VirtualizedSkinGrid: React.FC<VirtualizedSkinGridProps> = ({
+  skins,
+  viewMode,
+  downloadedSkins,
+  selectedSkins,
+  favorites,
+  loading,
+  onSkinClick,
+  onToggleFavorite,
+  onToggleChromaFavorite,
+  onToggleVariantFavorite,
+  onDeleteCustomSkin,
+  onEditCustomSkin,
+  containerWidth,
+  containerHeight
+}) => {
+  const { t } = useTranslation()
+  const gridRef = useRef<Grid>(null)
+  const setDownloadedSkins = useSetAtom(downloadedSkinsAtom)
+  const [chromaDialogState, setChromaDialogState] = useState<{
+    open: boolean
+    champion: Champion | null
+    skin: Skin | null
+  }>({ open: false, champion: null, skin: null })
+  const [variantDialogState, setVariantDialogState] = useState<{
+    open: boolean
+    champion: Champion | null
+    skin: Skin | null
+  }>({ open: false, champion: null, skin: null })
+
+  // Calculate grid dimensions based on view mode
+  const { columnCount, columnWidth, rowHeight } = useMemo(() => {
+    const gap = 24 // 6 * 4px (gap-6 in tailwind)
+    const padding = 64 // 8 * 8px (px-8 in tailwind)
+    const availableWidth = containerWidth - padding
+
+    let cols: number
+    let itemWidth: number
+    let itemHeight: number
+
+    switch (viewMode) {
+      case 'compact':
+        // Match: grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10
+        if (availableWidth >= 1280)
+          cols = 10 // xl
+        else if (availableWidth >= 1024)
+          cols = 8 // lg
+        else if (availableWidth >= 768)
+          cols = 6 // md
+        else if (availableWidth >= 640)
+          cols = 4 // sm
+        else cols = 3
+        itemWidth = (availableWidth - gap * (cols - 1)) / cols
+        itemHeight = itemWidth * 1.49 + 40 // aspect-[0.67] + padding
+        break
+      case 'comfortable':
+        // Match: grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6
+        if (availableWidth >= 1280)
+          cols = 6 // xl
+        else if (availableWidth >= 1024)
+          cols = 5 // lg
+        else if (availableWidth >= 768)
+          cols = 4 // md
+        else if (availableWidth >= 640)
+          cols = 3 // sm
+        else cols = 2
+        itemWidth = (availableWidth - gap * (cols - 1)) / cols
+        itemHeight = itemWidth * 1.49 + 56 // aspect-[0.67] + padding
+        break
+      case 'spacious':
+        // Match: grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4
+        if (availableWidth >= 1024)
+          cols = 4 // lg
+        else if (availableWidth >= 768)
+          cols = 3 // md
+        else if (availableWidth >= 640)
+          cols = 2 // sm
+        else cols = 1
+        itemWidth = (availableWidth - gap * (cols - 1)) / cols
+        itemHeight = itemWidth * 1.49 + 80 // aspect-[0.67] + padding
+        break
+      default:
+        cols = 1
+        itemWidth = availableWidth
+        itemHeight = 80 // List view height
+    }
+
+    return {
+      columnCount: cols,
+      columnWidth: itemWidth + gap,
+      rowHeight: itemHeight + gap
+    }
+  }, [viewMode, containerWidth])
+
+  const rowCount = Math.ceil(skins.length / columnCount)
+  const [customImages, setCustomImages] = useState<Record<string, string>>({})
+
+  const getSkinImageUrl = useCallback(
+    (championKey: string, skinNum: number, skinId: string, modPath?: string, classicJadeAlias?: string) => {
+      // Check if it's a custom skin (either in Custom section or with custom ID)
+      if (modPath && customImages[modPath]) {
+        return customImages[modPath]
+      }
+
+      if (championKey === 'Custom' || skinId.startsWith('custom_')) {
+        // Return a placeholder image for custom mods without custom image
+        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzA4IiBoZWlnaHQ9IjU2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMzA4IiBoZWlnaHQ9IjU2MCIgZmlsbD0iIzM3NDE1MSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IiNhMGE0YWIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkN1c3RvbTwvdGV4dD4KPC9zdmc+'
+      }
+
+      // Classic skins use the Jade champion's DDragon alias for loading screen images
+      if (skinId.includes('_classic_')) {
+        const classicNum = skinId.split('_classic_')[1]
+        // Use classicJadeAlias if available (from CDragon), otherwise construct from championKey
+        // DDragon uses the Jade_ alias from DDragon data which may differ in casing from CDragon
+        const jadeKey = classicJadeAlias || `Jade_${championKey}`
+        return `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${jadeKey}_${classicNum}.jpg`
+      }
+
+      return `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${championKey}_${skinNum}.jpg`
+    },
+    [customImages]
+  )
+
+  // Load custom images
+  useEffect(() => {
+    const loadCustomImages = async () => {
+      const customSkins = skins.filter(
+        (s) => s.champion.key === 'Custom' || s.skin.id.startsWith('custom_')
+      )
+
+      if (customSkins.length === 0) return
+
+      const modPaths = customSkins
+        .map(
+          ({ champion, skin }) =>
+            downloadedSkins.find(
+              (ds) =>
+                ds.skinName.startsWith('[User]') &&
+                ds.skinName.includes(skin.name) &&
+                (champion.key === 'Custom' || ds.championName === champion.key)
+            )?.localPath
+        )
+        .filter((path): path is string => !!path)
+
+      if (modPaths.length === 0) return
+
+      // Single batched call
+      const result = await window.api.getCustomSkinImages(modPaths)
+
+      if (result.success) {
+        setCustomImages((prev) => ({
+          ...prev,
+          ...result.images
+        }))
+      }
+    }
+
+    loadCustomImages()
+  }, [skins, downloadedSkins])
+
+  // Create Maps for O(1) lookup
+  const downloadedSkinsMap = useMemo(() => {
+    const map = new Map<string, (typeof downloadedSkins)[0]>()
+    downloadedSkins.forEach((ds) => {
+      // Create multiple keys for different lookup patterns
+      const key1 = `${ds.championName}:${ds.skinName}`
+      const key2 = ds.localPath || ''
+      map.set(key1, ds)
+      if (key2) map.set(key2, ds)
+    })
+    return map
+  }, [downloadedSkins])
+
+  const selectedSkinsMap = useMemo(() => {
+    const map = new Map<string, SelectedSkin>()
+    selectedSkins.forEach((s) => {
+      const key = `${s.championKey}:${s.skinId}:${s.chromaId || ''}:${s.variantId || ''}`
+      map.set(key, s)
+    })
+    return map
+  }, [selectedSkins])
+
+  const Cell = useCallback(
+    ({ columnIndex, rowIndex, style }) => {
+      const index = rowIndex * columnCount + columnIndex
+      if (index >= skins.length) return null
+
+      const { champion, skin } = skins[index]
+      const skinFileName = generateSkinFilename(skin)
+
+      let downloadedSkin: (typeof downloadedSkins)[number] | undefined
+      if (champion.key === 'Custom') {
+        downloadedSkin = downloadedSkins.find(
+          (ds) => ds.skinName.startsWith('[User]') && ds.skinName.includes(skin.name)
+        )
+      } else {
+        downloadedSkin =
+          downloadedSkinsMap.get(`${champion.key}:${skinFileName}`) ||
+          downloadedSkinsMap.get(`${champion.name}:${skinFileName}`) ||
+          downloadedSkins.find(
+            (ds) =>
+              (ds.championName === champion.key || ds.championName === champion.name) &&
+              ds.skinName === skinFileName
+          ) ||
+          downloadedSkins.find(
+            (ds) =>
+              ds.championName === champion.key &&
+              ds.skinName.includes(`[User]`) &&
+              ds.skinName.includes(skin.name)
+          )
+
+        // Fallback for classic skins: check with .fantome extension or partial name match
+        if (!downloadedSkin && skin.skinType === 'classic') {
+          const classicBaseName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
+          downloadedSkin = downloadedSkins.find(
+            (ds) =>
+              (ds.championName === champion.key || ds.championName === champion.name) &&
+              (ds.skinName === `${classicBaseName}.fantome` ||
+               ds.skinName === `${classicBaseName}.zip` ||
+               ds.skinName.replace(/\.(zip|fantome)$/i, '') === classicBaseName)
+          )
+        }
+
+        // Fallback for tiered skins (e.g., "Immortalized Legend Ahri"): normalized name comparison
+        if (!downloadedSkin) {
+          const baseName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
+          downloadedSkin = downloadedSkins.find(
+            (ds) =>
+              (ds.championName === champion.key || ds.championName === champion.name) &&
+              !ds.skinName.includes('[User]') &&
+              ds.skinName.replace(/\.(zip|fantome)$/i, '') === baseName
+          )
+        }
+      }
+      const isDownloaded = !!downloadedSkin
+      const isUserSkin = downloadedSkin?.skinName?.includes('[User]')
+      const isFavorite = favorites.has(`${champion.key}_${skin.id}_base`)
+
+      // Use Map for O(1) lookup instead of linear search
+      const directKey = `${champion.key}:${skin.id}::`
+      let isSelected = selectedSkinsMap.has(directKey)
+
+      // Backward compatibility check
+      if (!isSelected && skin.id.startsWith('custom_')) {
+        for (const [, s] of selectedSkinsMap) {
+          if (
+            s.skinId.startsWith('custom_') &&
+            isOldFormatCustomId(s.skinId) &&
+            s.championKey === champion.key &&
+            s.skinName === skin.name &&
+            !s.chromaId &&
+            !s.variantId
+          ) {
+            isSelected = true
+            break
+          }
+        }
+      }
+
+      // Adjust style to account for gap
+      const adjustedStyle = {
+        ...style,
+        left: style.left + 32, // Add padding
+        top: style.top + 24, // Add padding for search bar
+        width: style.width - 24, // Subtract gap
+        height: style.height - 24 // Subtract gap
+      }
+
+      const chromas = skin.chromaList || []
+
+      if (viewMode === 'list') {
+        return (
+          <div style={adjustedStyle}>
+            <div
+              className={`flex items-center gap-4 p-3 bg-surface rounded-lg transition-all duration-200 border-2
+                ${'cursor-pointer'}
+                ${
+                  isSelected
+                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20'
+                    : 'border-border hover:border-border-strong hover:shadow-md dark:hover:shadow-dark-soft'
+                }`}
+              onClick={() => !loading && onSkinClick(champion, skin)}
+            >
+              <img
+                src={getSkinImageUrl(champion.key, skin.num, skin.id, downloadedSkin?.localPath, skin.classicJadeAlias)}
+                alt={skin.name}
+                className="w-16 h-16 object-cover rounded"
+                loading="lazy"
+              />
+              <div className="flex-1">
+                <p className="font-medium text-text-primary">{skin.name}</p>
+                <p className="text-sm text-text-secondary">{champion.name}</p>
+                {/* Show author for custom mods */}
+                {isUserSkin && skin.author && (
+                  <p className="text-xs text-text-tertiary">by {skin.author}</p>
+                )}
+                {/* Temporarily disabled - !isAvailable && (
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-red-500/10 text-red-500 text-xs rounded">
+                    {t('skin.notAvailable')}
+                  </span>
+                ) */}
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                    isSelected ? 'bg-primary-500 border-primary-500' : 'bg-surface border-border'
+                  }`}
+                >
+                  {isSelected && (
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                </div>
+                {chromas.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-8 h-8 p-1 bg-surface hover:bg-secondary-100 dark:hover:bg-secondary-800 border border-border"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setChromaDialogState({ open: true, champion, skin })
+                    }}
+                    title={`${chromas.length} chromas available`}
+                  >
+                    <ChromaColorPie
+                      colors={chromas.map((c) => c.colors[0])}
+                      size={24}
+                      className=""
+                    />
+                  </Button>
+                )}
+                {skin.variants && skin.variants.items.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-8 h-8 p-1 bg-surface hover:bg-secondary-100 dark:hover:bg-secondary-800 border border-border"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setVariantDialogState({ open: true, champion, skin })
+                    }}
+                    title={`${skin.variants.items.length} ${skin.variants.type} variants available`}
+                  >
+                    <svg
+                      className="w-5 h-5 text-primary-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+                      />
+                    </svg>
+                  </Button>
+                )}
+                {/* Rarity gem for list view */}
+                {skin.rarityGemPath && (
+                  <img
+                    src={skin.rarityGemPath}
+                    alt={skin.rarity}
+                    className="w-6 h-6 object-contain"
+                  />
+                )}
+                {isDownloaded && (
+                  <span
+                    className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      isUserSkin ? 'bg-blue-600' : 'bg-green-600'
+                    }`}
+                  >
+                    <span className="text-white text-xs">{isUserSkin ? 'U' : '↓'}</span>
+                  </span>
+                )}
+                <Button
+                  variant={isFavorite ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className={`w-8 h-8 rounded-full ${
+                    isFavorite
+                      ? 'bg-red-100 dark:bg-red-900/30 text-red-500 hover:bg-red-200 dark:hover:bg-red-900/40'
+                      : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onToggleFavorite(champion, skin)
+                  }}
+                >
+                  {isFavorite ? '❤️' : '🤍'}
+                </Button>
+                {/* Edit and Delete buttons for custom mods in list view */}
+                {(champion.key === 'Custom' || skin.id.startsWith('custom_')) &&
+                  downloadedSkin &&
+                  isUserSkin && (
+                    <>
+                      {onEditCustomSkin && (
+                        <Button
+                          variant="default"
+                          size="icon"
+                          className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onEditCustomSkin(downloadedSkin.localPath!, skin.name)
+                          }}
+                          title="Edit custom mod"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </Button>
+                      )}
+                      {onDeleteCustomSkin && (
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="w-8 h-8 rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (
+                              confirm(t('confirmations.confirmDeleteSkin', { skin: skin.name }))
+                            ) {
+                              onDeleteCustomSkin(downloadedSkin.localPath!, downloadedSkin.skinName)
+                            }
+                          }}
+                          title="Delete custom mod"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </Button>
+                      )}
+                    </>
+                  )}
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      // Card views
+      return (
+        <div style={adjustedStyle}>
+          <div
+            className={`group relative bg-surface rounded-xl overflow-hidden transform transition-all duration-300 ease-out border-2
+              ${
+                isSelected
+                  ? 'border-primary-500 shadow-xl dark:shadow-dark-large scale-[1.02]'
+                  : 'border-border hover:shadow-xl dark:hover:shadow-dark-large shadow-md dark:shadow-dark-soft hover:-translate-y-1 hover:scale-[1.02] hover:border-border-strong'
+              } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+            `}
+          >
+            <div
+              className="relative aspect-[0.67] overflow-hidden bg-secondary-100 dark:bg-secondary-900"
+              onClick={() => !loading && onSkinClick(champion, skin)}
+            >
+              <img
+                src={getSkinImageUrl(champion.key, skin.num, skin.id, downloadedSkin?.localPath, skin.classicJadeAlias)}
+                alt={skin.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-75 backdrop-blur-sm rounded-lg text-xs text-white font-medium transform transition-all duration-300 group-hover:scale-105">
+                <div>{champion.name}</div>
+                {/* Show author for custom mods in grid view */}
+                {isUserSkin && skin.author && (
+                  <div className="text-[10px] text-white/80 mt-0.5">by {skin.author}</div>
+                )}
+              </div>
+              {isSelected && (
+                <div className="absolute top-2 right-2 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110">
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+              )}
+              {/* Temporarily disabled - !isAvailable && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none">
+                  <div className="bg-red-500/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg">
+                    {t('skin.notAvailable')}
+                  </div>
+                </div>
+              ) */}
+              {isDownloaded ? (
+                <div
+                  className={`absolute bottom-12 left-2 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-soft transform duration-300 ${
+                    isUserSkin ? 'bg-blue-600' : 'bg-green-600'
+                  }`}
+                  title={isUserSkin ? 'User Import' : 'Downloaded'}
+                >
+                  <span className="text-white text-sm">{isUserSkin ? 'U' : '↓'}</span>
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute bottom-12 left-2 w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm text-white/70 hover:text-white hover:bg-white/20 transition-all"
+                  onClick={async (e) => {
+                    e.stopPropagation()
+                    try {
+                      const championNameForUrl = getChampionDisplayName(champion)
+                      const classicSkinFile = skin.skinType === 'classic' ? skin.id : skinFileName
+                      console.log(`[QuickDownload] Starting download:`, {
+                        champion: champion.key,
+                        championName: championNameForUrl,
+                        championId: champion.id,
+                        skin: skin.name,
+                        skinId: skin.id,
+                        skinType: skin.skinType,
+                        skinFileName,
+                        classicSkinFile,
+                        isClassic: skin.skinType === 'classic'
+                      })
+                      const urlResult = await window.api.repositoryConstructUrl(
+                        championNameForUrl,
+                        classicSkinFile,
+                        false,
+                        undefined,
+                        champion.id,
+                        skin.skinType === 'classic'
+                      )
+                      console.log(`[QuickDownload] URL result:`, urlResult)
+                      if (urlResult.success && urlResult.url) {
+                        toast.success(`Downloading ${skin.name}...`, { duration: 2000, position: 'bottom-right' })
+                        const downloadResult = await window.api.downloadSkin(urlResult.url)
+                        console.log(`[QuickDownload] Download result:`, downloadResult)
+                        if (downloadResult.success) {
+                          toast.success(`Downloaded ${skin.name}`, { duration: 2000, position: 'bottom-right' })
+                          // Refresh downloaded skins list to update UI immediately
+                          const skinsResult = await window.api.listDownloadedSkins()
+                          if (skinsResult.success && skinsResult.skins) {
+                            setDownloadedSkins(skinsResult.skins)
+                          }
+                        } else {
+                          console.error(`[QuickDownload] Download failed:`, downloadResult)
+                          toast.error(`Failed to download ${skin.name}: ${downloadResult.error || 'Unknown error'}`, { duration: 3000, position: 'bottom-right' })
+                        }
+                      } else {
+                        console.error(`[QuickDownload] URL construction failed:`, urlResult)
+                        toast.error(`Could not find download URL for ${skin.name}: ${urlResult.error || 'Unknown error'}`, { duration: 3000, position: 'bottom-right' })
+                      }
+                    } catch (err) {
+                      console.error(`[QuickDownload] Exception:`, err)
+                      toast.error(`Download failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { duration: 3000, position: 'bottom-right' })
+                    }
+                  }}
+                  title="Download skin"
+                >
+                  <span className="text-sm">↓</span>
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`absolute bottom-2 left-2 w-8 h-8 rounded-full transition-all
+                    ${
+                      isFavorite
+                        ? 'bg-white/10 backdrop-blur-sm text-red-500 hover:bg-white/20'
+                        : 'bg-white/10 backdrop-blur-sm text-white/70 hover:text-white hover:bg-white/20'
+                    }`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onToggleFavorite(champion, skin)
+                }}
+                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                {isFavorite ? '❤️' : '🤍'}
+              </Button>
+              {/* Floating chroma button for grid mode */}
+              {chromas.length > 0 && (
+                <div
+                  className="absolute bottom-2 left-12 w-8 h-8 rounded-full bg-white dark:bg-charcoal-800 backdrop-blur-sm hover:bg-charcoal-50 dark:hover:bg-charcoal-700 transition-all cursor-pointer shadow-lg flex items-center justify-center ring-2 ring-white dark:ring-charcoal-700"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setChromaDialogState({ open: true, champion, skin })
+                  }}
+                  title={`${chromas.length} chromas available`}
+                >
+                  <ChromaColorPie colors={chromas.map((c) => c.colors[0])} size={28} className="" />
+                </div>
+              )}
+              {/* Floating variant button for grid mode */}
+              {skin.variants && skin.variants.items.length > 0 && (
+                <div
+                  className="absolute bottom-2 left-[5.5rem] w-8 h-8 rounded-full bg-white dark:bg-charcoal-800 backdrop-blur-sm hover:bg-charcoal-50 dark:hover:bg-charcoal-700 transition-all cursor-pointer shadow-lg flex items-center justify-center ring-2 ring-white dark:ring-charcoal-700"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setVariantDialogState({ open: true, champion, skin })
+                  }}
+                  title={`${skin.variants.items.length} ${skin.variants.type} variants available`}
+                >
+                  <svg
+                    className="w-5 h-5 text-primary-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+                    />
+                  </svg>
+                </div>
+              )}
+              {/* Rarity gem */}
+              {skin.rarityGemPath && (
+                <div
+                  className={`absolute bottom-2 ${chromas.length > 0 && skin.variants && skin.variants.items.length > 0 ? 'left-[9rem]' : chromas.length > 0 || (skin.variants && skin.variants.items.length > 0) ? 'left-[5.5rem]' : 'left-12'} w-8 h-8`}
+                >
+                  <img
+                    src={skin.rarityGemPath}
+                    alt={skin.rarity}
+                    className="w-full h-full object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                  />
+                </div>
+              )}
+              {/* Edit and Delete buttons for custom mods */}
+              {(champion.key === 'Custom' || skin.id.startsWith('custom_')) &&
+                downloadedSkin &&
+                isUserSkin && (
+                  <>
+                    {onEditCustomSkin && (
+                      <Button
+                        variant="default"
+                        size="icon"
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-blue-600/90 hover:bg-blue-700 opacity-0 group-hover:opacity-100 shadow-lg"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEditCustomSkin(downloadedSkin.localPath!, skin.name)
+                        }}
+                        title="Edit custom mod"
+                      >
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </Button>
+                    )}
+                    {onDeleteCustomSkin && (
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-18 right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 shadow-lg"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (confirm(t('confirmations.confirmDeleteSkin', { skin: skin.name }))) {
+                            onDeleteCustomSkin(downloadedSkin.localPath!, downloadedSkin.skinName)
+                          }
+                        }}
+                        title="Delete custom mod"
+                      >
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </Button>
+                    )}
+                  </>
+                )}
+            </div>
+            <div
+              className={`bg-white dark:bg-charcoal-800 ${viewMode === 'spacious' ? 'p-4' : viewMode === 'comfortable' ? 'p-3' : 'p-2'} ${'cursor-pointer hover:bg-charcoal-50 dark:hover:bg-charcoal-700'} transition-colors`}
+              onClick={(e) => {
+                e.stopPropagation()
+                !loading && onSkinClick(champion, skin)
+              }}
+            >
+              <p
+                className={`${viewMode === 'spacious' ? 'text-base' : viewMode === 'comfortable' ? 'text-sm' : 'text-xs'} font-semibold text-charcoal-900 dark:text-charcoal-100 truncate`}
+                title={skin.name}
+              >
+                {skin.name}
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    [
+      skins,
+      columnCount,
+      viewMode,
+      downloadedSkins,
+      downloadedSkinsMap,
+      selectedSkinsMap,
+      favorites,
+      loading,
+      onSkinClick,
+      onToggleFavorite,
+      onDeleteCustomSkin,
+      t,
+      onEditCustomSkin,
+      getSkinImageUrl
+    ]
+  )
+
+  return (
+    <>
+      <Grid
+        ref={gridRef}
+        columnCount={columnCount}
+        columnWidth={columnWidth}
+        height={containerHeight}
+        rowCount={rowCount}
+        rowHeight={rowHeight}
+        width={containerWidth}
+        className="scrollbar-thin scrollbar-thumb-charcoal-300 dark:scrollbar-thumb-charcoal-700 scrollbar-track-transparent"
+      >
+        {Cell}
+      </Grid>
+
+      {chromaDialogState.champion && chromaDialogState.skin && onToggleChromaFavorite && (
+        <ChromaSelectionDialog
+          open={chromaDialogState.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setChromaDialogState({ open: false, champion: null, skin: null })
+            }
+          }}
+          champion={chromaDialogState.champion}
+          skin={chromaDialogState.skin}
+          chromas={chromaDialogState.skin.chromaList || []}
+          selectedSkins={selectedSkins}
+          downloadedSkins={downloadedSkins}
+          onChromaSelect={onSkinClick}
+          favorites={favorites}
+          onToggleChromaFavorite={onToggleChromaFavorite}
+        />
+      )}
+
+      {variantDialogState.champion && variantDialogState.skin && (
+        <VariantSelectionDialog
+          open={variantDialogState.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setVariantDialogState({ open: false, champion: null, skin: null })
+            }
+          }}
+          champion={variantDialogState.champion}
+          skin={variantDialogState.skin}
+          selectedSkins={selectedSkins}
+          downloadedSkins={downloadedSkins}
+          onVariantSelect={(champion, skin, variantId) => {
+            onSkinClick(champion, skin, undefined, variantId)
+          }}
+          favorites={favorites}
+          onToggleVariantFavorite={onToggleVariantFavorite}
+        />
+      )}
+    </>
+  )
+}

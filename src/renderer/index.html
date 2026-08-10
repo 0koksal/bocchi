@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bocchi - League of Legends Skin Changer</title>
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://ddragon.leagueoflegends.com https://raw.githubusercontent.com https://raw.communitydragon.org; connect-src 'self' wss://*.peerjs.com https://*.peerjs.com"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Theme will be applied by main.tsx before React renders
+      // This prevents theme flicker
+    </script>
+    <style>
+      /* Prevent flash of unstyled content */
+      body {
+        margin: 0;
+        opacity: 0;
+        transition: opacity 0.1s ease-in;
+      }
+      body.loaded {
+        opacity: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

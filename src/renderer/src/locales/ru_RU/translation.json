@@ -1,0 +1,661 @@
+{
+  "app": {
+    "title": "CSLOL Лаунчер Скинов",
+    "loading": "Загрузка...",
+    "ready": "Готово"
+  },
+  "actions": {
+    "browse": "Обзор",
+    "download": "Скачать",
+    "update": "Обновить",
+    "apply": "Применить",
+    "stop": "Остановить",
+    "close": "Закрыть",
+    "minimize": "Свернуть",
+    "maximize": "Развернуть",
+    "restore": "Восстановить",
+    "search": "Поиск",
+    "filter": "Фильтр",
+    "sort": "Сортировка",
+    "clearAll": "Очистить все",
+    "clearFilters": "Очистить фильтры",
+    "save": "Сохранить",
+    "saveChanges": "Сохранить изменения",
+    "delete": "Удалить",
+    "deleteAll": "Удалить все скины",
+    "deleteAllForChampion": "Удалить все скины для {{champion}}",
+    "decline": "Отклонить",
+    "accept": "Принять",
+    "join": "Присоединиться",
+    "leave": "Покинуть",
+    "create": "Создать",
+    "copy": "Копировать",
+    "later": "Позже",
+    "skipForNow": "Пропустить сейчас",
+    "downloadAndInstall": "Скачать и установить",
+    "multiSelect": "Множественный выбор",
+    "exitMultiSelect": "Выйти из множественного выбора",
+    "deleteSelected": "Удалить выбранные",
+    "selectAll": "Выбрать все",
+    "clearSelection": "Очистить выбор",
+    "cancel": "Отмена"
+  },
+  "nav": {
+    "favorites": "Избранное",
+    "settings": "Настройки",
+    "about": "О программе"
+  },
+  "champion": {
+    "searchPlaceholder": "Поиск чемпионов",
+    "noData": "Данные чемпионов не найдены",
+    "downloadData": "Скачать данные чемпионов",
+    "updateData": "Обновить данные",
+    "version": "Версия",
+    "allChampions": "Все чемпионы",
+    "customMods": "Пользовательские моды"
+  },
+  "skin": {
+    "searchPlaceholder": "Поиск скинов среди всех чемпионов...",
+    "apply": "Применить скин",
+    "applied": "Применено",
+    "downloaded": "Скачано",
+    "favorite": "Добавить в избранное",
+    "unfavorite": "Удалить из избранного",
+    "clickToApply": "Нажмите на любой скин для мгновенного применения",
+    "showing_one": "Показан {{count}} скин",
+    "showing_other": "Показано {{count}} скинов",
+    "notAvailable": "Недоступно",
+    "notAvailableMessage": "Этот скин недоступен как мод",
+    "unavailableTooltip": "У этого скина нет доступного файла мода"
+  },
+  "status": {
+    "detectingGame": "Определение пути к игре...",
+    "gameDetected": "Путь к игре определен автоматически",
+    "gameNotFound": "Путь к игре не найден. Пожалуйста, укажите вручную.",
+    "downloading": "Скачивание {{name}}...",
+    "applying": "Применение {{name}}...",
+    "applied": "{{name}} успешно применен!",
+    "stopping": "Остановка патчера...",
+    "stopped": "Патчер остановлен",
+    "cancelling": "Отмена операции...",
+    "cancelled": "Операция отменена",
+    "failedToCancel": "Не удалось отменить: {{error}}",
+    "error": "Ошибка: {{message}}",
+    "fetchingData": "Получение данных чемпионов...",
+    "dataFetched": "Успешно получены данные для {{count}} чемпионов!",
+    "gamePathSet": "Путь к игре успешно установлен!",
+    "pleaseSetGamePath": "Пожалуйста, сначала укажите путь к игре",
+    "downloadingTools": "Скачивание cslol-tools",
+    "toolsDownloaded": "Инструменты успешно скачаны!",
+    "stoppingCurrentPatcher": "Остановка текущего патчера",
+    "failedToStopPatcher": "Не удалось остановить патчер: {{error}}",
+    "deletedCustomMod": "Удален пользовательский мод: {{name}}",
+    "deletedSkin": "Удален скин: {{name}}",
+    "failedToDeleteMod": "Не удалось удалить мод: {{error}}",
+    "failedToDeleteSkin": "Не удалось удалить скин: {{error}}",
+    "autoSelectedSkinsCleanedUp": "Очищено {{count}} автоматически выбранных скинов",
+    "autoAcceptedMatch": "Матч принят автоматически!"
+  },
+  "tools": {
+    "required": "Требуются инструменты CS:LOL",
+    "description": "Для применения скинов требуются инструменты CS:LOL мод. Скачать их сейчас?",
+    "downloading": "Скачивание инструментов... {{progress}}%",
+    "downloadTools": "Скачать инструменты",
+    "downloadFailed": "Скачивание не удалось",
+    "retryDownload": "Повторить загрузку",
+    "manualDownload": "Скачать вручную",
+    "maxRetries": "Достигнуто максимальное количество попыток",
+    "extractTo": "Извлечь в:",
+    "havingTrouble": "Возникли проблемы? Вы также можете:"
+  },
+  "downloadAll": {
+    "title": "Скачать все скины",
+    "button": "Скачать все",
+    "optionsTitle": "Скачать все скины",
+    "optionsDescription": "Выберите скины для загрузки и настройте параметры загрузки.",
+    "infoTitle": "Информация о загрузке",
+    "infoDescription": "Будет загружено примерно {{count}} скинов (~{{size}}).",
+    "filterOptions": "Параметры фильтра",
+    "excludeChromas": "Исключить хромы",
+    "excludeChromasDesc": "Пропустить варианты хром для уменьшения размера загрузки",
+    "excludeVariants": "Исключить варианты",
+    "excludeVariantsDesc": "Пропустить престижные издания и специальные варианты",
+    "excludeLegacy": "Исключить устаревшие скины",
+    "excludeLegacyDesc": "Пропустить устаревшие и ограниченные по времени скины",
+    "excludeEsports": "Исключить киберспортивные скины",
+    "excludeEsportsDesc": "Пропустить чемпионские и командные скины",
+    "onlyFavorites": "Только избранное",
+    "onlyFavoritesDesc": "Загрузить только избранные скины",
+    "performanceOptions": "Параметры производительности",
+    "concurrency": "Одновременные загрузки",
+    "concurrencyDesc": "Количество одновременных загрузок (выше = быстрее, но больше ресурсов)",
+    "startDownload": "Начать загрузку",
+    "progress": "{{completed}} из {{total}} скинов",
+    "speed": "Скорость",
+    "timeRemaining": "Осталось времени",
+    "failedDownloads": "{{count}} неудачных загрузок",
+    "pause": "Пауза",
+    "resume": "Продолжить",
+    "cancel": "Отмена",
+    "completed": "Загрузка завершена",
+    "downloadingRepository": "Загрузка репозитория",
+    "extracting": "Извлечение файлов",
+    "processingSkins": "Обработка скинов",
+    "downloadProgress": "Загрузка архива репозитория",
+    "extractProgress": "Извлечение архива",
+    "processed": "Обработано",
+    "skipped": "Пропущено",
+    "retryFailed": "Повторить неудачные"
+  },
+  "settings": {
+    "title": "Настройки",
+    "description": "Настройка параметров приложения",
+    "gamePath": "Путь к игре",
+    "language": "Язык",
+    "theme": "Тема",
+    "notifications": "Уведомления",
+    "leagueClient": {
+      "title": "Интеграция с клиентом League",
+      "description": "Включить функции, которые подключаются к клиенту League of Legends"
+    },
+    "championDetection": {
+      "title": "Обнаружение чемпионов",
+      "description": "Автоматически показывать уведомления при выборе чемпионов в клиенте League"
+    },
+    "autoViewSkins": {
+      "title": "Автопросмотр скинов",
+      "description": "Автоматически просматривать скины при обнаружении чемпиона"
+    },
+    "autoAcceptMatch": {
+      "title": "Автопринятие матча",
+      "description": "Автоматически принимать проверку готовности при нахождении матча"
+    },
+    "autoPick": {
+      "title": "Автовыбор",
+      "description": "Автоматически выбирать чемпионов во время выбора",
+      "force": "Принудительный выбор",
+      "forceDescription": "Игнорировать выбор команды и выбрать, даже если уже выбран",
+      "championPriority": "Список приоритетов выбора"
+    },
+    "autoBan": {
+      "title": "Автобан",
+      "description": "Автоматически банить чемпионов во время выбора",
+      "force": "Принудительный бан",
+      "forceDescription": "Игнорировать намерения команды и банить, даже если союзник хочет играть",
+      "championPriority": "Список приоритетов бана"
+    },
+    "selectChampion": "Выбрать чемпиона",
+    "addChampion": "Добавить чемпиона",
+    "smartApply": {
+      "title": "Умное применение",
+      "description": "Загружать только скины для чемпионов вашей команды (уменьшает время загрузки)"
+    },
+    "autoApply": {
+      "title": "Автоприменение",
+      "description": "Автоматически применять скины, когда все чемпионы заблокированы"
+    },
+    "autoApplyTriggerTime": {
+      "title": "Время срабатывания автоприменения",
+      "description": "Количество секунд до начала игры для автоматического применения скинов (5-30 секунд)"
+    },
+    "autoRandomSkin": {
+      "title": "Авто случайный скин",
+      "description": "Автоматически выбирать случайный скин при обнаружении чемпиона"
+    },
+    "autoRandomRaritySkin": {
+      "title": "Авто случайный скин с редкостью",
+      "description": "Автоматически выбирать случайный скин с редкостью (Эпический, Легендарный и т.д.) при обнаружении чемпиона"
+    },
+    "autoRandomFavoriteSkin": {
+      "title": "Авто случайный избранный скин",
+      "description": "Автоматически выбирать случайный скин из избранного при обнаружении чемпиона"
+    },
+    "autoRandomHighestWinRateSkin": {
+      "title": "Авто случайный скин с высоким винрейтом",
+      "description": "Автоматически выбирает случайный скин из топ-3 с самым высоким процентом побед"
+    },
+    "autoRandomHighestPickRateSkin": {
+      "title": "Авто случайный популярный скин",
+      "description": "Автоматически выбирает случайный скин из топ-3 самых популярных"
+    },
+    "autoRandomMostPlayedSkin": {
+      "title": "Авто случайный часто используемый скин",
+      "description": "Автоматически выбирает случайный скин из топ-3 наиболее используемых"
+    },
+    "inGameOverlay": {
+      "title": "Внутриигровой оверлей",
+      "description": "Предварительное подключение оверлея к клиенту League для быстрых уведомлений о скинах (требуется любая функция автовыбора)"
+    },
+    "allowMultipleSkinsPerChampion": {
+      "title": "Разрешить несколько скинов на чемпиона",
+      "description": "Включите, чтобы использовать несколько скинов для одного чемпиона одновременно"
+    },
+    "autoFixModIssues": {
+      "title": "Автоматически исправлять проблемы мода при импорте",
+      "description": "Автоматически исправляет отсутствующие полосы здоровья, материалы и VFX эффекты при импорте модов"
+    },
+    "modToolsTimeout": {
+      "title": "Тайм-аут инструментов модов",
+      "description": "Максимальное время ожидания импорта модов и создания оверлея",
+      "hint": "Увеличьте это значение, если у вас много модов или медленная система. Уменьшите для более быстрого обнаружения ошибок."
+    },
+    "cacheManagement": {
+      "title": "Управление кэшем скинов",
+      "description": "Управление кэшированными файлами скинов, используемыми для более быстрого применения модов",
+      "info": "Кэш содержит {{count}} мод(ов) и использует {{size}} МБ",
+      "clearCache": "Очистить кэш",
+      "clearing": "Очистка...",
+      "confirmClear": "Вы уверены, что хотите очистить кэш скинов? Это заставит все скины быть переимпортированными при следующем применении, что может занять больше времени.",
+      "clearSuccess": "Кэш скинов успешно очищен",
+      "clearError": "Не удалось очистить кэш скинов"
+    },
+    "applicationUpdate": {
+      "title": "Обновления приложения",
+      "description": "Текущая версия: {{version}}"
+    },
+    "autoAccept": {
+      "title": "Автопринятие матча",
+      "description": "Автоматически принимать проверку готовности при нахождении матча"
+    },
+    "tabs": {
+      "general": "Общие",
+      "leagueClient": "Клиент League",
+      "skinManagement": "Управление скинами"
+    },
+    "randomSkinSelection": {
+      "title": "Случайный выбор скина",
+      "none": "Отключено"
+    },
+    "minimizeToTray": {
+      "title": "Свернуть в трей",
+      "description": "Скрывать приложение в системный трей вместо закрытия при нажатии кнопки закрытия"
+    },
+    "autoExtractImages": {
+      "title": "Автоматическое извлечение изображений предпросмотра",
+      "description": "Автоматически извлекать изображения предпросмотра из WAD файлов при импорте скинов (требуются инструменты конвертации)"
+    }
+  },
+  "tray": {
+    "show": "Показать Bocchi",
+    "hide": "Скрыть Bocchi",
+    "language": "Язык",
+    "checkForUpdates": "Проверить обновления",
+    "openSettings": "Открыть настройки",
+    "quit": "Выйти из Bocchi"
+  },
+  "errors": {
+    "generic": "Произошла ошибка",
+    "downloadFailed": "Не удалось скачать",
+    "connectionError": "Ошибка подключения",
+    "pathNotSet": "Пожалуйста, сначала укажите путь к игре",
+    "operationTimeout": "Время операции истекло. Пожалуйста, попробуйте снова.",
+    "skinNotAvailable": "Скин недоступен в репозитории lol-skins или неправильное сопоставление"
+  },
+  "fileUpload": {
+    "selectChampion": "Выбрать чемпиона",
+    "uploadButton": "Загрузить пользовательский мод",
+    "importTitle": "Импорт пользовательского мода",
+    "importDescription": "При желании выберите чемпиона и задайте пользовательское имя для вашего мода.",
+    "selectedFile": "Выбранный файл",
+    "championPlaceholder": "Без конкретного чемпиона",
+    "customName": "Пользовательское имя",
+    "customNamePlaceholder": "Введите название скина...",
+    "importing": "Импортирование...",
+    "import": "Импорт",
+    "noFileSelected": "Файл не выбран",
+    "invalidFile": "Неверный формат файла",
+    "importSuccess": "Скин успешно импортирован!",
+    "importFailed": "Не удалось импортировать скин",
+    "previewImage": "Изображение предпросмотра",
+    "browseImage": "Обзор",
+    "noImageSelected": "Изображение не выбрано",
+    "extractImage": "Извлечь изображение",
+    "extractingImage": "Извлечение...",
+    "extractImageError": "Не удалось извлечь изображение: {{error}}",
+    "batchImportTitle": "Импорт нескольких файлов",
+    "importingProgress": "Импортирование {{current}} из {{total}} файлов...",
+    "batchComplete": "Импорт завершен!",
+    "succeeded": "успешно",
+    "failed": "неудачно",
+    "failedFiles": "Неудачные файлы:",
+    "close": "Закрыть",
+    "fixModIssues": "Исправить проблемы мода",
+    "fixModIssuesDescription": "Исправляет отсутствующие полосы здоровья, материалы и VFX эффекты"
+  },
+  "editCustomSkin": {
+    "title": "Редактировать пользовательский мод",
+    "modName": "Название мода",
+    "modNamePlaceholder": "Введите название мода",
+    "champion": "Чемпион",
+    "selectChampion": "Выберите чемпиона",
+    "noSpecificChampion": "Без конкретного чемпиона (Пользовательский мод)",
+    "previewImage": "Превью изображение (опционально)",
+    "selectImage": "Выбрать изображение",
+    "newImageSelected": "Новое изображение выбрано",
+    "modMaintenance": "Обслуживание мода",
+    "fixModIssues": "Исправить проблемы мода",
+    "fixing": "Исправление...",
+    "fixDescription": "Исправляет отсутствующие полосы здоровья, материалы и VFX эффекты",
+    "startingFix": "Начинается процесс исправления...",
+    "fixCompleted": "Исправление успешно завершено!",
+    "fixFailed": "Исправление не удалось: {{error}}",
+    "fixError": "Произошла ошибка при исправлении мода",
+    "saveChanges": "Сохранить изменения"
+  },
+  "common": {
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "save": "Сохранить",
+    "saving": "Сохранение..."
+  },
+  "cancel": "Отмена",
+  "success": "Успешно",
+  "error": "Ошибка",
+  "update": {
+    "available": "Доступно обновление",
+    "description": "Новая версия Bocchi доступна для скачивания.",
+    "whatsNew": "Что нового",
+    "downloading": "Скачивание...",
+    "updateNow": "Обновить сейчас",
+    "checkForUpdates": "Проверить обновления",
+    "checking": "Проверка обновлений...",
+    "noUpdates": "У вас последняя версия!",
+    "error": "Ошибка проверки обновлений",
+    "championDataAvailable": "Доступно обновление данных чемпионов",
+    "championDataDescription": "Доступна новая версия данных чемпионов. Это обновление включает последних чемпионов, скины и другой игровой контент.",
+    "currentVersion": "Текущая версия: ",
+    "updating": "Обновление..."
+  },
+  "skins": {
+    "selected_one": "Выбран {{count}} скин",
+    "selected_other": "Выбрано {{count}} скинов",
+    "toDownload": "({{count}} для скачивания)",
+    "downloaded": "Скачанные скины",
+    "notDownloaded": "Не скачано",
+    "repository": "Скины из репозитория",
+    "customImports": "Пользовательские импорты",
+    "total": "Всего: {{count}} скинов",
+    "searchPlaceholder": "Поиск по имени чемпиона или скина...",
+    "noSkinsFound": "Скины не найдены",
+    "userImport": "Пользовательский импорт",
+    "custom": "Пользовательский",
+    "deleting": "Удаление...",
+    "chromas_one": "Доступна {{count}} хрома",
+    "chromas_other": "Доступно {{count}} хром",
+    "selectChroma": "Выберите хрому для {{skinName}}",
+    "chooseChroma_one": "Выберите из {{count}} доступной хромы",
+    "chooseChroma_other": "Выберите из {{count}} доступных хром",
+    "selectVariant": "Выберите вариант для {{skinName}}",
+    "chooseVariant": "Выберите из {{count}} доступных {{type}}",
+    "exaltedVariant": "Возвышенные варианты",
+    "formVariant": "Варианты форм",
+    "mySkins": "Мои скины",
+    "roomSkins": "Скины комнаты",
+    "manage": "Управление",
+    "manageDownloaded": "Управление скачанными скинами",
+    "downloadedCount": "Скачанные скины ({{count}})",
+    "allSkins": "Все скины",
+    "autoSelected": "Авто",
+    "generateMetadata": "Создать метаданные",
+    "generating": "Создание...",
+    "checkForUpdates": "Проверить обновления",
+    "checking": "Проверка...",
+    "updateAvailable": "Доступно обновление",
+    "update": "Обновить",
+    "updating": "Обновление...",
+    "updateAll": "Обновить все ({{count}})",
+    "updatingCount": "Обновление {{count}}...",
+    "downloadedBeforeTracking": "Загружено до отслеживания обновлений"
+  },
+  "filters": {
+    "title": "Фильтры и сортировка",
+    "active": "Активно",
+    "downloadStatus": "Статус загрузки",
+    "all": "Все",
+    "downloaded": "Скачано",
+    "notDownloaded": "Не скачано",
+    "chromas": "Хромы",
+    "hasChromas": "С хромами",
+    "noChromas": "Без хром",
+    "championType": "Тип чемпиона",
+    "sortBy": "Сортировать по",
+    "nameAsc": "Имя (А-Я)",
+    "nameDesc": "Имя (Я-А)",
+    "skinNumAsc": "Номер скина (по возрастанию)",
+    "skinNumDesc": "Номер скина (по убыванию)",
+    "championName": "Имя чемпиона",
+    "rarityAsc": "Редкость (низкая→высокая)",
+    "rarityDesc": "Редкость (высокая→низкая)",
+    "winRateDesc": "Процент побед (высокий→низкий)",
+    "winRateAsc": "Процент побед (низкий→высокий)",
+    "pickRateDesc": "Процент выбора (высокий→низкий)",
+    "pickRateAsc": "Процент выбора (низкий→высокий)",
+    "totalGamesDesc": "Сыграно игр (много→мало)",
+    "totalGamesAsc": "Сыграно игр (мало→много)",
+    "rarity": "Редкость",
+    "rarities": {
+      "epic": "Эпический",
+      "legendary": "Легендарный",
+      "ultimate": "Превосходный",
+      "mythic": "Мифический",
+      "transcendent": "Запредельный",
+      "exalted": "Возвышенный"
+    },
+    "availability": "Availability",
+    "showUnavailable": "Show unavailable skins"
+  },
+  "patcher": {
+    "applying": "Применение...",
+    "stopping": "Остановка...",
+    "cancelling": "Отмена...",
+    "cancelApply": "Отменить",
+    "stopPatcher": "Остановить патчер",
+    "apply_one": "Применить {{count}} скин",
+    "apply_other": "Применить {{count}} скинов",
+    "messages": "Сообщения патчера:"
+  },
+  "presets": {
+    "title": "Пресеты",
+    "saveAsPreset": "Сохранить как пресет",
+    "loadPreset": "Загрузить пресет",
+    "managePresets": "Управлять пресетами",
+    "noPresets": "Пока нет сохранённых пресетов",
+    "createFirst": "Создайте свой первый пресет, выбрав скины и нажав 'Сохранить как пресет'",
+    "saveDialog": {
+      "title": "Сохранить пресет",
+      "description": "Сохранить {{count}} выбранных скинов как пресет",
+      "nameLabel": "Название пресета",
+      "namePlaceholder": "Введите название пресета",
+      "descriptionLabel": "Описание (опционально)",
+      "descriptionPlaceholder": "Введите описание для этого пресета"
+    },
+    "errors": {
+      "nameRequired": "Название пресета обязательно",
+      "saveFailed": "Не удалось сохранить пресет",
+      "loadFailed": "Не удалось загрузить пресет",
+      "deleteFailed": "Не удалось удалить пресет",
+      "exportFailed": "Не удалось экспортировать пресет",
+      "importFailed": "Не удалось импортировать пресет"
+    },
+    "saveSuccess": "Пресет '{{name}}' успешно сохранён",
+    "saveFailed": "Не удалось сохранить пресет",
+    "loadSuccess": "Пресет '{{name}}' успешно загружен",
+    "deleteConfirm": "Вы уверены, что хотите удалить пресет '{{name}}'?",
+    "deleteSuccess": "Пресет успешно удалён",
+    "exportSuccess": "Пресет успешно экспортирован",
+    "importSuccess": "Пресет успешно импортирован",
+    "skinCount_one": "{{count}} скин",
+    "skinCount_other": "{{count}} скинов",
+    "lastUpdated": "Последнее обновление: {{date}}",
+    "actions": {
+      "apply": "Применить",
+      "edit": "Редактировать",
+      "duplicate": "Дублировать",
+      "export": "Экспортировать",
+      "delete": "Удалить"
+    },
+    "importPreset": "Импортировать пресет",
+    "noResults": "Пресеты не найдены",
+    "duplicateSuccess": "Пресет '{{name}}' успешно дублирован",
+    "duplicateFailed": "Не удалось дублировать пресет"
+  },
+  "room": {
+    "joinCreate": "Присоединиться/Создать",
+    "p2pRoom": "P2P Комната",
+    "description": "Создайте новую комнату или присоединитесь к существующей, чтобы делиться скинами с другими.",
+    "displayName": "Отображаемое имя",
+    "displayNamePlaceholder": "Введите ваше имя",
+    "createNew": "Создать новую комнату",
+    "creating": "Создание...",
+    "createRoom": "Создать комнату",
+    "joinExisting": "Присоединиться к существующей комнате",
+    "roomIdPlaceholder": "Введите ID комнаты (например, ABC123)",
+    "joining": "Присоединение...",
+    "joinRoom": "Присоединиться к комнате",
+    "roomId": "Комната: {{id}}",
+    "copyRoomId": "Копировать ID комнаты",
+    "members_one": "{{count}} участник",
+    "members_other": "{{count}} участников"
+  },
+  "fileTransfer": {
+    "incoming": "Входящая передача файла",
+    "description": "Участник хочет поделиться с вами пользовательским модом",
+    "file": "Файл:",
+    "size": "Размер:",
+    "champion": "Чемпион:",
+    "skin": "Скин:",
+    "transferring": "Передача файла...",
+    "completed": "Передача завершена!"
+  },
+  "customMod": {
+    "edit": "Редактировать пользовательский мод",
+    "modName": "Название мода",
+    "modNamePlaceholder": "Введите название мода",
+    "previewImage": "Изображение предпросмотра (необязательно)",
+    "selectImage": "Выбрать изображение",
+    "newImageSelected": "Выбрано новое изображение"
+  },
+  "social": {
+    "joinDiscord": "Присоединиться к Discord",
+    "viewGithub": "Посмотреть на GitHub",
+    "donate": "Поддержать"
+  },
+  "lcu": {
+    "connected": "Подключено к клиенту League",
+    "disconnected": "Отключено от клиента League",
+    "championHovered": "Чемпион выбран",
+    "championLocked": "Чемпион заблокирован",
+    "viewSkins": "Посмотреть скины",
+    "connecting": "Подключение к клиенту League...",
+    "connectionFailed": "Не удалось подключиться к клиенту League",
+    "status": "Статус LCU",
+    "notConnected": "Не подключено",
+    "inChampSelect": "В выборе чемпиона",
+    "disabled": "Отключено",
+    "tooltipNotConnected": "Запустите клиент League of Legends для автоматического обнаружения чемпионов во время выбора",
+    "tooltipConnected": "Подключено к клиенту League. Уведомления будут появляться при выборе чемпионов",
+    "tooltipInChampSelect": "Сейчас в выборе чемпиона. Выберите чемпиона, чтобы увидеть уведомление",
+    "tooltipDisabled": "Обнаружение чемпионов отключено. Включите в настройках, чтобы получать уведомления при выборе чемпионов",
+    "championLockedDescription": "Вы заблокировали {{champion}}. Хотите посмотреть доступные скины?",
+    "championHoveredDescription": "Вы навелись на {{champion}}. Хотите посмотреть доступные скины?",
+    "randomSkin": "Случайный скин",
+    "randomRaritySkin": "Случайный скин с редкостью",
+    "readyCheckAccepted": "Матч автоматически принят!"
+  },
+  "smartApply": {
+    "willApply": "Умно: {{count}}/{{total}}",
+    "applying": "Применение {{count}} скинов для: {{champions}}",
+    "success": "Применено {{applied}} из {{total}} скинов",
+    "failed": "Не удалось применить скины",
+    "noSkinsToApply": "Нет скинов для применения к вашей команде",
+    "noSkinsForTeam": "Не выбрано скинов для чемпионов вашей команды"
+  },
+  "confirmations": {
+    "confirmDeleteAll": "Вы уверены, что хотите удалить все скины? Это действие нельзя отменить.",
+    "confirmDeleteChampion": "Вы уверены, что хотите удалить все скины для {{champion}}? Это действие нельзя отменить.",
+    "confirmDeleteSkin": "Вы уверены, что хотите удалить \"{{skin}}\"?"
+  },
+  "importMethod": {
+    "title": "Импорт пользовательского мода",
+    "description": "Выберите способ импорта вашего пользовательского мода",
+    "fileTab": "Из файла",
+    "urlTab": "Из URL",
+    "dropFiles": "Перетащите файлы сюда",
+    "or": "или",
+    "browseFiles": "Обзор файлов",
+    "supportedFormats": "Поддерживаемые форматы:",
+    "enterDirectUrl": "Введите прямую ссылку для скачивания",
+    "directUrlPlaceholder": "https://example.com/mod.zip",
+    "enterUrl": "Пожалуйста, введите URL",
+    "invalidUrl": "Неверный URL. Пожалуйста, предоставьте прямую ссылку на файл мода",
+    "downloadFailed": "Не удалось скачать мод",
+    "downloading": "Загрузка...",
+    "download": "Скачать и импортировать",
+    "directDownloadNote": "Поддерживаются только прямые ссылки для скачивания",
+    "clipboardError": "Не удалось прочитать буфер обмена"
+  },
+  "messages": {
+    "editFunctionalityComingSoon": "Функция редактирования скоро будет доступна!",
+    "noSkinsSelectedYet": "Пока не выбрано ни одного скина. Нажмите на скины выше, чтобы добавить их в выбор.",
+    "autoSyncedCount": "({{count}} авто-синхронизировано)",
+    "auto": "Авто"
+  },
+  "accessibility": {
+    "close": "Закрыть"
+  },
+  "p2p": {
+    "status": {
+      "disconnected": "Disconnected",
+      "retrying": "Reconnecting...",
+      "connected": "Connected",
+      "roomReady": "Room Ready",
+      "direct": "Direct (Fast)",
+      "relay": "Relay (Slower)",
+      "unknown": "Unknown"
+    },
+    "tooltip": {
+      "connectionType": "Connection type: {{type}}",
+      "latency": "Latency: {{ms}}ms",
+      "packetLoss": "Packet loss: {{percent}}%",
+      "bandwidth": "Bandwidth: {{mbps}} Mbps",
+      "clickForDetails": "Click for diagnostics"
+    },
+    "diagnostics": {
+      "title": "P2P Connection Diagnostics",
+      "connectionStatus": "Connection Status",
+      "status": "Status",
+      "type": "Type",
+      "attempts": "Connection Attempts",
+      "quality": "Connection Quality",
+      "latency": "Latency",
+      "packetLoss": "Packet Loss",
+      "bandwidth": "Bandwidth",
+      "network": "Network Information",
+      "natType": "NAT Type",
+      "relayHelp": "Your connection is being relayed through a server. This may result in higher latency but ensures connectivity.",
+      "directHelp": "You have a direct peer-to-peer connection. This provides the best performance.",
+      "connectingHelp": "Establishing connection. Please wait...",
+      "waitingForPeers": "Waiting for other members to join the room...",
+      "troubleshooting": "Troubleshooting Tips",
+      "tip1": "Check your firewall settings",
+      "tip2": "Ensure your network allows UDP traffic",
+      "tip3": "Try restarting your router if connection issues persist",
+      "symmetricNatWarning": "Your network uses Symmetric NAT which requires relay servers for connectivity"
+    },
+    "settings": {
+      "title": "P2P Settings",
+      "customServers": "Custom TURN Servers",
+      "addServer": "Add Server",
+      "serverUrl": "Server URL",
+      "username": "Username",
+      "credential": "Credential",
+      "meteredApiKey": "Metered API Key",
+      "meteredApiKeyHelp": "Get 50GB/month free at metered.ca",
+      "testConnection": "Test Connection",
+      "serverAdded": "Server added successfully",
+      "serverRemoved": "Server removed",
+      "testSuccess": "Connection test successful",
+      "testFailed": "Connection test failed"
+    }
+  }
+}
