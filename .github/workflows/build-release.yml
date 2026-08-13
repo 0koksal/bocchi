@@ -26,8 +26,18 @@ jobs:
       - name: Setup Visual Studio Build Tools
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Fix pnpm-workspace for CI
+        run: |
+          @"
+          packages: []
+          onlyBuiltDependencies:
+            - electron
+            - electron-overlay-window
+            - esbuild
+          "@ | Set-Content pnpm-workspace.yaml
+
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build and publish
         env:
