@@ -23,6 +23,9 @@ jobs:
         with:
           version: 9
 
+      - name: Setup Visual Studio Build Tools
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Install dependencies
         run: pnpm install
 
