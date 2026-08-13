@@ -52,6 +52,8 @@ export const DownloadedSkinsDialog: React.FC<DownloadedSkinsDialogProps> = ({
   const [updatingSkins, setUpdatingSkins] = useState<Set<string>>(new Set())
   const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false)
   const [isUpdatingAll, setIsUpdatingAll] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const SKINS_PER_PAGE = 50
 
   // Group skins by champion
   const groupedSkins = useMemo(() => {
@@ -103,6 +105,48 @@ export const DownloadedSkinsDialog: React.FC<DownloadedSkinsDialogProps> = ({
     return Object.values(groupedSkins).reduce((acc, skins) => acc + skins.length, 0)
   }, [groupedSkins])
 
+  // Pagination: flatten grouped skins into sorted champion entries, then paginate
+  const sortedChampionEntries = useMemo(() => {
+    return Object.entries(groupedSkins).sort(([a], [b]) => {
+      if (a === 'Custom') return 1
+      if (b === 'Custom') return -1
+      const championA = championData?.champions.find((c) => c.key === a)
+      const championB = championData?.champions.find((c) => c.key === b)
+      const nameA = championA ? getChampionDisplayName(championA) : a
+      const nameB = championB ? getChampionDisplayName(championB) : b
+      return nameA.localeCompare(nameB)
+    })
+  }, [groupedSkins, championData])
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(totalSkins / SKINS_PER_PAGE)
+  }, [totalSkins])
+
+  // Get paginated champion entries (show champions whose skins fall within current page range)
+  const paginatedEntries = useMemo(() => {
+    const start = (currentPage - 1) * SKINS_PER_PAGE
+    const end = start + SKINS_PER_PAGE
+    let count = 0
+    const entries: Array<[string, typeof groupedSkins[string]]> = []
+
+    for (const [championKey, skins] of sortedChampionEntries) {
+      if (count >= end) break
+      if (count + skins.length > start) {
+        // This champion has skins in the current page range
+        const sliceStart = Math.max(0, start - count)
+        const sliceEnd = Math.min(skins.length, end - count)
+        entries.push([championKey, skins.slice(sliceStart, sliceEnd)])
+      }
+      count += skins.length
+    }
+    return entries
+  }, [sortedChampionEntries, currentPage])
+
+  // Reset page when filters change
+  useMemo(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedCategory])
+
   const skinsWithUpdates = useMemo(() => {
     return downloadedSkins.filter((skin) => {
       const key = `${skin.championName}_${skin.skinName}`
@@ -141,34 +185,11 @@ export const DownloadedSkinsDialog: React.FC<DownloadedSkinsDialogProps> = ({
 
     setIsDeletingAll(true)
     try {
-      // Get all skins to delete based on current filter
-      const skinsToDelete: Array<{
-        championName: string
-        skinName: string
-        localPath?: string
-        isCustom: boolean
-      }> = []
-
-      Object.entries(groupedSkins).forEach(([championKey, skins]) => {
-        skins.forEach((skin) => {
-          skinsToDelete.push({
-            championName: championKey,
-            skinName: skin.skinName,
-            localPath: skin.localPath,
-            isCustom: skin.isCustom
-          })
-        })
-      })
-
-      // Delete all skins
-      for (const skin of skinsToDelete) {
-        if (skin.isCustom && skin.localPath && onDeleteCustomSkin) {
-          await onDeleteCustomSkin(skin.localPath, skin.skinName)
-        } else {
-          await onDeleteSkin(skin.championName, skin.skinName)
-        }
+      // Use fast bulk delete (removes entire cache directory at once)
+      const result = await window.api.deleteAllSkins()
+      if (!result.success) {
+        console.error('Failed to delete all skins:', result.error)
       }
-
       await onRefresh()
     } finally {
       setIsDeletingAll(false)
@@ -432,19 +453,7 @@ export const DownloadedSkinsDialog: React.FC<DownloadedSkinsDialogProps> = ({
             <div className="text-center py-8 text-text-muted">{t('skins.noSkinsFound')}</div>
           ) : (
             <div className="space-y-6">
-              {Object.entries(groupedSkins)
-                .sort(([a], [b]) => {
-                  // Put Custom at the end
-                  if (a === 'Custom') return 1
-                  if (b === 'Custom') return -1
-
-                  // Sort by champion display name
-                  const championA = championData?.champions.find((c) => c.key === a)
-                  const championB = championData?.champions.find((c) => c.key === b)
-                  const nameA = championA ? getChampionDisplayName(championA) : a
-                  const nameB = championB ? getChampionDisplayName(championB) : b
-                  return nameA.localeCompare(nameB)
-                })
+              {paginatedEntries
                 .map(([championKey, skins]) => {
                   const champion = championData?.champions.find((c) => c.key === championKey)
                   const championName = champion ? champion.name : championKey
@@ -599,8 +608,31 @@ export const DownloadedSkinsDialog: React.FC<DownloadedSkinsDialogProps> = ({
           )}
         </div>
 
-        <DialogFooter className="flex flex-col items-center justify-center gap-2">
+        <DialogFooter className="flex items-center justify-between gap-2 pt-2">
           <div className="text-sm text-text-muted">{t('skins.total', { count: totalSkins })}</div>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                ←
+              </Button>
+              <span className="text-sm text-text-secondary">
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                →
+              </Button>
+            </div>
+          )}
           <Button variant="secondary" onClick={onClose}>
             {t('actions.close')}
           </Button>

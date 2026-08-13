@@ -63,6 +63,10 @@ process.on('uncaughtException', (error: NodeJS.ErrnoException) => {
     console.warn('[Bocchi] Suppressed EPIPE/stream error (process already exited):', error.message)
     return
   }
+  if (error.message === 'Download cancelled by user' || error.name === 'CancelledError') {
+    console.log('[Bocchi] Bulk download cancelled by user')
+    return
+  }
   // Re-throw non-EPIPE errors so they still show
   throw error
 })
@@ -684,6 +688,15 @@ function setupIpcHandlers(): void {
     }
   })
 
+  ipcMain.handle('delete-all-skins', async () => {
+    try {
+      await skinDownloader.deleteAllSkins()
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+
   // Open external links
   ipcMain.handle('open-external', async (_, url: string) => {
     try {
@@ -775,9 +788,17 @@ function setupIpcHandlers(): void {
   })
 
   // Bulk download from repository
+  let bulkDownloadCancelled = false
+
   ipcMain.handle('download-all-skins-bulk', async (event, options) => {
+    bulkDownloadCancelled = false
     try {
       await skinDownloader.downloadAllSkinsFromRepository(options, (progress) => {
+        if (bulkDownloadCancelled) {
+          const cancelError = new Error('Download cancelled by user')
+          cancelError.name = 'CancelledError'
+          throw cancelError
+        }
         event.sender.send('download-all-skins-bulk-progress', progress)
       })
       // Send debug info to renderer
@@ -795,17 +816,43 @@ function setupIpcHandlers(): void {
       }
       return { success: true }
     } catch (error) {
-      console.error('[BulkDownload] FAILED:', error)
+      const isCancelled = error instanceof Error && (error.name === 'CancelledError' || error.message === 'Download cancelled by user')
+      if (isCancelled) {
+        console.log('[BulkDownload] Cancelled by user')
+      } else {
+        console.error('[BulkDownload] FAILED:', error)
+      }
       event.sender.send('download-all-skins-bulk-progress', {
         phase: 'completed',
         overallProgress: 100,
-        failedFiles: [error instanceof Error ? error.message : 'Unknown error']
+        failedFiles: isCancelled ? ['Cancelled by user'] : [error instanceof Error ? error.message : 'Unknown error']
       })
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: isCancelled ? 'Cancelled' : (error instanceof Error ? error.message : 'Unknown error')
       }
     }
+  })
+
+  ipcMain.handle('pause-batch-download', async () => {
+    // Bulk download (archive-based) cannot be paused - just acknowledge the call
+    console.log('[BulkDownload] Pause requested (not supported for archive downloads)')
+    return { success: true }
+  })
+
+  ipcMain.handle('cancel-batch-download', async () => {
+    bulkDownloadCancelled = true
+    console.log('[BulkDownload] Cancel requested')
+    return { success: true }
+  })
+
+  ipcMain.handle('resume-batch-download', async () => {
+    // Not applicable for archive-based bulk downloads
+    return { success: true }
+  })
+
+  ipcMain.handle('get-batch-download-state', async () => {
+    return { success: true, state: bulkDownloadCancelled ? 'cancelled' : 'running' }
   })
 
   ipcMain.handle('browse-image-file', async () => {

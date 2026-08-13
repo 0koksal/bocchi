@@ -3,16 +3,16 @@
 <div align="center">
   <img src="./build/logo.png" alt="Bocchi Logo" width="128" height="128">
   
+  [![Installer](https://img.shields.io/badge/Installer-Windows-blue)](https://github.com/0koksal/bocchi/releases/latest)
+  [![Discord](https://img.shields.io/discord/1537070071825043486?color=5865F2&logo=discord&logoColor=white)](https://discord.gg/frXDBTe4FW)
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-  [![Platform](https://img.shields.io/badge/platform-Windows-brightgreen.svg)](https://github.com/hoangvu12/bocchi/releases)
-  [![Electron](https://img.shields.io/badge/electron-33.x-blue.svg)](https://www.electronjs.org/)
-  [![React](https://img.shields.io/badge/react-19.x-61dafb.svg)](https://react.dev/)
-  [![Discord](https://img.shields.io/discord/1234567890?color=5865F2&logo=discord&logoColor=white)](https://discord.gg/frXDBTe4FW)
 </div>
 
 ## 📖 Overview
 
 Bocchi is a modern, user-friendly desktop application for changing League of Legends skins. Built with Electron and React.
+
+Since hoangvu stopped maintaining his project , i decided to fix it so i like that app much compared to other options . Hope you guys like it.
 
 ## ✨ Features
 
@@ -26,18 +26,57 @@ Bocchi is a modern, user-friendly desktop application for changing League of Leg
 
 ## 📸 Screenshots
 
-![Main Interface](./screenshots/main-interface.png)
+![Main Interface](./screenshots/Screenshot_1.jpg)
+![Main Interface2](./screenshots/Screenshot_2.jpg)
 
 ## 🚀 Installation
 
 ### Download
 
-1. Go to the [Releases](https://github.com/hoangvu12/bocchi/releases) page
+1. Go to the [Releases](https://github.com/0koksal/bocchi/releases/latest) page
 2. Download the latest `Bocchi-Setup-x.x.x.exe`
 3. Run the installer and follow the setup wizard
 
-## 🛠️ Development
+## 🛠️ Build From Source
 
+If you don't trust pre-built executables, you can build Bocchi yourself from source.
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) v18 or higher
+- [pnpm](https://pnpm.io/installation) package manager
+
+## Steps
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/0koksal/bocchi.git
+cd bocchi
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Approve build scripts (select electron and electron-overlay-window)
+pnpm approve-builds
+
+# 4. Re-install to run approved build scripts
+pnpm install
+
+# 5. Build the application
+npm run build:win
+```
+
+The built files will be in the `dist/` folder:
+- **Installer:** `dist/Bocchi-1.24.17-setup.exe`
+- **Portable:** `dist/win-unpacked/Bocchi.exe`
+
+## Troubleshooting
+
+### Electron failed to install
+If you get "Electron failed to install correctly", the mirror in `.npmrc` might be unreachable. Remove or comment out the `electron_mirror` line in `.npmrc` and run:
+```bash
+pnpm install
+```
 ### Prerequisites
 
 - Node.js 20+
@@ -112,20 +151,20 @@ Use at your own risk. Skins are client-side only and do not provide any competit
 
 ## 📧 Contact
 
-- GitHub Issues: [Create an issue](https://github.com/hoangvu12/bocchi/issues)
+- GitHub Issues: [Create an issue](https://github.com/0koksal/bocchi/issues)
 - Discord Server: [Join our community](https://discord.gg/frXDBTe4FW)
-- GitHub Repository: [Star on GitHub](https://github.com/hoangvu12/bocchi)
+- GitHub Repository: [Star on GitHub](https://github.com/0koksal/bocchi)
 
 ## 💝 Support
 
 If you find Bocchi helpful and want to support its development:
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/hoangvu12)
+You can find my crypto wallets and hoangvu's ko-fi account inside app.
 
 Your support helps keep the project alive and motivates continued development!
 
 ---
 
 <div align="center">
-  Made with ❤️ by <a href="https://github.com/hoangvu12">hoangvu12</a>
+  Made with ❤️ by <a href="https://github.com/hoangvu12">hoangvu12</a>  · Fork maintained by <a href="https://github.com/0Koksal">Koksal</a>
 </div>

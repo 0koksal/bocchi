@@ -780,6 +780,18 @@ export class SkinDownloader {
     }
   }
 
+  async deleteAllSkins(): Promise<void> {
+    // Delete entire cache directory at once (much faster than one-by-one for 8000+ skins)
+    try {
+      await fs.rm(this.cacheDir, { recursive: true, force: true })
+      await fs.mkdir(this.cacheDir, { recursive: true })
+      console.log('[SkinDownloader] Deleted all downloaded skins')
+    } catch (error) {
+      console.error('Failed to delete all skins:', error)
+      throw error
+    }
+  }
+
   async checkForSkinUpdates(skinInfos?: SkinInfo[]): Promise<Map<string, SkinUpdateInfo>> {
     const updates = new Map<string, SkinUpdateInfo>()
     const skinsToCheck = skinInfos || (await this.listDownloadedSkins())

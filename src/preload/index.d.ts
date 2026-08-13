@@ -25,6 +25,7 @@ export interface IApi {
     championName: string,
     skinName: string
   ) => Promise<{ success: boolean; error?: string }>
+  deleteAllSkins: () => Promise<{ success: boolean; error?: string }>
 
   // Batch download management
   downloadAllSkins: (

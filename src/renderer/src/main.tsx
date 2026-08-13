@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 
 // Debug info for troubleshooting
-console.log('%c[Bocchi] v1.25.1-modded', 'color: #22c55e; font-weight: bold; font-size: 14px')
+console.log('%c[Bocchi] v1.25.2-modded', 'color: #22c55e; font-weight: bold; font-size: 14px')
 console.log('[Bocchi] If you encounter a bug, screenshot the console (F12) and send it to @Koksal on Discord')
 console.log('[Bocchi] Platform:', navigator.platform, '| UserAgent:', navigator.userAgent)
 

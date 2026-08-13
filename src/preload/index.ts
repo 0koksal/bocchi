@@ -26,6 +26,7 @@ const api = {
   listDownloadedSkins: () => ipcRenderer.invoke('list-downloaded-skins'),
   deleteSkin: (championName: string, skinName: string) =>
     ipcRenderer.invoke('delete-skin', championName, skinName),
+  deleteAllSkins: () => ipcRenderer.invoke('delete-all-skins'),
 
   // Batch download management
   downloadAllSkins: (
