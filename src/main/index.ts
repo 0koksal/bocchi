@@ -57,6 +57,16 @@ const fileImportService = new FileImportService()
 const imageService = new ImageService()
 const presetService = new PresetService()
 
+// Suppress EPIPE errors from overlay/mod-tools processes that have already exited
+process.on('uncaughtException', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EPIPE' || error.code === 'ERR_STREAM_DESTROYED') {
+    console.warn('[Bocchi] Suppressed EPIPE/stream error (process already exited):', error.message)
+    return
+  }
+  // Re-throw non-EPIPE errors so they still show
+  throw error
+})
+
 const MOD_FILE_EXTENSION_REGEX = /\.(wad\.client|wad|zip|fantome)$/i
 
 function resolveSkinFileInfo(skinContext: SelectedSkin): { baseName: string; extension: string } {

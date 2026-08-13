@@ -30,7 +30,7 @@ export const GithubDialog: React.FC<GithubDialogProps> = ({ open, onOpenChange }
           <div className="flex items-center gap-3 p-3 rounded-lg bg-elevated border border-border">
             <div className="min-w-[100px]">
               <p className="text-sm font-semibold text-text-primary">Original Bocchi</p>
-              <p className="text-xs text-text-muted">hoangvu12</p>
+              <p className="text-xs text-text-muted">(not working)</p>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-text-secondary font-mono truncate">
@@ -60,8 +60,8 @@ export const GithubDialog: React.FC<GithubDialogProps> = ({ open, onOpenChange }
 
           <div className="flex items-center gap-3 p-3 rounded-lg bg-elevated border border-border">
             <div className="min-w-[100px]">
-              <p className="text-sm font-semibold text-text-primary">My Fork</p>
-              <p className="text-xs text-text-muted">0koksal</p>
+              <p className="text-sm font-semibold text-text-primary">Bocchi Reborn</p>
+              <p className="text-xs text-text-muted">(Working)</p>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-text-secondary font-mono truncate">

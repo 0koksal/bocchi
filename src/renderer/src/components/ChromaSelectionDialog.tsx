@@ -1,9 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSetAtom } from 'jotai'
+import { toast } from 'sonner'
 import { Champion, Skin } from '../App'
 import { type Chroma, type SelectedSkin } from '../store/atoms'
+import { downloadedSkinsAtom } from '../store/atoms/skin.atoms'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
 import { Button } from './ui/button'
+import { generateSkinFilename } from '../../../shared/utils/skinFilename'
+import { getChampionDisplayName } from '../utils/championUtils'
 
 interface ChromaSelectionDialogProps {
   open: boolean
@@ -36,6 +41,8 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
   onToggleChromaFavorite
 }) => {
   const { t } = useTranslation()
+  const setDownloadedSkins = useSetAtom(downloadedSkinsAtom)
+  const [downloadingIds, setDownloadingIds] = useState<Set<number>>(new Set())
   const isChromaSelected = (chromaId: number) => {
     return selectedSkins.some(
       (s) =>
@@ -133,6 +140,56 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
                     <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center">
                       <span className="text-white text-xs">↓</span>
                     </div>
+                  )}
+                  {!isDownloaded && !isSelected && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`w-8 h-8 rounded-full ${downloadingIds.has(chroma.id) ? 'bg-yellow-600/20' : 'bg-secondary-100 dark:bg-secondary-800 hover:bg-secondary-200 dark:hover:bg-secondary-700'}`}
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        try {
+                          setDownloadingIds((prev) => new Set(prev).add(chroma.id))
+                          const championNameForUrl = getChampionDisplayName(champion)
+                          const skinFileName = generateSkinFilename({ ...skin, chromaId: chroma.id.toString() })
+                          const downloadName = skinFileName.replace(/\.zip$/i, '').replace(/\s+\d+$/, '')
+                          const urlResult = await window.api.repositoryConstructUrl(
+                            championNameForUrl,
+                            skinFileName,
+                            true,
+                            downloadName,
+                            champion.id,
+                            skin.skinType === 'classic'
+                          )
+                          if (urlResult.success && urlResult.url) {
+                            toast.success(`Downloading ${chroma.name}...`, { duration: 2000, position: 'bottom-right' })
+                            const downloadResult = await window.api.downloadSkin(urlResult.url)
+                            if (downloadResult.success) {
+                              toast.success(`Downloaded ${chroma.name}`, { duration: 2000, position: 'bottom-right' })
+                              const skinsResult = await window.api.listDownloadedSkins()
+                              if (skinsResult.success && skinsResult.skins) {
+                                setDownloadedSkins(skinsResult.skins)
+                              }
+                            } else {
+                              toast.error(`Failed: ${downloadResult.error || 'Unknown error'}`, { duration: 3000, position: 'bottom-right' })
+                            }
+                          } else {
+                            toast.error(`URL not found: ${urlResult.error || 'Unknown'}`, { duration: 3000, position: 'bottom-right' })
+                          }
+                        } catch (err) {
+                          toast.error(`Download failed: ${err instanceof Error ? err.message : 'Unknown'}`, { duration: 3000, position: 'bottom-right' })
+                        } finally {
+                          setDownloadingIds((prev) => {
+                            const next = new Set(prev)
+                            next.delete(chroma.id)
+                            return next
+                          })
+                        }
+                      }}
+                      title="Download chroma"
+                    >
+                      <span className="text-xs">↓</span>
+                    </Button>
                   )}
                 </div>
               )

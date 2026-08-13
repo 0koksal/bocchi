@@ -29,12 +29,12 @@ export const DiscordDialog: React.FC<DiscordDialogProps> = ({ open, onOpenChange
         <div className="space-y-3 mt-2">
           <div className="flex items-center gap-3 p-3 rounded-lg bg-elevated border border-border">
             <div className="min-w-[100px]">
-              <p className="text-sm font-semibold text-text-primary">Bocchi Discord</p>
-              <p className="text-xs text-text-muted">Server</p>
+              <p className="text-sm font-semibold text-text-primary">Bocchi Reborn </p>
+              <p className="text-xs text-text-muted">Discord Server</p>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-text-secondary font-mono truncate">
-                https://discord.gg/frXDBTe4FW
+                https://discord.gg/FVxNNhzNcP
               </p>
             </div>
             <Button
@@ -60,12 +60,12 @@ export const DiscordDialog: React.FC<DiscordDialogProps> = ({ open, onOpenChange
 
           <div className="flex items-center gap-3 p-3 rounded-lg bg-elevated border border-border">
             <div className="min-w-[100px]">
-              <p className="text-sm font-semibold text-text-primary">@Koksal</p>
-              <p className="text-xs text-text-muted">Developer</p>
+              <p className="text-sm font-semibold text-text-primary">Hoangvu's</p>
+              <p className="text-xs text-text-muted">Discord Server</p>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-text-secondary font-mono truncate">
-                @Koksal
+                https://discord.gg/frXDBTe4FW
               </p>
             </div>
             <Button

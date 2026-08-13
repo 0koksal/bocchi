@@ -47,7 +47,7 @@ nsis:
 npmRebuild: false
 publish:
   provider: github
-  owner: hoangvu12
+  owner: 0koksal
   repo: bocchi
   releaseType: release
 electronDownload:
