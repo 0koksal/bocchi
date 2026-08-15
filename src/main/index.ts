@@ -5,6 +5,10 @@ import fs from 'fs'
 import crypto from 'crypto'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../build/icon.png?asset'
+import { loggerService } from './services/loggerService'
+
+// Initialize logger as early as possible
+loggerService.initialize()
 import { SkinDownloader } from './services/skinDownloader'
 import { ModToolsWrapper } from './services/modToolsWrapper'
 import { championDataService } from './services/championDataService'
@@ -28,6 +32,7 @@ import { autoBanPickService } from './services/autoBanPickService'
 import { multiRitoFixesService } from './services/multiRitoFixesService'
 import { skinMigrationService } from './services/skinMigrationService'
 import { repositoryService } from './services/repositoryService'
+import { discordRpcService } from './services/discordRpcService'
 import { SkinRepository } from './types/repository.types'
 import { GamePathService } from './services/gamePathService'
 import { ensureXXHashReady } from './services/xxhash'
@@ -244,10 +249,10 @@ function createWindow(): void {
     // Check for updates after window is ready
     // Only in production mode
     if (!is.dev) {
-      // Auto-update disabled - project is maintained locally
-      // setTimeout(() => {
-      //   updaterService.checkForUpdates()
-      // }, 3000)
+      // Auto-check for updates on launch (3 seconds after window ready)
+      setTimeout(() => {
+        updaterService.checkForUpdates()
+      }, 3000)
     }
   })
 
@@ -554,6 +559,7 @@ if (gotTheLock) {
     // Initialize translation service with saved language
     const savedLanguage = settingsService.get('language') || 'en_US'
     translationService.setLanguage(savedLanguage as LanguageCode)
+    discordRpcService.setLanguage(savedLanguage as string)
 
     // Preload champion data for the saved language
     // This ensures sync methods like getChampionByIdSync() work immediately
@@ -564,6 +570,13 @@ if (gotTheLock) {
 
     createWindow()
     createTray()
+
+    // Connect Discord Rich Presence
+    discordRpcService.connect().then(() => {
+      discordRpcService.setBrowsing()
+    }).catch((err) => {
+      console.warn('[DiscordRPC] Failed to connect:', err)
+    })
 
     // Create overlay if enabled in settings
     const inGameOverlayEnabled = settingsService.get('inGameOverlayEnabled')
@@ -691,6 +704,15 @@ function setupIpcHandlers(): void {
   ipcMain.handle('delete-all-skins', async () => {
     try {
       await skinDownloader.deleteAllSkins()
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+
+  ipcMain.handle('open-logs-folder', async () => {
+    try {
+      await shell.openPath(loggerService.getLogDir())
       return { success: true }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
@@ -1131,6 +1153,9 @@ function setupIpcHandlers(): void {
       console.log('[Patcher] Successfully processed skins:', successfulSkins)
       const validPaths = successfulSkins.map((s) => s.localPath).filter((path) => path != null)
 
+      // Update Discord RPC to show active skins
+      discordRpcService.setInGame(validPaths.length)
+
       if (validPaths.length === 0) {
         console.error('[Patcher] No valid skin paths found!')
         const errorMessage =
@@ -1163,6 +1188,7 @@ function setupIpcHandlers(): void {
   ipcMain.handle('stop-patcher', async () => {
     try {
       await modToolsWrapper.stopOverlay()
+      discordRpcService.setBrowsing()
       return { success: true }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
@@ -1967,6 +1993,7 @@ function setupIpcHandlers(): void {
       // Update translation service if language changed
       if (key === 'language') {
         translationService.setLanguage(value as LanguageCode)
+        discordRpcService.setLanguage(value as string)
       }
       updateTrayMenu()
     }
@@ -3022,6 +3049,8 @@ function cleanup(): void {
 // Handle app quit events - only for primary instance
 if (gotTheLock) {
   app.on('before-quit', () => {
+    discordRpcService.disconnect()
+    loggerService.close()
     cleanup()
   })
 

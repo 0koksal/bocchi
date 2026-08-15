@@ -41,7 +41,7 @@ export const DiscordDialog: React.FC<DiscordDialogProps> = ({ open, onOpenChange
               variant="ghost"
               size="sm"
               className="shrink-0 h-8 px-3 text-xs"
-              onClick={() => handleCopy('https://discord.gg/frXDBTe4FW', 0)}
+              onClick={() => handleCopy('https://discord.gg/FVxNNhzNcP', 0)}
             >
               {copiedIndex === 0 ? (
                 <span className="text-green-500">Copied!</span>
@@ -72,7 +72,7 @@ export const DiscordDialog: React.FC<DiscordDialogProps> = ({ open, onOpenChange
               variant="ghost"
               size="sm"
               className="shrink-0 h-8 px-3 text-xs"
-              onClick={() => handleCopy('@Koksal', 1)}
+              onClick={() => handleCopy('https://discord.gg/frXDBTe4FW', 1)}
             >
               {copiedIndex === 1 ? (
                 <span className="text-green-500">Copied!</span>
@@ -90,7 +90,15 @@ export const DiscordDialog: React.FC<DiscordDialogProps> = ({ open, onOpenChange
           </div>
         </div>
 
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-between mt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-text-muted"
+            onClick={() => window.api.openLogsFolder()}
+          >
+            Open Logs Folder
+          </Button>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Close
           </Button>

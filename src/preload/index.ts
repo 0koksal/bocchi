@@ -27,6 +27,7 @@ const api = {
   deleteSkin: (championName: string, skinName: string) =>
     ipcRenderer.invoke('delete-skin', championName, skinName),
   deleteAllSkins: () => ipcRenderer.invoke('delete-all-skins'),
+  openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
 
   // Batch download management
   downloadAllSkins: (

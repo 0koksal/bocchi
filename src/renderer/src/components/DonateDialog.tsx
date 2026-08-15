@@ -16,7 +16,7 @@ const CRYPTO_ADDRESSES = [
   { name: 'ETH', network: 'Ethereum', address: '0x4c44c4fb2fe473cacfd70fcfc3bf3f4e581cab25' },
   { name: 'LTC', network: 'Litecoin', address: 'LPEC7DY3ztZXjUZWfQxnEcbL8D73tKtXzY' },
   { name: 'SOL', network: 'Solana', address: '5LN5bnGJRV6zUg2VcD9M6Tyhr5nU8ACAwy2wCVB9Ckrm' },
-  { name: 'Bocchi KO-FI', address: 'https://ko-fi.com/hoangvu12' }
+  { name: 'Hoangvu KO-FI', address: 'https://ko-fi.com/hoangvu12' }
 ]
 
 export const DonateDialog: React.FC<DonateDialogProps> = ({ open, onOpenChange }) => {

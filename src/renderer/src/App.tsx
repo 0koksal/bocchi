@@ -316,25 +316,10 @@ function AppContent(): React.JSX.Element {
           }))
         )
       } else if (autoRandomRaritySkinEnabled) {
-        // Filter to only rarity skins
-        availableSkins = availableSkins.filter((skin) => skin.rarity && skin.rarity !== 'kNoRarity')
+        // Auto Random Skin - select from all skins (no filter)
       } else if (autoRandomHighestWinRateSkinEnabled) {
-        // Filter to skins with win rate data and sort by highest win rate
-        console.log(
-          `[AutoSelect] Checking skins for win rate selection:`,
-          availableSkins.map((s) => ({ name: s.name, winRate: s.winRate }))
-        )
-        const skinsWithWinRate = availableSkins.filter((skin) => skin.winRate && skin.winRate > 0)
-        console.log(`[AutoSelect] Found ${skinsWithWinRate.length} skins with win rate data`)
-        if (skinsWithWinRate.length > 0) {
-          // Sort by win rate descending and take top 3
-          skinsWithWinRate.sort((a, b) => (b.winRate || 0) - (a.winRate || 0))
-          availableSkins = skinsWithWinRate.slice(0, 3)
-          console.log(
-            `[AutoSelect] Top 3 by win rate:`,
-            availableSkins.map((s) => ({ name: s.name, winRate: s.winRate }))
-          )
-        }
+        // Auto Random Rarity Skin - filter to only rarity skins (Epic, Legendary, etc.)
+        availableSkins = availableSkins.filter((skin) => skin.rarity && skin.rarity !== 'kNoRarity')
       } else if (autoRandomHighestPickRateSkinEnabled) {
         // Filter to skins with pick rate data and sort by highest pick rate
         console.log(

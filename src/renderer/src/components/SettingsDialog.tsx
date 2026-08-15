@@ -71,7 +71,6 @@ export function SettingsDialog({
     useState(false)
   const [autoRandomMostPlayedSkinEnabled, setAutoRandomMostPlayedSkinEnabled] = useState(false)
   const [allowMultipleSkinsPerChampion, setAllowMultipleSkinsPerChampion] = useState(false)
-  const [inGameOverlayEnabled, setInGameOverlayEnabled] = useState(false)
   const [autoAcceptEnabled, setAutoAcceptEnabled] = useState(false)
   const [autoFixModIssues, setAutoFixModIssues] = useState(false)
   const [minimizeToTray, setMinimizeToTray] = useState(false)
@@ -193,7 +192,7 @@ export function SettingsDialog({
       setAllowMultipleSkinsPerChampion(
         (settings.allowMultipleSkinsPerChampion as boolean | undefined) === true
       )
-      setInGameOverlayEnabled((settings.inGameOverlayEnabled as boolean | undefined) === true)
+
       setAutoAcceptEnabled((settings.autoAcceptEnabled as boolean | undefined) === true)
       setAutoFixModIssues((settings.autoFixModIssues as boolean | undefined) === true)
       setMinimizeToTray((settings.minimizeToTray as boolean | undefined) === true)
@@ -224,7 +223,7 @@ export function SettingsDialog({
         setAutoRandomHighestWinRateSkinEnabled(false)
         setAutoRandomHighestPickRateSkinEnabled(false)
         setAutoRandomMostPlayedSkinEnabled(false)
-        setInGameOverlayEnabled(false)
+
         setAutoAcceptEnabled(false)
 
         // Update atoms immediately
@@ -247,7 +246,7 @@ export function SettingsDialog({
         await window.api.setSettings('autoRandomHighestWinRateSkinEnabled', false)
         await window.api.setSettings('autoRandomHighestPickRateSkinEnabled', false)
         await window.api.setSettings('autoRandomMostPlayedSkinEnabled', false)
-        await window.api.setSettings('inGameOverlayEnabled', false)
+
         await window.api.setSettings('autoAcceptEnabled', false)
 
         // Disconnect LCU
@@ -280,7 +279,7 @@ export function SettingsDialog({
         setAutoRandomSkinEnabled(false)
         setAutoRandomRaritySkinEnabled(false)
         setAutoRandomFavoriteSkinEnabled(false)
-        setInGameOverlayEnabled(false)
+
 
         // Update atoms immediately
         setAutoViewSkinsEnabledAtom(false)
@@ -290,10 +289,10 @@ export function SettingsDialog({
         await window.api.setSettings('autoRandomSkinEnabled', false)
         await window.api.setSettings('autoRandomRaritySkinEnabled', false)
         await window.api.setSettings('autoRandomFavoriteSkinEnabled', false)
-        await window.api.setSettings('inGameOverlayEnabled', false)
+
 
         // Destroy overlay if it exists
-        await window.api.destroyOverlay()
+
       }
 
       // Notify the parent component
@@ -360,23 +359,6 @@ export function SettingsDialog({
     }
   }
 
-  const handleInGameOverlayChange = async (checked: boolean) => {
-    setInGameOverlayEnabled(checked)
-    try {
-      await window.api.setSettings('inGameOverlayEnabled', checked)
-
-      // If enabling, create and attach overlay immediately
-      if (checked) {
-        await window.api.createOverlay()
-      } else {
-        // If disabling, destroy overlay
-        await window.api.destroyOverlay()
-      }
-    } catch (error) {
-      console.error('Failed to save in-game overlay setting:', error)
-    }
-  }
-
   const handleAutoAcceptChange = async (checked: boolean) => {
     setAutoAcceptEnabled(checked)
     setAutoAcceptEnabledAtom(checked) // Update atom immediately
@@ -391,7 +373,7 @@ export function SettingsDialog({
   const getRandomSkinValue = () => {
     if (autoRandomFavoriteSkinEnabled) return 'favorite'
     if (autoRandomRaritySkinEnabled) return 'rarity'
-    if (autoRandomHighestWinRateSkinEnabled) return 'winrate'
+    if (autoRandomHighestWinRateSkinEnabled) return 'rarityonly'
     if (autoRandomHighestPickRateSkinEnabled) return 'pickrate'
     if (autoRandomMostPlayedSkinEnabled) return 'mostplayed'
     if (autoRandomSkinEnabled) return 'random'
@@ -435,7 +417,7 @@ export function SettingsDialog({
         setAutoRandomFavoriteSkinEnabledAtom(true)
         await window.api.setSettings('autoRandomFavoriteSkinEnabled', true)
         break
-      case 'winrate':
+      case 'rarityonly':
         setAutoRandomHighestWinRateSkinEnabled(true)
         setAutoRandomHighestWinRateSkinEnabledAtom(true)
         await window.api.setSettings('autoRandomHighestWinRateSkinEnabled', true)
@@ -452,9 +434,9 @@ export function SettingsDialog({
         break
       case 'none':
         // Check if we should disable the overlay
-        setInGameOverlayEnabled(false)
-        await window.api.setSettings('inGameOverlayEnabled', false)
-        await window.api.destroyOverlay()
+
+
+
         break
     }
   }
@@ -726,12 +708,12 @@ export function SettingsDialog({
                             </div>
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem
-                                value="random"
-                                id="random"
+                                value="rarity"
+                                id="rarity"
                                 disabled={loading || !championDetection}
                               />
                               <Label
-                                htmlFor="random"
+                                htmlFor="rarity"
                                 className="text-sm font-normal cursor-pointer"
                               >
                                 <div>
@@ -744,12 +726,12 @@ export function SettingsDialog({
                             </div>
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem
-                                value="rarity"
-                                id="rarity"
+                                value="rarityonly"
+                                id="rarityonly"
                                 disabled={loading || !championDetection}
                               />
                               <Label
-                                htmlFor="rarity"
+                                htmlFor="rarityonly"
                                 className="text-sm font-normal cursor-pointer"
                               >
                                 <div>
@@ -778,72 +760,9 @@ export function SettingsDialog({
                                 </div>
                               </Label>
                             </div>
-                            <div className="flex items-center space-x-2 opacity-50">
-                              <RadioGroupItem value="winrate" id="winrate" disabled={true} />
-                              <Label
-                                htmlFor="winrate"
-                                className="text-sm font-normal cursor-pointer"
-                              >
-                                <div>
-                                  <div>{t('settings.autoRandomHighestWinRateSkin.title')}</div>
-                                  <div className="text-xs text-text-secondary">
-                                    {t('settings.autoRandomHighestWinRateSkin.description')}{' '}
-                                    (Currently unavailable)
-                                  </div>
-                                </div>
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2 opacity-50">
-                              <RadioGroupItem value="pickrate" id="pickrate" disabled={true} />
-                              <Label
-                                htmlFor="pickrate"
-                                className="text-sm font-normal cursor-pointer"
-                              >
-                                <div>
-                                  <div>{t('settings.autoRandomHighestPickRateSkin.title')}</div>
-                                  <div className="text-xs text-text-secondary">
-                                    {t('settings.autoRandomHighestPickRateSkin.description')}{' '}
-                                    (Currently unavailable)
-                                  </div>
-                                </div>
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2 opacity-50">
-                              <RadioGroupItem value="mostplayed" id="mostplayed" disabled={true} />
-                              <Label
-                                htmlFor="mostplayed"
-                                className="text-sm font-normal cursor-pointer"
-                              >
-                                <div>
-                                  <div>{t('settings.autoRandomMostPlayedSkin.title')}</div>
-                                  <div className="text-xs text-text-secondary">
-                                    {t('settings.autoRandomMostPlayedSkin.description')} (Currently
-                                    unavailable)
-                                  </div>
-                                </div>
-                              </Label>
-                            </div>
                           </RadioGroup>
                         </div>
 
-                        {/* In-Game Overlay Setting */}
-                        {getRandomSkinValue() !== 'none' && (
-                          <div className="flex items-center justify-between space-x-4">
-                            <div className="flex-1">
-                              <h3 className="text-sm font-medium text-text-primary">
-                                {t('settings.inGameOverlay.title')}
-                              </h3>
-                              <p className="text-xs text-text-secondary mt-1">
-                                {t('settings.inGameOverlay.description')}
-                              </p>
-                            </div>
-                            <Switch
-                              checked={inGameOverlayEnabled}
-                              onCheckedChange={handleInGameOverlayChange}
-                              disabled={loading}
-                            />
-                          </div>
-                        )}
                       </div>
                     </AccordionContent>
                   </AccordionItem>

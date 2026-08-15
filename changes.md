@@ -1,4 +1,7 @@
-- Removed hosted DLL file per DMCA takedown
-- Users must now manually place their own cslol-dll.dll in the tools folder
-- Added DLL required notice to Tools Download modal with folder open button
-- Fixed CI build reliability by caching electron-builder binaries
+- Discord Widget (shows "Browsing Skins" / "In Game" with skin count)
+- Discord Widget text changes based on app language
+- Auto check for updates on app launch
+- Added Logging system to detect crashes.
+- Removed In-Game Overlay (caused crashes with PenguLoader)
+- Removed disabled settings (Pick random skin with Win Rate, Pick Rate, Most Played)
+- Fixed Auto Random Skin Logic

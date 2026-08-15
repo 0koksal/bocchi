@@ -254,6 +254,7 @@ export interface IApi {
   ) => () => void
   checkDllExist: () => Promise<boolean>
   openToolsFolder: () => Promise<{ success: boolean; error?: string }>
+  openLogsFolder: () => Promise<{ success: boolean; error?: string }>
 
   // Window controls
   minimizeWindow: () => void

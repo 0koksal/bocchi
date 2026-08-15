@@ -4,7 +4,7 @@
   <img src="./build/logo.png" alt="Bocchi Logo" width="128" height="128">
   
   [![Installer](https://img.shields.io/badge/Installer-Windows-blue)](https://github.com/0koksal/bocchi/releases/latest)
-  [![Discord](https://img.shields.io/discord/1537070071825043486?color=5865F2&logo=discord&logoColor=white)](https://discord.gg/frXDBTe4FW)
+  [![Discord](https://img.shields.io/discord/1537070071825043486?color=5865F2&logo=discord&logoColor=white)](https://discord.gg/FVxNNhzNcP)
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 </div>
 
@@ -152,7 +152,7 @@ Use at your own risk. Skins are client-side only and do not provide any competit
 ## 📧 Contact
 
 - GitHub Issues: [Create an issue](https://github.com/0koksal/bocchi/issues)
-- Discord Server: [Join our community](https://discord.gg/frXDBTe4FW)
+- Discord Server: [Join our community](https://discord.gg/FVxNNhzNcP)
 - GitHub Repository: [Star on GitHub](https://github.com/0koksal/bocchi)
 
 ## 💝 Support
