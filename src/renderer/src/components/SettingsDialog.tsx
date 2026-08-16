@@ -71,6 +71,7 @@ export function SettingsDialog({
     useState(false)
   const [autoRandomMostPlayedSkinEnabled, setAutoRandomMostPlayedSkinEnabled] = useState(false)
   const [allowMultipleSkinsPerChampion, setAllowMultipleSkinsPerChampion] = useState(false)
+  const [includeChromasInRandom, setIncludeChromasInRandom] = useState(false)
   const [autoAcceptEnabled, setAutoAcceptEnabled] = useState(false)
   const [autoFixModIssues, setAutoFixModIssues] = useState(false)
   const [minimizeToTray, setMinimizeToTray] = useState(false)
@@ -172,7 +173,7 @@ export function SettingsDialog({
       setAutoViewSkinsEnabled((settings.autoViewSkinsEnabled as boolean | undefined) === true)
       setSmartApplyEnabled((settings.smartApplyEnabled as boolean | undefined) !== false)
       setAutoApplyEnabled((settings.autoApplyEnabled as boolean | undefined) !== false)
-      setAutoApplyTriggerTime((settings.autoApplyTriggerTime as number | undefined) || 15)
+      setAutoApplyTriggerTime((settings.autoApplyTriggerTime as number | undefined) ?? 15)
       setAutoRandomSkinEnabled((settings.autoRandomSkinEnabled as boolean | undefined) === true)
       setAutoRandomRaritySkinEnabled(
         (settings.autoRandomRaritySkinEnabled as boolean | undefined) === true
@@ -191,6 +192,9 @@ export function SettingsDialog({
       )
       setAllowMultipleSkinsPerChampion(
         (settings.allowMultipleSkinsPerChampion as boolean | undefined) === true
+      )
+      setIncludeChromasInRandom(
+        (settings.includeChromasInRandom as boolean | undefined) === true
       )
 
       setAutoAcceptEnabled((settings.autoAcceptEnabled as boolean | undefined) === true)
@@ -357,6 +361,11 @@ export function SettingsDialog({
     } catch (error) {
       console.error('Failed to save allow multiple skins per champion setting:', error)
     }
+  }
+
+  const handleIncludeChromasChange = async (checked: boolean) => {
+    setIncludeChromasInRandom(checked)
+    await window.api.setSettings('includeChromasInRandom', checked)
   }
 
   const handleAutoAcceptChange = async (checked: boolean) => {
@@ -763,6 +772,25 @@ export function SettingsDialog({
                           </RadioGroup>
                         </div>
 
+                        {/* Include Chromas Toggle - show when Auto Random Skin or Rarity is selected */}
+                        {(getRandomSkinValue() === 'rarity' || getRandomSkinValue() === 'rarityonly') && (
+                          <div className="flex items-center justify-between space-x-4 mt-3 pl-2">
+                            <div className="flex-1">
+                              <h3 className="text-sm font-medium text-text-primary">
+                                Include Chromas
+                              </h3>
+                              <p className="text-xs text-text-secondary mt-1">
+                                Also randomly select a chroma variant when available
+                              </p>
+                            </div>
+                            <Switch
+                              checked={includeChromasInRandom}
+                              onCheckedChange={handleIncludeChromasChange}
+                              disabled={loading}
+                            />
+                          </div>
+                        )}
+
                       </div>
                     </AccordionContent>
                   </AccordionItem>
@@ -815,13 +843,13 @@ export function SettingsDialog({
                         </p>
                       </div>
                       <span className="text-sm font-medium text-text-primary min-w-[3rem] text-right">
-                        {autoApplyTriggerTime}s
+                        {autoApplyTriggerTime === 0 ? 'Instant' : `${autoApplyTriggerTime}s`}
                       </span>
                     </div>
                     <Slider
                       value={[autoApplyTriggerTime]}
                       onValueChange={handleAutoApplyTriggerTimeChange}
-                      min={5}
+                      min={0}
                       max={30}
                       step={1}
                       disabled={loading || !smartApplyEnabled || !autoApplyEnabled}

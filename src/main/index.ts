@@ -313,13 +313,15 @@ function updateTrayMenu(): void {
         ? t('tray.hide', 'Hide Bocchi')
         : t('tray.show', 'Show Bocchi'),
       click: () => {
-        if (mainWindow) {
+        if (mainWindow && !mainWindow.isDestroyed()) {
           if (mainWindow.isVisible()) {
             mainWindow.hide()
           } else {
             mainWindow.show()
             mainWindow.focus()
           }
+        } else {
+          createWindow()
         }
       }
     },
@@ -487,7 +489,8 @@ function updateTrayMenu(): void {
 }
 
 function createTray(): void {
-  const trayIcon = nativeImage.createFromPath(icon)
+  const trayIconPath = path.join(__dirname, '../../resources/tray-icon.png')
+  const trayIcon = nativeImage.createFromPath(trayIconPath).resize({ width: 32, height: 32 })
   tray = new Tray(trayIcon)
   tray.setToolTip('Bocchi')
 
@@ -496,13 +499,16 @@ function createTray(): void {
 
   // Double click to show window
   tray.on('double-click', () => {
-    if (mainWindow) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isVisible()) {
         mainWindow.hide()
       } else {
         mainWindow.show()
         mainWindow.focus()
       }
+    } else {
+      // Window was destroyed, recreate it
+      createWindow()
     }
   })
 
@@ -529,7 +535,7 @@ app.on('open-file', (event, filePath) => {
 if (gotTheLock) {
   app.whenReady().then(async () => {
     // Set app user model id for windows
-    electronApp.setAppUserModelId('com.hoangvu12.bocchi')
+    electronApp.setAppUserModelId('com.0koksal.bocchi')
 
     // Initialize migration service
     await skinMigrationService.initialize()

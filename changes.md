@@ -1,7 +1,6 @@
-- Discord Widget (shows "Browsing Skins" / "In Game" with skin count)
-- Discord Widget text changes based on app language
-- Auto check for updates on app launch
-- Added Logging system to detect crashes.
-- Removed In-Game Overlay (caused crashes with PenguLoader)
-- Removed disabled settings (Pick random skin with Win Rate, Pick Rate, Most Played)
-- Fixed Auto Random Skin Logic
+- Include Chromas toggle (includes chromas when selecting random skin)
+- Auto Apply trigger time fixed/adjusted (checks every second , added instant apply option)
+- Auto re-apply when champion is swapped (ARAM/Mayhem) (If the Auto Apply Trigger Time Is High)
+- Changelog now fetched from GitHub (always shows latest notes)
+- Tray icon fix
+- Fixed white screen crash when opening from tray

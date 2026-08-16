@@ -92,26 +92,10 @@ export class UpdaterService {
 
   async getChangelog(): Promise<string | null> {
     try {
-      if (!this.updateInfo || !this.updateInfo.version) {
-        return null
-      }
-
-      const owner = 'hoangvu12'
-      const repo = 'bocchi'
-      const version = this.updateInfo.version
-
-      // Try to fetch changes.md from the GitHub release
-      const url = `https://raw.githubusercontent.com/${owner}/${repo}/v${version}/changes.md`
-
-      try {
-        const response = await axios.get(url)
-        return response.data
-      } catch {
-        // If not found in release tag, try main branch
-        const mainUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/changes.md`
-        const response = await axios.get(mainUrl)
-        return response.data
-      }
+      // Always fetch latest changes.md from our repo's main branch
+      const url = `https://raw.githubusercontent.com/0koksal/bocchi/main/changes.md`
+      const response = await axios.get(url)
+      return response.data
     } catch (error) {
       console.error('Error fetching changelog:', error)
       return null

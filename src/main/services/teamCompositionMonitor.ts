@@ -47,10 +47,42 @@ export class TeamCompositionMonitor extends EventEmitter {
   private triggerWindowTolerance: number = 1000 // 1 second tolerance
   private currentPhase: string = ''
   private currentQueueId: number | null = null
+  private countdownInterval: NodeJS.Timeout | null = null
+  private finalizationStartTime: number = 0
+  private finalizationDuration: number = 0
 
   constructor() {
     super()
     this.setupEventListeners()
+  }
+
+  private startCountdown(initialTimeLeft: number): void {
+    this.stopCountdown()
+    this.finalizationStartTime = Date.now()
+    this.finalizationDuration = initialTimeLeft
+
+    this.countdownInterval = setInterval(() => {
+      const elapsed = Date.now() - this.finalizationStartTime
+      const remainingTime = Math.max(0, this.finalizationDuration - elapsed)
+
+      if (remainingTime <= 0) {
+        this.stopCountdown()
+        return
+      }
+
+      // Re-run the trigger check with updated time
+      if (this.currentSession && this.currentSession.timer) {
+        this.currentSession.timer.adjustedTimeLeftInPhase = remainingTime
+        this.handleSessionUpdate(this.currentSession)
+      }
+    }, 1000)
+  }
+
+  private stopCountdown(): void {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval)
+      this.countdownInterval = null
+    }
   }
 
   async start(): Promise<void> {
@@ -76,6 +108,7 @@ export class TeamCompositionMonitor extends EventEmitter {
     this.hasTriggeredInWindow = false
     this.lastTriggerTimeLeft = 0
     this.currentPhase = ''
+    this.stopCountdown()
 
     // Stop preselect monitoring
     preselectLobbyMonitor.stop()
@@ -162,6 +195,7 @@ export class TeamCompositionMonitor extends EventEmitter {
 
     preselectLobbyMonitor.on('state-reset', () => {
       console.log('[TeamCompositionMonitor] Preselect state reset')
+      this.stopCountdown()
       this.emit('team-reset', 'preselect-reset')
     })
   }
@@ -215,6 +249,11 @@ export class TeamCompositionMonitor extends EventEmitter {
             console.log(`[TeamCompositionMonitor] Champions changed, resetting trigger state`)
             this.hasTriggeredInWindow = false
             this.lastTriggerTimeLeft = 0
+            // Restart countdown if in finalization so it re-triggers apply
+            const currentTimeLeft = session.timer?.adjustedTimeLeftInPhase || 0
+            if (composition.inFinalization && currentTimeLeft > 0) {
+              this.startCountdown(currentTimeLeft)
+            }
           }
         } catch {
           // Handle parse error gracefully
@@ -228,9 +267,9 @@ export class TeamCompositionMonitor extends EventEmitter {
     // Check for auto-apply conditions with time window approach (run on every update)
     const timeLeft = session.timer?.adjustedTimeLeftInPhase || 0
 
-    // Get trigger time from settings, default to 15 seconds
-    const triggerTimeSeconds = settingsService.get('autoApplyTriggerTime') || 15
-    const triggerTime = Math.max(5, Math.min(30, triggerTimeSeconds)) * 1000 // Clamp between 5-30s
+    // Get trigger time from settings, default to 15 seconds (0 = instant)
+    const triggerTimeSeconds = settingsService.get('autoApplyTriggerTime') ?? 15
+    const triggerTime = Math.max(0, Math.min(30, triggerTimeSeconds)) * 1000 // Clamp between 0-30s
 
     // Determine if we should trigger auto-apply
     if (composition.championIds.length > 0 && timeLeft > 0) {
@@ -255,6 +294,8 @@ export class TeamCompositionMonitor extends EventEmitter {
         console.log(`[TeamCompositionMonitor] Entering finalization phase, resetting trigger state`)
         this.currentPhase = session.timer?.phase || ''
         this.hasTriggeredInWindow = false
+        // Start countdown polling so trigger time works even without LCU updates
+        this.startCountdown(timeLeft)
       }
 
       // Note: Preselect modes (Swiftplay, etc.) are now handled by PreselectLobbyMonitor
@@ -262,18 +303,17 @@ export class TeamCompositionMonitor extends EventEmitter {
 
       // Multiple conditions for triggering auto-apply
       const shouldTrigger =
-        // Within trigger window
-        withinTriggerWindow &&
         // Haven't triggered in this window yet
         !this.hasTriggeredInWindow &&
-        // Original condition: in finalization phase
-        (composition.inFinalization ||
-          // Fallback 1: All 5 champions locked (normal game)
-          composition.allLocked ||
-          // Fallback 2: All actions completed with champions selected
-          allActionsCompleted ||
-          // Fallback 3: Custom/practice games with fewer than 5 champions
-          (composition.championIds.length < 5 && timeLeft <= triggerTime))
+        // Instant mode (triggerTime=0): trigger as soon as champion is detected
+        (triggerTime === 0
+          ? composition.championIds.length > 0
+          : // Normal mode: within trigger window + conditions
+            withinTriggerWindow &&
+            (composition.inFinalization ||
+              composition.allLocked ||
+              allActionsCompleted ||
+              (composition.championIds.length < 5 && timeLeft <= triggerTime)))
 
       if (shouldTrigger) {
         console.log(

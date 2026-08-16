@@ -183,7 +183,7 @@
     },
     "autoApplyTriggerTime": {
       "title": "Auto Apply Trigger Time",
-      "description": "Seconds before game starts to automatically apply skins (5-30 seconds)"
+      "description": "Seconds before game starts to automatically apply skins (instant-30 seconds) (instant means automatically apply skin when champion is selected)"
     },
     "autoAccept": {
       "title": "Auto Accept Match",

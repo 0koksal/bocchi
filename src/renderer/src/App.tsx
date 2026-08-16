@@ -444,6 +444,27 @@ function AppContent(): React.JSX.Element {
         })
       }
 
+      // If includeChromasInRandom is enabled, pick between base skin and its chromas
+      if (randomSkin && !selectedChromaId) {
+        const includeChromasInRandom = await window.api.getSettings('includeChromasInRandom')
+        if (includeChromasInRandom && randomSkin.chromaList && randomSkin.chromaList.length > 0) {
+          // Pool: base skin (undefined) + all chromas
+          // e.g. 3 chromas = 4 options total (base + 3 chromas)
+          const totalOptions = randomSkin.chromaList.length + 1
+          const randomPick = Math.floor(Math.random() * totalOptions)
+          if (randomPick > 0) {
+            // Picked a chroma (index 1+ maps to chromaList[0+])
+            selectedChromaId = randomSkin.chromaList[randomPick - 1].id.toString()
+            console.log(`[AutoSelect] Selected random chroma:`, {
+              chromaName: randomSkin.chromaList[randomPick - 1].name,
+              chromaId: selectedChromaId
+            })
+          } else {
+            console.log(`[AutoSelect] Selected base skin (no chroma)`)
+          }
+        }
+      }
+
       // Add the auto-selected skin
       let newSelectedSkin: any
 
