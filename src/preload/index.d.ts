@@ -585,18 +585,6 @@ export interface IApi {
   onPreselectReadyForApply: (callback: (snapshot: PreselectSnapshot) => void) => () => void
   onPreselectStateReset: (callback: () => void) => () => void
 
-  // Overlay management
-  createOverlay: () => Promise<{ success: boolean; error?: string }>
-  destroyOverlay: () => Promise<{ success: boolean; error?: string }>
-  setOverlayAutoSelectedSkin: (skinData: {
-    championKey: string
-    championName: string
-    skinId: string | number
-    skinName: string
-    skinNum: number
-    rarity?: string
-  }) => Promise<{ success: boolean; error?: string }>
-
   // MultiRitoFixes API
   checkMultiRitoFixTool: () => Promise<{ success: boolean; exists?: boolean; error?: string }>
   downloadMultiRitoFixTool: () => Promise<{ success: boolean; error?: string }>

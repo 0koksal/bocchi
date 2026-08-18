@@ -1,6 +1,6 @@
 {
   "name": "bocchi",
-  "version": "1.25.4",
+  "version": "1.25.5",
   "description": "Bocchi - League of Legends Skin Changer",
   "main": "./out/main/index.js",
   "author": "Bocchi Team",
@@ -42,7 +42,6 @@
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "electron-overlay-window": "^3.3.0",
     "electron-updater": "^6.3.9",
     "framer-motion": "^12.23.3",
     "fzstd": "^0.1.1",

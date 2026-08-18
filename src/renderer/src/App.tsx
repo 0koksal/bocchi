@@ -504,41 +504,6 @@ function AppContent(): React.JSX.Element {
         return
       }
 
-      // Send the auto-selected skin to main process for overlay display
-      try {
-        if (isCustomSkinSelected && randomCustomSkin) {
-          console.log(`[AutoSelect] Sending custom skin to overlay:`, {
-            championKey: champion.key,
-            skinName: randomCustomSkin.skinName
-          })
-          await window.api.setOverlayAutoSelectedSkin({
-            championKey: champion.key,
-            championName: champion.name,
-            skinId: newSelectedSkin.skinId,
-            skinName: randomCustomSkin.skinName,
-            skinNum: -1, // Custom skins don't have a num
-            rarity: undefined
-          })
-        } else if (randomSkin) {
-          console.log(`[AutoSelect] Sending skin to overlay:`, {
-            championKey: champion.key,
-            skinName: randomSkin.name,
-            skinNum: randomSkin.num
-          })
-          await window.api.setOverlayAutoSelectedSkin({
-            championKey: champion.key,
-            championName: champion.name,
-            skinId: randomSkin.id,
-            skinName: randomSkin.name,
-            skinNum: randomSkin.num,
-            rarity: randomSkin.rarity
-          })
-        }
-        console.log(`[AutoSelect] Successfully sent skin to overlay`)
-      } catch (error) {
-        console.error('[AutoSelect] Failed to send auto-selected skin to main process:', error)
-      }
-
       // Clean up previous auto-selected skin if it exists
       if (preDownloadedAutoSkin) {
         try {
@@ -650,32 +615,6 @@ function AppContent(): React.JSX.Element {
       clearSelectedChampion()
     }
   }, [lcuSelectedChampion, autoViewSkinsEnabled, onChampionNavigate, clearSelectedChampion])
-
-  // Handle overlay skin selection
-  useEffect(() => {
-    const handleOverlaySkinSelected = (_event: any, skin: any) => {
-      // Check if skin is already selected
-      const existingIndex = selectedSkins.findIndex(
-        (s) =>
-          s.championKey === skin.championKey &&
-          s.skinId === skin.skinId &&
-          s.chromaId === skin.chromaId
-      )
-
-      if (existingIndex === -1) {
-        // Add to selected skins
-        setSelectedSkins((prev) => [...prev, skin])
-        setStatusMessage(t('status.skinAddedFromOverlay', { name: skin.skinName }))
-      }
-    }
-
-    // Listen for overlay skin selection
-    window.electron.ipcRenderer.on('overlay:skin-selected', handleOverlaySkinSelected)
-
-    return () => {
-      window.electron.ipcRenderer.removeListener('overlay:skin-selected', handleOverlaySkinSelected)
-    }
-  }, [selectedSkins, setSelectedSkins, setStatusMessage, t])
 
   // Handle file association imports
   useEffect(() => {

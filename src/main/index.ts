@@ -27,7 +27,6 @@ import { gameflowMonitor } from './services/gameflowMonitor'
 import { teamCompositionMonitor } from './services/teamCompositionMonitor'
 import { preselectLobbyMonitor } from './services/preselectLobbyMonitor'
 import { skinApplyService } from './services/skinApplyService'
-import { overlayWindowManager } from './services/overlayWindowManager'
 import { autoBanPickService } from './services/autoBanPickService'
 import { multiRitoFixesService } from './services/multiRitoFixesService'
 import { skinMigrationService } from './services/skinMigrationService'
@@ -62,7 +61,7 @@ const fileImportService = new FileImportService()
 const imageService = new ImageService()
 const presetService = new PresetService()
 
-// Suppress EPIPE errors from overlay/mod-tools processes that have already exited
+// Suppress EPIPE errors from mod-tools processes that have already exited
 process.on('uncaughtException', (error: NodeJS.ErrnoException) => {
   if (error.code === 'EPIPE' || error.code === 'ERR_STREAM_DESTROYED') {
     console.warn('[Bocchi] Suppressed EPIPE/stream error (process already exited):', error.message)
@@ -101,20 +100,6 @@ function resolveSkinFileInfo(skinContext: SelectedSkin): { baseName: string; ext
     extension: extMatch ? extMatch[0] : ''
   }
 }
-
-// Store auto-selected skin data from renderer for overlay display
-let rendererAutoSelectedSkin: {
-  championKey: string
-  championName: string
-  skinId: string | number
-  skinName: string
-  skinNum: number
-  splashPath?: string
-  rarity?: string
-} | null = null
-
-// Store the current champion ID for overlay display
-let currentChampionId: number | null = null
 
 // Global references to prevent garbage collection
 let mainWindow: BrowserWindow | null = null
@@ -601,11 +586,7 @@ if (gotTheLock) {
       championDetectionEnabled &&
       leagueClientEnabled
     ) {
-      try {
-        await overlayWindowManager.create()
-      } catch (error) {
-        console.error('[Main] Failed to create overlay on startup:', error)
-      }
+      // Overlay removed - auto-random skin still works without overlay
     }
 
     // Initialize LCU connection
@@ -2678,68 +2659,6 @@ function setupIpcHandlers(): void {
     }
   })
 
-  // Overlay skin selection handler
-  overlayWindowManager.on('skin-selected', (skin: SelectedSkin) => {
-    // Send the selected skin to the main window
-    const mainWindow = BrowserWindow.getAllWindows().find(
-      (w) => !w.webContents.getURL().includes('overlay.html')
-    )
-    if (mainWindow) {
-      mainWindow.webContents.send('overlay:skin-selected', skin)
-    }
-  })
-
-  // Create overlay handler
-  ipcMain.handle('create-overlay', async () => {
-    try {
-      await overlayWindowManager.create()
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-    }
-  })
-
-  // Destroy overlay handler
-  ipcMain.handle('destroy-overlay', async () => {
-    try {
-      overlayWindowManager.destroy()
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-    }
-  })
-
-  // Handler for renderer to communicate auto-selected skin to main process
-  ipcMain.handle(
-    'set-overlay-auto-selected-skin',
-    async (
-      _,
-      skinData: {
-        championKey: string
-        championName: string
-        skinId: string | number
-        skinName: string
-        skinNum: number
-        rarity?: string
-      }
-    ) => {
-      try {
-        // Store the skin data with splash path for overlay
-        rendererAutoSelectedSkin = {
-          ...skinData,
-          splashPath: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${skinData.championKey}_${skinData.skinNum}.jpg`
-        }
-
-        // Now show the overlay with the auto-selected skin
-        await showOverlayWithAutoSelectedSkin(skinData.championKey)
-
-        return { success: true }
-      } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-      }
-    }
-  )
-
   // File association handlers
   ipcMain.handle('renderer-ready', () => {
     rendererReady = true
@@ -2764,100 +2683,6 @@ function setupIpcHandlers(): void {
     pendingFilesToImport.clear()
     return { success: true }
   })
-}
-
-// Show overlay with auto-selected skin data
-async function showOverlayWithAutoSelectedSkin(championKey: string): Promise<void> {
-  try {
-    if (!rendererAutoSelectedSkin || rendererAutoSelectedSkin.championKey !== championKey) {
-      return
-    }
-
-    // Get current language from settings
-    const currentLanguage = settingsService.get('language') || 'en_US'
-
-    // Get champion data
-    const champData = await championDataService.getChampionByKey(championKey, currentLanguage)
-    if (!champData) {
-      console.error('[Overlay] Champion data not found for key:', championKey)
-      return
-    }
-
-    // Get user settings
-    const autoRandomSkinEnabled = settingsService.get('autoRandomSkinEnabled') || false
-    const autoRandomRaritySkinEnabled = settingsService.get('autoRandomRaritySkinEnabled') || false
-    const autoRandomFavoriteSkinEnabled =
-      settingsService.get('autoRandomFavoriteSkinEnabled') || false
-    const autoRandomHighestWinRateSkinEnabled =
-      settingsService.get('autoRandomHighestWinRateSkinEnabled') || false
-    const autoRandomHighestPickRateSkinEnabled =
-      settingsService.get('autoRandomHighestPickRateSkinEnabled') || false
-    const autoRandomMostPlayedSkinEnabled =
-      settingsService.get('autoRandomMostPlayedSkinEnabled') || false
-    const championDetectionEnabled = settingsService.get('championDetectionEnabled') !== false
-    const inGameOverlayEnabled = settingsService.get('inGameOverlayEnabled') || false
-
-    // Check if any auto-random feature is enabled
-    const autoRandomEnabled =
-      autoRandomSkinEnabled ||
-      autoRandomRaritySkinEnabled ||
-      autoRandomFavoriteSkinEnabled ||
-      autoRandomHighestWinRateSkinEnabled ||
-      autoRandomHighestPickRateSkinEnabled ||
-      autoRandomMostPlayedSkinEnabled
-
-    console.log('[Overlay] Settings check:', {
-      championDetectionEnabled,
-      inGameOverlayEnabled,
-      autoRandomEnabled,
-      autoRandomHighestWinRateSkinEnabled,
-      autoRandomHighestPickRateSkinEnabled,
-      autoRandomMostPlayedSkinEnabled
-    })
-
-    if (!championDetectionEnabled || !autoRandomEnabled || !inGameOverlayEnabled) {
-      console.log('[Overlay] Not showing overlay - missing required settings')
-      return
-    }
-
-    // Prepare overlay data
-    const overlayData = {
-      championId: currentChampionId || parseInt(championKey), // Use stored ID or fallback
-      championKey: champData.key,
-      championName: champData.name,
-      skins: (champData.skins || []).map((skin) => ({
-        ...skin,
-        splashPath: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champData.key}_${skin.num}.jpg`,
-        tilePath: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champData.key}_${skin.num}.jpg`
-      })),
-      autoRandomEnabled,
-      autoSelectedSkin: rendererAutoSelectedSkin
-        ? {
-            championKey: rendererAutoSelectedSkin.championKey,
-            championName: rendererAutoSelectedSkin.championName,
-            skinId: String(rendererAutoSelectedSkin.skinId),
-            skinName: rendererAutoSelectedSkin.skinName,
-            skinNum: rendererAutoSelectedSkin.skinNum
-          }
-        : undefined,
-      theme: undefined // Will be set by renderer based on current theme
-    }
-
-    // Ensure we only show overlay when we have valid auto-selected skin data
-    if (overlayData.autoSelectedSkin) {
-      // Hide any existing overlay first to ensure clean state
-      overlayWindowManager.hide()
-
-      // Small delay to ensure clean state before showing new data
-      await new Promise((resolve) => setTimeout(resolve, 100))
-
-      await overlayWindowManager.show(overlayData)
-    } else {
-      console.warn('[Overlay] No auto-selected skin data, not showing overlay')
-    }
-  } catch (error) {
-    console.error('[Overlay] Error showing overlay with auto-selected skin:', error)
-  }
 }
 
 // Setup LCU connection and event forwarding
@@ -2902,19 +2727,6 @@ function setupLCUConnection(): void {
     BrowserWindow.getAllWindows().forEach((window) => {
       window.webContents.send('lcu:champion-selected', data)
     })
-
-    // Store the current champion ID for overlay display
-    currentChampionId = data.championId
-
-    // Clear previous auto-selected skin data when a new champion is selected
-    if (
-      rendererAutoSelectedSkin &&
-      rendererAutoSelectedSkin.championKey !== data.championId.toString()
-    ) {
-      rendererAutoSelectedSkin = null
-    }
-
-    // Note: Overlay display is now handled when renderer sends auto-selected skin data
   })
 
   gameflowMonitor.on('queue-id-detected', (data) => {
@@ -3035,14 +2847,10 @@ function cleanup(): void {
   lcuConnector.stopAutoConnect()
   lcuConnector.disconnect()
 
-  // Clean up overlay window
-  overlayWindowManager.destroy()
-
   // Remove all listeners to prevent memory leaks
   lcuConnector.removeAllListeners()
   gameflowMonitor.removeAllListeners()
   teamCompositionMonitor.removeAllListeners()
-  overlayWindowManager.removeAllListeners()
   autoBanPickService.removeAllListeners()
 
   // Clean up tray
