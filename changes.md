@@ -1,6 +1,2 @@
-- Include Chromas toggle (includes chromas when selecting random skin)
-- Auto Apply trigger time fixed/adjusted (checks every second , added instant apply option)
-- Auto re-apply when champion is swapped (ARAM/Mayhem) (If the Auto Apply Trigger Time Is High)
-- Changelog now fetched from GitHub (always shows latest notes)
-- Tray icon fix
-- Fixed white screen crash when opening from tray
+- Removed electron-overlay-window function causing league window goes bottom right and crashing.
+- Updated Discord Rich Presence with better branding (Bocchi Skin Changer / Bocchi Reborn)

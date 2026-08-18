@@ -1,6 +1,5 @@
 allowBuilds:
   electron: false
-  electron-overlay-window: false
   esbuild: false
 
 ignoredBuiltDependencies:
@@ -8,5 +7,4 @@ ignoredBuiltDependencies:
 
 onlyBuiltDependencies:
   - electron
-  - electron-overlay-window
   - esbuild

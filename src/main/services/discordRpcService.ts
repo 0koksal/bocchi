@@ -1,4 +1,3 @@
-import { app } from 'electron'
 import net from 'net'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -151,7 +150,9 @@ export class DiscordRpcService {
           },
           assets: {
             large_image: 'bocchi_logo',
-            large_text: `Bocchi v${app.getVersion()}`,
+            large_text: 'Bocchi Skin Changer',
+            small_image: 'bocchi_small',
+            small_text: 'Bocchi Reborn'
           },
           buttons: [
             { label: 'Get Bocchi', url: 'https://github.com/0koksal/bocchi' },
