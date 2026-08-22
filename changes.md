@@ -1,2 +1,3 @@
 -Added Auxiliary Mini Window (Bocchi Mini) with Dodge button, Lobby revealer, Auto Pick / Auto Ban
+
 -Fixed repo structure completely, no more bugs or fixed skins hopefully :)
