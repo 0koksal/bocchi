@@ -48,9 +48,13 @@ export const VariantSelectionDialog: React.FC<VariantSelectionDialogProps> = ({
     const urlToCheck = variant.downloadUrl || variant.githubUrl
     const urlParts = urlToCheck.split('/')
     const variantFileName = decodeURIComponent(urlParts[urlParts.length - 1])
+    // Strip extension for comparison
+    const variantBaseName = variantFileName.replace(/\.(zip|fantome)$/i, '')
 
     return downloadedSkins.some(
-      (ds) => ds.championName === champion.key && ds.skinName === variantFileName
+      (ds) =>
+        (ds.championName === champion.key || ds.championName === champion.name) &&
+        ds.skinName.replace(/\.(zip|fantome)$/i, '') === variantBaseName
     )
   }
 

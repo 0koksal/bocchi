@@ -561,11 +561,14 @@ function AppContent(): React.JSX.Element {
           downloadUrl: githubUrl
         })
 
-        // Check if already downloaded
+        // Check if already downloaded (extension-agnostic)
         const downloadedSkinsResult = await window.api.listDownloadedSkins()
         if (downloadedSkinsResult.success) {
+          const skinBaseName = skinFileName.replace(/\.(zip|fantome)$/i, '')
           const isAlreadyDownloaded = downloadedSkinsResult.skins?.some(
-            (ds) => ds.championName === champion.key && ds.skinName === skinFileName
+            (ds) =>
+              (ds.championName === champion.key || ds.championName === champion.name) &&
+              ds.skinName.replace(/\.(zip|fantome)$/i, '') === skinBaseName
           )
 
           if (!isAlreadyDownloaded) {

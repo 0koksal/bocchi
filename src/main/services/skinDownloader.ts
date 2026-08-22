@@ -173,6 +173,9 @@ export class SkinDownloader {
           fallbackUrl = rawUrl.replace(/\.zip$/, '.fantome')
         } else if (rawUrl.endsWith('.fantome')) {
           fallbackUrl = rawUrl.replace(/\.fantome$/, '.zip')
+        } else {
+          // URL has no extension at all - try both extensions
+          fallbackUrl = rawUrl + '.zip'
         }
 
         if (fallbackUrl) {
@@ -188,7 +191,26 @@ export class SkinDownloader {
             console.log(`Downloaded skin (fallback): ${skinInfo.skinName} to ${zipPath}`)
             return skinInfo
           } catch {
-            console.warn(`[SkinDownloader] Fallback also failed`)
+            // If the first fallback failed and URL had no extension, try .fantome too
+            if (!rawUrl.endsWith('.zip') && !rawUrl.endsWith('.fantome')) {
+              const secondFallback = rawUrl + '.fantome'
+              console.log(`[SkinDownloader] Trying second fallback: ${secondFallback}`)
+              try {
+                const fallbackResponse2 = await axios({
+                  method: 'GET',
+                  url: secondFallback,
+                  responseType: 'stream'
+                })
+                const writer2 = createWriteStream(zipPath)
+                await pipeline(fallbackResponse2.data, writer2)
+                console.log(`Downloaded skin (second fallback): ${skinInfo.skinName} to ${zipPath}`)
+                return skinInfo
+              } catch {
+                console.warn(`[SkinDownloader] All fallbacks failed`)
+              }
+            } else {
+              console.warn(`[SkinDownloader] Fallback also failed`)
+            }
           }
         }
 
@@ -239,7 +261,9 @@ export class SkinDownloader {
         )
         if (classicSkin) {
           const baseSkinName = (classicSkin.nameEn || classicSkin.name).replace(/[:/\\*?"<>|]/g, '')
-          skinName = `${baseSkinName}.zip`
+          // Preserve original extension from URL
+          const fileExt = classicSkinMatch[4] // .zip or .fantome
+          skinName = `${baseSkinName}.${fileExt}`
         }
       }
 
@@ -263,7 +287,9 @@ export class SkinDownloader {
 
       const champion = championDataService.getChampionByIdSync(realChampionId)
       let championName = champion?.key || `Champion_${realChampionId}`
-      let skinName = `${chromaId}.zip`
+      // Preserve original extension
+      const fileExt = classicChromaMatch[5] // .zip or .fantome
+      let skinName = `${chromaId}.${fileExt}`
 
       if (champion) {
         // Find the parent classic skin
@@ -273,7 +299,7 @@ export class SkinDownloader {
         )
         if (classicSkin) {
           const baseSkinName = (classicSkin.nameEn || classicSkin.name).replace(/[:/\\*?"<>|]/g, '')
-          skinName = `${baseSkinName} ${chromaId}.zip`
+          skinName = `${baseSkinName} ${chromaId}.${fileExt}`
         }
       }
 
@@ -316,7 +342,9 @@ export class SkinDownloader {
       // Resolve IDs to names for proper cache storage
       const champion = championDataService.getChampionByIdSync(championId)
       let championName = champion?.name || `Champion_${championId}`
-      let skinName = `${childId}.zip`
+      // Preserve original extension
+      const fileExt = idBased4LevelMatch[5] // .zip or .fantome
+      let skinName = `${childId}.${fileExt}`
 
       if (champion) {
         // First check if childId is a chroma
@@ -326,7 +354,7 @@ export class SkinDownloader {
             const chroma = skin.chromaList.find((c) => c.id.toString() === childId)
             if (chroma) {
               const baseSkinName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
-              skinName = `${baseSkinName} ${childId}.zip`
+              skinName = `${baseSkinName} ${childId}.${fileExt}`
               isChroma = true
               break
             }
@@ -339,7 +367,7 @@ export class SkinDownloader {
           const childSkin = champion.skins.find((s) => s.num === childNum)
           if (childSkin) {
             const baseSkinName = (childSkin.nameEn || childSkin.name).replace(/[:/\\*?"<>|]/g, '')
-            skinName = `${baseSkinName}.zip`
+            skinName = `${baseSkinName}.${fileExt}`
           }
         }
       }
@@ -369,7 +397,9 @@ export class SkinDownloader {
       // Resolve IDs to names for proper cache storage
       const champion = championDataService.getChampionByIdSync(championId)
       let championName = `Champion_${championId}` // Fallback
-      let skinName = `${fileId}.zip` // Fallback
+      // Preserve original extension
+      const fileExt = idBasedMatch[4] // .zip or .fantome
+      let skinName = `${fileId}.${fileExt}` // Fallback
 
       if (champion) {
         championName = champion.name
@@ -382,7 +412,7 @@ export class SkinDownloader {
         const skin = champion.skins.find((s) => s.num === skinNum)
         if (skin) {
           const baseSkinName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
-          skinName = `${baseSkinName}.zip`
+          skinName = `${baseSkinName}.${fileExt}`
         }
       }
 
@@ -419,9 +449,11 @@ export class SkinDownloader {
         // Try reverse lookup in skin_ids.json to get chromaId for local filename
         const chromaId = repositoryService.getSkinIdByName(dir3)
         if (chromaId) {
+          // Preserve original extension
+          const fileExt = fileName.match(/\.(zip|fantome)$/i)?.[1] || 'zip'
           return {
             championName,
-            skinName: `${baseSkinName} ${chromaId}.zip`,
+            skinName: `${baseSkinName} ${chromaId}.${fileExt}`,
             url,
             source: 'repository' as const
           }
@@ -599,13 +631,15 @@ export class SkinDownloader {
                 const skin = champion.skins.find((s) => s.num === skinNum)
                 if (skin) {
                   const baseName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
-                  skinName = `${baseName}.zip`
+                  const originalExt = numericSkinMatch[2] // preserve original extension
+                  skinName = `${baseName}.${originalExt}`
                 }
               }
             }
             const championName = resolvedChampionName // Use resolved champion name
             // Check if this is a chroma file (contains a number ID at the end)
-            const chromaMatch = skinName.match(/^(.+)\s+(\d{6})\.zip$/)
+            // Support both .zip and .fantome extensions
+            const chromaMatch = skinName.match(/^(.+)\s+(\d{6})\.(zip|fantome)$/i)
             let reconstructedUrl: string = ''
 
             try {
@@ -1175,15 +1209,16 @@ export class SkinDownloader {
                       const subFiles = await fs.readdir(innerFilePath)
                       for (const subFile of subFiles) {
                         if (/\.(zip|fantome)$/i.test(subFile)) {
+                          const subExt = subFile.match(/\.(zip|fantome)$/i)![1]
                           const subId = subFile.replace(/\.(zip|fantome)$/i, '')
                           const subSkinNum = parseInt(subId, 10) - (championId * 1000)
                           const subSkin = champion?.skins.find((s) => s.num === subSkinNum)
                           let localName: string
                           if (subSkin) {
-                            localName = `${(subSkin.nameEn || subSkin.name).replace(/[:/\\*?"<>|]/g, '')}.zip`
+                            localName = `${(subSkin.nameEn || subSkin.name).replace(/[:/\\*?"<>|]/g, '')}.${subExt}`
                           } else {
                             // Treat as chroma of the inner skin
-                            localName = `${innerBaseName} ${subId}.zip`
+                            localName = `${innerBaseName} ${subId}.${subExt}`
                           }
                           files.push({
                             source: path.join(innerFilePath, subFile),
@@ -1194,7 +1229,8 @@ export class SkinDownloader {
                         }
                       }
                     } else if (/\.(zip|fantome)$/i.test(innerFile)) {
-                      const localName = `${innerBaseName}.zip`
+                      const innerExt = innerFile.match(/\.(zip|fantome)$/i)![1]
+                      const localName = `${innerBaseName}.${innerExt}`
                       files.push({
                         source: innerFilePath,
                         destination: path.join(this.cacheDir, resolvedChampionName, localName),
@@ -1219,20 +1255,26 @@ export class SkinDownloader {
                   const chromaFiles = await fs.readdir(innerPath)
                   for (const chromaFile of chromaFiles) {
                     if (/\.(zip|fantome)$/i.test(chromaFile)) {
-                      const chromaId = chromaFile.replace(/\.(zip|fantome)$/i, '')
-                      const localName = `${chromaParentName} ${chromaId}.zip`
-                      files.push({
-                        source: path.join(innerPath, chromaFile),
-                        destination: path.join(this.cacheDir, resolvedChampionName, localName),
-                        championName: resolvedChampionName,
-                        skinName: localName
-                      })
+                      const chromaIdWithExt = chromaFile.match(/(\d+)\.(zip|fantome)$/i)
+                      if (chromaIdWithExt) {
+                        const chromaId = chromaIdWithExt[1]
+                        const fileExt = chromaIdWithExt[2]
+                        const localName = `${chromaParentName} ${chromaId}.${fileExt}`
+                        files.push({
+                          source: path.join(innerPath, chromaFile),
+                          destination: path.join(this.cacheDir, resolvedChampionName, localName),
+                          championName: resolvedChampionName,
+                          skinName: localName
+                        })
+                      }
                     }
                   }
                 }
               } else if (/\.(zip|fantome)$/i.test(inner)) {
-                // Main skin file: rename from ID to skin name
-                const localName = `${baseSkinName}.zip`
+                // Main skin file: rename from ID to skin name, preserve extension
+                const extMatch = inner.match(/\.(zip|fantome)$/i)
+                const fileExt = extMatch ? extMatch[1] : 'zip'
+                const localName = `${baseSkinName}.${fileExt}`
                 files.push({
                   source: innerPath,
                   destination: path.join(this.cacheDir, resolvedChampionName, localName),
@@ -1251,14 +1293,16 @@ export class SkinDownloader {
             const innerStat = await fs.stat(innerPath)
 
             if (innerStat.isDirectory() && !options.excludeChromas) {
-              // Chroma subdirectory: look for zip inside
+              // Chroma subdirectory: look for zip/fantome inside
               const chromaFiles = await fs.readdir(innerPath)
               for (const chromaFile of chromaFiles) {
-                if (chromaFile.endsWith('.zip')) {
+                if (/\.(zip|fantome)$/i.test(chromaFile)) {
                   // Use reverse skin_ids.json lookup for local filename
-                  const chromaBase = chromaFile.replace(/\.zip$/i, '')
+                  const extMatch = chromaFile.match(/\.(zip|fantome)$/i)
+                  const fileExt = extMatch ? extMatch[1] : 'zip'
+                  const chromaBase = chromaFile.replace(/\.(zip|fantome)$/i, '')
                   const chromaId = repositoryService.getSkinIdByName(chromaBase)
-                  const localName = chromaId ? `${skinEntry} ${chromaId}.zip` : chromaFile
+                  const localName = chromaId ? `${skinEntry} ${chromaId}.${fileExt}` : chromaFile
                   files.push({
                     source: path.join(innerPath, chromaFile),
                     destination: path.join(this.cacheDir, resolvedChampionName, localName),

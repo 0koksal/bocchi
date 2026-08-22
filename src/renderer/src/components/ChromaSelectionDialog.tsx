@@ -51,9 +51,11 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
   }
 
   const isChromaDownloaded = (chromaId: string) => {
-    const chromaFileName = `${skin.nameEn || skin.name} ${chromaId}.zip`.replace(/:/g, '')
+    const chromaBaseName = `${skin.nameEn || skin.name} ${chromaId}`.replace(/[:/\\*?"<>|]/g, '')
     return downloadedSkins.some(
-      (ds) => ds.championName === champion.key && ds.skinName === chromaFileName
+      (ds) =>
+        (ds.championName === champion.key || ds.championName === champion.name) &&
+        ds.skinName.replace(/\.(zip|fantome)$/i, '') === chromaBaseName
     )
   }
 
@@ -152,7 +154,7 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
                           setDownloadingIds((prev) => new Set(prev).add(chroma.id))
                           const championNameForUrl = getChampionDisplayName(champion)
                           const skinFileName = generateSkinFilename({ ...skin, chromaId: chroma.id.toString() })
-                          const downloadName = skinFileName.replace(/\.zip$/i, '').replace(/\s+\d+$/, '')
+                          const downloadName = skinFileName.replace(/\.(zip|fantome)$/i, '').replace(/\s+\d+$/, '')
                           const urlResult = await window.api.repositoryConstructUrl(
                             championNameForUrl,
                             skinFileName,

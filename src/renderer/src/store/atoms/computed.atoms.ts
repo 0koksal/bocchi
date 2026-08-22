@@ -223,9 +223,12 @@ export const downloadFilteredSkinsAtom = atom((get) => {
   const downloadedSkins = get(downloadedSkinsAtom)
 
   return skins.filter(({ champion, skin }) => {
-    const skinFileName = `${skin.nameEn || skin.name}.zip`.replace(/:/g, '')
+    // Extension-agnostic matching
+    const baseName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
     const isDownloaded = downloadedSkins.some(
-      (ds) => ds.championName === champion.key && ds.skinName === skinFileName
+      (ds) =>
+        (ds.championName === champion.key || ds.championName === champion.name) &&
+        ds.skinName.replace(/\.(zip|fantome)$/i, '') === baseName
     )
     return filters.downloadStatus === 'downloaded' ? isDownloaded : !isDownloaded
   })
@@ -330,12 +333,13 @@ export const skinStatsAtom = atom((get) => {
       champion.skins.forEach((skin) => {
         if (skin.num !== 0) {
           total++
-          const skinFileName = `${skin.nameEn || skin.name}.zip`.replace(/[:/\\*?"<>|]/g, '')
+          // Extension-agnostic matching
+          const baseName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
           if (
             downloadedSkins.some(
               (ds) =>
                 (ds.championName === champion.key || ds.championName === champion.name) &&
-                ds.skinName === skinFileName
+                ds.skinName.replace(/\.(zip|fantome)$/i, '') === baseName
             )
           ) {
             downloaded++

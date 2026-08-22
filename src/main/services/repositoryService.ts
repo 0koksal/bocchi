@@ -116,7 +116,25 @@ export class RepositoryService {
   }
 
   getSkinIdByName(name: string): string | null {
-    return this.skinIdsReverseMap.get(name) || null
+    // Direct lookup
+    const direct = this.skinIdsReverseMap.get(name)
+    if (direct) return direct
+
+    // Try with special chars stripped (handles K/DA → KDA mismatch)
+    const normalized = name.replace(/[:/\\*?"<>|]/g, '')
+    if (normalized !== name) {
+      const fromNormalized = this.skinIdsReverseMap.get(normalized)
+      if (fromNormalized) return fromNormalized
+    }
+
+    // Try case-insensitive lookup
+    for (const [key, id] of this.skinIdsReverseMap.entries()) {
+      if (key.toLowerCase() === name.toLowerCase()) return id
+      // Also try normalized comparison
+      if (key.replace(/[:/\\*?"<>|]/g, '').toLowerCase() === normalized.toLowerCase()) return id
+    }
+
+    return null
   }
 
   async ensureSkinIds(): Promise<void> {
@@ -299,12 +317,13 @@ export class RepositoryService {
           structure: {
             type: detection.type,
             skinsPath: detection.skinsPath,
+            fileExtension: detection.fileExtension,
             autoDetected: true
           }
         })
 
         console.log(
-          `✓ Detected ${repo.owner}/${repo.repo} as ${detection.type} (${detection.confidence}% confidence)`
+          `✓ Detected ${repo.owner}/${repo.repo} as ${detection.type} (${detection.confidence}% confidence, ext: ${detection.fileExtension || 'default'})`
         )
       } catch (error) {
         console.error(`Failed to auto-detect ${repo.owner}/${repo.repo}:`, error)
@@ -394,6 +413,7 @@ export class RepositoryService {
       structure: {
         type: detection.type,
         skinsPath: detection.skinsPath,
+        fileExtension: detection.fileExtension,
         autoDetected: true
       }
     }
@@ -419,6 +439,7 @@ export class RepositoryService {
       structure: {
         type: detection.type,
         skinsPath: detection.skinsPath,
+        fileExtension: detection.fileExtension,
         autoDetected: true
       }
     })
@@ -533,11 +554,15 @@ export class RepositoryService {
     }
 
     // Name-based repository (default)
+    // If skinFile doesn't have an extension, append the repo's configured extension (default: zip)
+    const hasExtension = /\.(zip|fantome)$/i.test(skinFile)
+    const fileWithExt = hasExtension ? skinFile : `${skinFile}.${structure.fileExtension || 'zip'}`
+
     if (isChroma && chromaBase) {
-      return `https://github.com/${repo.owner}/${repo.repo}/blob/${repo.branch}/${skinsPath}/${championName}/chromas/${encodeURIComponent(chromaBase)}/${encodeURIComponent(skinFile)}`
+      return `https://github.com/${repo.owner}/${repo.repo}/blob/${repo.branch}/${skinsPath}/${championName}/chromas/${encodeURIComponent(chromaBase)}/${encodeURIComponent(fileWithExt)}`
     }
 
-    return `https://github.com/${repo.owner}/${repo.repo}/blob/${repo.branch}/${skinsPath}/${championName}/${encodeURIComponent(skinFile)}`
+    return `https://github.com/${repo.owner}/${repo.repo}/blob/${repo.branch}/${skinsPath}/${championName}/${encodeURIComponent(fileWithExt)}`
   }
 
   /**
@@ -646,8 +671,9 @@ export class RepositoryService {
       throw new Error(`Champion not found for ID: ${championId}`)
     }
 
-    // Check if this is a chroma (has 5-6 digit ID in filename)
-    const chromaMatch = skinFile.match(/(\d{5,6})\.(zip|fantome)$/i)
+    // Check if this is a chroma (has 4-6 digit ID in filename after skin name)
+    // Support both with and without extension
+    const chromaMatch = skinFile.match(/\s(\d{4,6})\.(zip|fantome)$/i) || skinFile.match(/\s(\d{4,6})$/)
     if (chromaMatch) {
       const chromaId = chromaMatch[1]
 
@@ -678,9 +704,14 @@ export class RepositoryService {
     const baseName = skinFile.replace(/\.(zip|fantome)$/i, '')
 
     // Try to find the skin by name in champion data
+    // Also try with "/" stripped since generateSkinFilename removes it
     const matchingSkin = champion.skins.find((s) => {
       const skinName = (s as any).lolSkinsName || s.nameEn || s.name
-      return skinName === baseName
+      if (skinName === baseName) return true
+      // Compare with "/" stripped from skin name (K/DA → KDA)
+      const skinNameNormalized = skinName.replace(/[:/\\*?"<>|]/g, '')
+      if (skinNameNormalized === baseName) return true
+      return false
     })
 
     if (matchingSkin) {
@@ -720,9 +751,16 @@ export class RepositoryService {
     }
 
     // Last resort: construct from skin num by iterating all skins and checking partial match
+    // Only match if the skin name is substantial (longer than 5 chars when normalized)
+    // and the match covers most of the target to avoid false positives like "akali" matching "kdaalloutakali"
     const partialMatch = champion.skins.find((s) => {
+      if (s.num === 0) return false // Skip base skin to avoid false matches
       const skinName = ((s as any).lolSkinsName || s.nameEn || s.name).toLowerCase()
-      return skinName.includes(normalizedBase) || normalizedBase.includes(skinName.replace(/[^a-z0-9]/g, ''))
+      const normalizedSkinName = skinName.replace(/[^a-z0-9]/g, '')
+      // Only match if normalized names are similar length (within 30% difference)
+      const lenRatio = Math.min(normalizedSkinName.length, normalizedBase.length) / Math.max(normalizedSkinName.length, normalizedBase.length)
+      if (lenRatio < 0.7) return false
+      return normalizedSkinName.includes(normalizedBase) || normalizedBase.includes(normalizedSkinName)
     })
 
     if (partialMatch) {

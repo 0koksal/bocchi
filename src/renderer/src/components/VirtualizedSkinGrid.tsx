@@ -11,7 +11,7 @@ import { ChromaColorPie } from './ChromaColorPie'
 import { ChromaSelectionDialog } from './ChromaSelectionDialog'
 import { VariantSelectionDialog } from './VariantSelectionDialog'
 import { Button } from './ui/button'
-import { generateSkinFilename } from '../../../shared/utils/skinFilename'
+import { generateSkinFilename, matchesSkinFilename } from '../../../shared/utils/skinFilename'
 import { getChampionDisplayName } from '../utils/championUtils'
 
 interface VirtualizedSkinGridProps {
@@ -205,8 +205,9 @@ export const VirtualizedSkinGrid: React.FC<VirtualizedSkinGridProps> = ({
   const downloadedSkinsMap = useMemo(() => {
     const map = new Map<string, (typeof downloadedSkins)[0]>()
     downloadedSkins.forEach((ds) => {
-      // Create multiple keys for different lookup patterns
-      const key1 = `${ds.championName}:${ds.skinName}`
+      // Create multiple keys for different lookup patterns - extension-agnostic
+      const skinNameWithoutExt = ds.skinName.replace(/\.(zip|fantome)$/i, '')
+      const key1 = `${ds.championName}:${skinNameWithoutExt}`
       const key2 = ds.localPath || ''
       map.set(key1, ds)
       if (key2) map.set(key2, ds)
@@ -237,13 +238,14 @@ export const VirtualizedSkinGrid: React.FC<VirtualizedSkinGridProps> = ({
           (ds) => ds.skinName.startsWith('[User]') && ds.skinName.includes(skin.name)
         )
       } else {
+        // Check with extension-agnostic matching
         downloadedSkin =
           downloadedSkinsMap.get(`${champion.key}:${skinFileName}`) ||
           downloadedSkinsMap.get(`${champion.name}:${skinFileName}`) ||
           downloadedSkins.find(
             (ds) =>
               (ds.championName === champion.key || ds.championName === champion.name) &&
-              ds.skinName === skinFileName
+              matchesSkinFilename(ds.skinName, skinFileName)
           ) ||
           downloadedSkins.find(
             (ds) =>
@@ -252,15 +254,13 @@ export const VirtualizedSkinGrid: React.FC<VirtualizedSkinGridProps> = ({
               ds.skinName.includes(skin.name)
           )
 
-        // Fallback for classic skins: check with .fantome extension or partial name match
+        // Fallback for classic skins: check with both extensions or partial name match
         if (!downloadedSkin && skin.skinType === 'classic') {
           const classicBaseName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
           downloadedSkin = downloadedSkins.find(
             (ds) =>
               (ds.championName === champion.key || ds.championName === champion.name) &&
-              (ds.skinName === `${classicBaseName}.fantome` ||
-               ds.skinName === `${classicBaseName}.zip` ||
-               ds.skinName.replace(/\.(zip|fantome)$/i, '') === classicBaseName)
+              matchesSkinFilename(ds.skinName, classicBaseName)
           )
         }
 
@@ -271,7 +271,7 @@ export const VirtualizedSkinGrid: React.FC<VirtualizedSkinGridProps> = ({
             (ds) =>
               (ds.championName === champion.key || ds.championName === champion.name) &&
               !ds.skinName.includes('[User]') &&
-              ds.skinName.replace(/\.(zip|fantome)$/i, '') === baseName
+              matchesSkinFilename(ds.skinName, baseName)
           )
         }
       }

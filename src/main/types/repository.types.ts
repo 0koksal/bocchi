@@ -4,6 +4,7 @@ export interface RepositoryStructure {
   type: RepositoryStructureType
   skinsPath: string
   chromaPattern?: string
+  fileExtension?: string // 'zip' | 'fantome' - default extension for files in this repo
   autoDetected: boolean
 }
 
@@ -31,6 +32,7 @@ export interface RepositoryDetectionResult {
   confidence: number
   skinsPath: string
   sampledPaths: string[]
+  fileExtension?: string // detected file extension ('zip' or 'fantome')
   error?: string
 }
 

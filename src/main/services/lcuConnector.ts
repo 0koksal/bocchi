@@ -182,6 +182,32 @@ export class LCUConnector extends EventEmitter {
     }
   }
 
+  /**
+   * Send a raw request to LCU without JSON serialization.
+   * Used for endpoints that expect raw text bodies (like the dodge quitV2 endpoint).
+   */
+  async rawRequest(method: string, endpoint: string, body?: string): Promise<string> {
+    if (!this.axiosInstance) {
+      throw new Error('Not connected to LCU')
+    }
+
+    try {
+      const response = await this.axiosInstance.request({
+        method,
+        url: endpoint,
+        data: body,
+        headers: body ? {} : undefined,
+        transformRequest: [(data: any) => data] // prevent axios from JSON-stringifying
+      })
+      return response.data
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(`LCU ${error.response.status}: ${error.response.data || error.response.statusText}`)
+      }
+      throw error
+    }
+  }
+
   async getGameflowSession(): Promise<any> {
     try {
       const session = await this.request('GET', '/lol-gameflow/v1/session')

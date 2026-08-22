@@ -1,2 +1,2 @@
-- Removed electron-overlay-window function causing league window goes bottom right and crashing.
-- Updated Discord Rich Presence with better branding (Bocchi Skin Changer / Bocchi Reborn)
+-Added Auxiliary Mini Window (Bocchi Mini) with Dodge button, Lobby revealer, Auto Pick / Auto Ban
+-Fixed repo structure completely, no more bugs or fixed skins hopefully :)

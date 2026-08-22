@@ -8,6 +8,7 @@ export interface SkinNameInfo {
 /**
  * Generates a consistent filename for a skin or chroma
  * This function ensures the same filename is generated whether downloading or checking status
+ * Note: File extension (.zip or .fantome) is handled during comparison, not generation
  */
 export function generateSkinFilename(skin: SkinNameInfo): string {
   // Use the same priority order as the download logic
@@ -15,22 +16,32 @@ export function generateSkinFilename(skin: SkinNameInfo): string {
   const baseName = (skin.nameEn || skin.name).replace(/[:/\\*?"<>|]/g, '')
 
   if (skin.chromaId) {
-    return `${baseName} ${skin.chromaId}.zip`
+    return `${baseName} ${skin.chromaId}`
   }
 
   if (skin.variantId) {
-    return `${baseName} (${skin.variantId}).zip`
+    return `${baseName} (${skin.variantId})`
   }
 
-  return `${baseName}.zip`
+  return baseName
+}
+
+/**
+ * Checks if a downloaded skin filename matches the expected skin name
+ * Handles both .zip and .fantome extensions
+ */
+export function matchesSkinFilename(downloadedFilename: string, expectedBaseName: string): boolean {
+  // Remove extension from downloaded filename
+  const filenameWithoutExt = downloadedFilename.replace(/\.(zip|fantome)$/i, '')
+  return filenameWithoutExt === expectedBaseName
 }
 
 /**
  * Extracts the base skin name without file extension or chroma ID
  */
 export function extractBaseSkinName(filename: string): string {
-  // Remove .zip extension
-  let baseName = filename.replace(/\.zip$/i, '')
+  // Remove .zip or .fantome extension
+  let baseName = filename.replace(/\.(zip|fantome)$/i, '')
 
   // Remove chroma ID (numbers at the end after a space)
   baseName = baseName.replace(/\s+\d+$/, '')

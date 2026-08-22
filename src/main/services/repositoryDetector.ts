@@ -75,6 +75,9 @@ class RepositoryDetector {
         sampledPaths: samples.map((item) => item.path)
       }
 
+      // Detect the file extension used in this repo
+      result.fileExtension = this.detectFileExtension(tree, skinsPath)
+
       // If confidence is low, try deep validation
       if (analysis.confidence < 100 && samples.length > 0) {
         const deepResult = await this.deepValidation(owner, repo, branch, samples[0].path)
@@ -229,16 +232,16 @@ class RepositoryDetector {
         const allNumeric = secondLevelNames.every((name) => NUMERIC_ID_PATTERN.test(name))
 
         if (allNumeric) {
-          // Check for .zip files in one of the second-level directories
+          // Check for .zip or .fantome files in one of the second-level directories
           const sampleSecondLevel = secondLevel[0].path
-          const zipFiles = tree.filter(
+          const skinFiles = tree.filter(
             (item) =>
               item.type === 'blob' &&
               item.path.startsWith(`${sampleSecondLevel}/`) &&
-              item.path.endsWith('.zip')
+              (item.path.endsWith('.zip') || item.path.endsWith('.fantome'))
           )
 
-          if (zipFiles.length > 0) {
+          if (skinFiles.length > 0) {
             return { type: 'id-based', confidence: 100 }
           }
         }
@@ -248,6 +251,35 @@ class RepositoryDetector {
     } catch {
       return null
     }
+  }
+
+  /**
+   * Detects the predominant file extension used in the repository (.zip or .fantome)
+   */
+  private detectFileExtension(tree: GitHubTreeItem[], skinsPath: string): string {
+    const normalizedPath = skinsPath.endsWith('/') ? skinsPath : `${skinsPath}/`
+
+    let zipCount = 0
+    let fantomeCount = 0
+
+    for (const item of tree) {
+      if (item.type !== 'blob') continue
+      if (!item.path.startsWith(normalizedPath)) continue
+
+      if (item.path.endsWith('.zip')) {
+        zipCount++
+      } else if (item.path.endsWith('.fantome')) {
+        fantomeCount++
+      }
+
+      // Don't need to check all files, a sample is sufficient
+      if (zipCount + fantomeCount >= 20) break
+    }
+
+    // Return the dominant extension, default to 'zip' for name-based repos
+    if (fantomeCount > zipCount) return 'fantome'
+    if (zipCount > 0) return 'zip'
+    return 'zip' // default
   }
 
   /**

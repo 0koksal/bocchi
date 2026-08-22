@@ -597,6 +597,11 @@ export interface IApi {
   onOpenSettings: (callback: () => void) => () => void
   onLanguageChanged: (callback: (language: string) => void) => () => void
 
+  // Auxiliary window
+  toggleAuxWindow: () => Promise<{ visible: boolean }>
+  isAuxWindowVisible: () => Promise<boolean>
+  forwardThemeToAux: (cssVariables: string, isDark: boolean) => void
+
   // Skin update management
   checkSkinUpdates: (skinPaths?: string[]) => Promise<{
     success: boolean

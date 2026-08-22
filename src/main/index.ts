@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron'
+﻿import { app, shell, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron'
 import { join } from 'path'
 import path from 'path'
 import fs from 'fs'
@@ -32,6 +32,7 @@ import { multiRitoFixesService } from './services/multiRitoFixesService'
 import { skinMigrationService } from './services/skinMigrationService'
 import { repositoryService } from './services/repositoryService'
 import { discordRpcService } from './services/discordRpcService'
+import { auxWindowService } from './services/auxWindowService'
 import { SkinRepository } from './types/repository.types'
 import { GamePathService } from './services/gamePathService'
 import { ensureXXHashReady } from './services/xxhash'
@@ -99,6 +100,16 @@ function resolveSkinFileInfo(skinContext: SelectedSkin): { baseName: string; ext
     baseName,
     extension: extMatch ? extMatch[0] : ''
   }
+}
+
+/**
+ * Safely splits a skinKey ("champion/skinFile") on the first "/" only.
+ * Handles skin names that contain "/" (e.g., "K/DA ALL OUT Akali").
+ */
+function splitSkinKey(skinKey: string): [string, string] {
+  const firstSlash = skinKey.indexOf('/')
+  if (firstSlash === -1) return [skinKey, '']
+  return [skinKey.substring(0, firstSlash), skinKey.substring(firstSlash + 1)]
 }
 
 // Global references to prevent garbage collection
@@ -592,6 +603,11 @@ if (gotTheLock) {
     // Initialize LCU connection
     setupLCUConnection()
 
+    // Initialize auxiliary window service
+    if (mainWindow) {
+      auxWindowService.initialize(mainWindow)
+    }
+
     app.on('activate', function () {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
@@ -914,7 +930,7 @@ function setupIpcHandlers(): void {
 
       // 0. Filter out base skins when their chromas are selected
       const filteredSkins = skinKeys.filter((skinKey) => {
-        const [champion, skinFile] = skinKey.split('/')
+        const [champion, skinFile] = splitSkinKey(skinKey)
 
         // Check if this is a base skin
         const baseSkinName = skinFile.replace('.zip', '')
@@ -922,7 +938,7 @@ function setupIpcHandlers(): void {
         // Check if any chroma of this skin is also selected
         const hasChromaSelected = skinKeys.some((otherKey) => {
           if (otherKey === skinKey) return false
-          const [otherChampion, otherFile] = otherKey.split('/')
+          const [otherChampion, otherFile] = splitSkinKey(otherKey)
           if (champion !== otherChampion) return false
 
           // Check if otherFile is a chroma of this base skin
@@ -947,7 +963,7 @@ function setupIpcHandlers(): void {
       if (!allowMultipleSkinsPerChampion) {
         const championCounts = new Map<string, number>()
         for (const skinKey of filteredSkins) {
-          const champion = skinKey.split('/')[0]
+          const champion = splitSkinKey(skinKey)[0]
           championCounts.set(champion, (championCounts.get(champion) || 0) + 1)
         }
 
@@ -966,7 +982,7 @@ function setupIpcHandlers(): void {
       const downloadedSkins = await skinDownloader.listDownloadedSkins()
       const skinInfosToProcess = await Promise.allSettled(
         filteredSkins.map(async (skinKey) => {
-          const [champion, skinFile] = skinKey.split('/')
+          const [champion, skinFile] = splitSkinKey(skinKey)
 
           // Handle user-imported skins
           // Check if this is a custom skin using the context map
@@ -1063,13 +1079,15 @@ function setupIpcHandlers(): void {
           // Check if the skin is already downloaded (list fetched once before the loop)
           const skinCtx = skinContextMap.get(skinKey)
           const properChampionName = skinCtx?.championName || champion
+          // Check if skin is already downloaded (extension-agnostic)
+          const skinFileBase = skinFile.replace(/\.(zip|fantome)$/i, '')
           const existingSkin = downloadedSkins.find(
             (ds) =>
               (ds.championName === champion ||
                 decodeURIComponent(ds.championName) === champion ||
                 ds.championName === properChampionName ||
                 decodeURIComponent(ds.championName) === properChampionName) &&
-              ds.skinName === skinFile
+              ds.skinName.replace(/\.(zip|fantome)$/i, '') === skinFileBase
           )
 
           if (existingSkin && existingSkin.localPath) {
@@ -1286,7 +1304,7 @@ function setupIpcHandlers(): void {
         // First validate for single skin per champion
         const championCounts = new Map<string, number>()
         for (const skinKey of skinKeys) {
-          const champion = skinKey.split('/')[0]
+          const champion = splitSkinKey(skinKey)[0]
           championCounts.set(champion, (championCounts.get(champion) || 0) + 1)
         }
 
@@ -1304,7 +1322,7 @@ function setupIpcHandlers(): void {
         const downloadedSkins = await skinDownloader.listDownloadedSkins()
         const skinInfosToProcess = await Promise.allSettled(
           skinKeys.map(async (skinKey) => {
-            const [champion, skinFile] = skinKey.split('/')
+            const [champion, skinFile] = splitSkinKey(skinKey)
 
             // Check if this is a custom skin using the context map
             const skinContext = skinContextMap.get(skinKey)
@@ -1398,13 +1416,15 @@ function setupIpcHandlers(): void {
             // Check if the skin is already downloaded (list fetched once before the loop)
             const skinCtx = skinContextMap.get(skinKey)
             const properChampionName = skinCtx?.championName || champion
+            // Check if skin is already downloaded (extension-agnostic)
+            const skinFileBase = skinFile.replace(/\.(zip|fantome)$/i, '')
             const existingSkin = downloadedSkins.find(
               (ds) =>
                 (ds.championName === champion ||
                   decodeURIComponent(ds.championName) === champion ||
                   ds.championName === properChampionName ||
                   decodeURIComponent(ds.championName) === properChampionName) &&
-                ds.skinName === skinFile
+                ds.skinName.replace(/\.(zip|fantome)$/i, '') === skinFileBase
             )
 
             if (existingSkin && existingSkin.localPath) {

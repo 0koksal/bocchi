@@ -8,6 +8,10 @@ import { isCheckingForUpdatesAtom } from '../store/atoms/ui.atoms'
 import { Button } from './ui/button'
 import {
   autoAcceptEnabledAtom,
+  autoPickEnabledAtom,
+  autoBanEnabledAtom,
+  autoPickChampionsAtom,
+  autoBanChampionsAtom,
   autoRandomFavoriteSkinEnabledAtom,
   autoRandomRaritySkinEnabledAtom,
   autoRandomHighestWinRateSkinEnabledAtom,
@@ -102,6 +106,10 @@ export function SettingsDialog({
   const setAutoApplyEnabledAtom = useSetAtom(autoApplyEnabledAtom)
   const setAutoApplyTriggerTimeAtom = useSetAtom(autoApplyTriggerTimeAtom)
   const setAutoAcceptEnabledAtom = useSetAtom(autoAcceptEnabledAtom)
+  const setAutoPickEnabledAtom = useSetAtom(autoPickEnabledAtom)
+  const setAutoBanEnabledAtom = useSetAtom(autoBanEnabledAtom)
+  const setAutoPickChampionsAtom = useSetAtom(autoPickChampionsAtom)
+  const setAutoBanChampionsAtom = useSetAtom(autoBanChampionsAtom)
 
   useEffect(() => {
     if (isOpen) {
@@ -146,6 +154,18 @@ export function SettingsDialog({
         case 'autoExtractImages':
           setAutoExtractImages(value)
           break
+        case 'autoPickEnabled':
+          setAutoPickEnabledAtom(value)
+          break
+        case 'autoBanEnabled':
+          setAutoBanEnabledAtom(value)
+          break
+        case 'autoPickChampions':
+          setAutoPickChampionsAtom(value)
+          break
+        case 'autoBanChampions':
+          setAutoBanChampionsAtom(value)
+          break
       }
     }
 
@@ -159,7 +179,11 @@ export function SettingsDialog({
     setSmartApplyEnabledAtom,
     setAutoApplyEnabledAtom,
     onLeagueClientChange,
-    onChampionDetectionChange
+    onChampionDetectionChange,
+    setAutoPickEnabledAtom,
+    setAutoBanEnabledAtom,
+    setAutoPickChampionsAtom,
+    setAutoBanChampionsAtom
   ])
 
   const loadSettings = async () => {

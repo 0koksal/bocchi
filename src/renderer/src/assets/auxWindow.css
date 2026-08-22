@@ -1,0 +1,422 @@
+:root {
+  --bg-primary: var(--color-background, #1e2030);
+  --bg-secondary: var(--color-surface, #181a2a);
+  --bg-hover: var(--color-elevated, #2a2d45);
+  --bg-content: var(--color-surface, #232538);
+  --text-primary: var(--color-text-primary, #e2e4f0);
+  --text-secondary: var(--color-text-secondary, #8b8fa8);
+  --text-muted: var(--color-text-muted, #5c5f78);
+  --accent: var(--color-primary-500, #7c8af8);
+  --accent-hover: var(--color-primary-600, #6b7af0);
+  --border: var(--color-border, #2e3148);
+  --dodge-red: var(--color-error, #e05252);
+  --dodge-red-hover: #c73e3e;
+  --opgg-blue: #5383e8;
+  --opgg-blue-hover: #4171d6;
+  --poro-teal: #21b2aa;
+  --poro-teal-hover: #1a9a93;
+  --success: var(--color-success, #4ecdc4);
+  --warning: var(--color-warning, #f0a040);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+html {
+  overflow: hidden;
+}
+
+.aux-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Title bar - matches Akari's style */
+.aux-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  padding: 0 12px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+  cursor: move;
+  border-radius: 8px 8px 0 0;
+}
+
+.aux-titlebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.aux-titlebar-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.aux-titlebar-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.aux-titlebar-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.aux-titlebar-btn.close:hover {
+  background: var(--dodge-red);
+  color: white;
+}
+
+/* Pin button - like Akari's pushpin */
+.aux-titlebar-btn .pin-icon {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.aux-titlebar-btn.pinned .pin-icon {
+  transform: rotate(0deg);
+  color: var(--accent);
+}
+
+.aux-titlebar-btn:not(.pinned) .pin-icon {
+  transform: rotate(45deg);
+  color: var(--text-muted);
+}
+
+/* Content area */
+.aux-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.aux-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.aux-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.aux-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.aux-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Phase badge */
+.aux-phase-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--bg-content);
+  border: 1px solid var(--border);
+}
+
+.aux-phase-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.aux-phase-dot.active {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+.aux-phase-dot.champselect {
+  background: var(--warning);
+  box-shadow: 0 0 6px var(--warning);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Buttons */
+.aux-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Figtree', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.2px;
+}
+
+.aux-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.aux-btn.dodge {
+  background: var(--dodge-red);
+  color: white;
+}
+
+.aux-btn.dodge:hover:not(:disabled) {
+  background: var(--dodge-red-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(224, 82, 82, 0.3);
+}
+
+.aux-btn.opgg {
+  background: var(--opgg-blue);
+  color: white;
+}
+
+.aux-btn.opgg:hover:not(:disabled) {
+  background: var(--opgg-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(83, 131, 232, 0.3);
+}
+
+.aux-btn.poro {
+  background: var(--poro-teal);
+  color: white;
+}
+
+.aux-btn.poro:hover:not(:disabled) {
+  background: var(--poro-teal-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 178, 170, 0.3);
+}
+
+.aux-btn-icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* Section label */
+.aux-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.aux-reveal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aux-status {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 4px;
+}
+
+/* Empty state - like Akari's "No active activities" */
+.aux-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+  padding: 40px 20px;
+}
+
+.aux-empty-state svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.4;
+}
+
+.aux-empty-state span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Toggle switches */
+.aux-toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-content);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.aux-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aux-toggle-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.aux-toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border: none;
+  border-radius: 10px;
+  background: var(--bg-hover);
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+}
+
+.aux-toggle.active {
+  background: var(--accent);
+}
+
+.aux-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s;
+}
+
+.aux-toggle.active .aux-toggle-knob {
+  transform: translateX(16px);
+}
+
+/* Champion selector in auto pick/ban */
+.aux-champion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.aux-champion-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aux-champion-index {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 16px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.aux-champion-select {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-family: 'Figtree', sans-serif;
+  outline: none;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.aux-champion-select:focus {
+  border-color: var(--accent);
+}
+
+.aux-champion-remove {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.aux-champion-remove:hover {
+  background: var(--dodge-red);
+  color: white;
+}
+
+.aux-add-champion {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.aux-add-champion:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}

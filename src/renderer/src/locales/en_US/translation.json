@@ -111,7 +111,7 @@
     "havingTrouble": "Having trouble? You can also:",
     "dllRequired": "DLL Required",
     "dllDmcaNotice": "Due to a recent DMCA takedown, Bocchi can no longer distribute the cslol-dll.dll file.",
-    "dllInstructions": "To use Bocchi, you must provide your own signed cslol-dll.dll file. Please obtain a properly signed cslol-dll.dll from an authorized source (such as building it yourself from the LeagueToolkit/cslol-manager repository) and place it in the tools folder.",
+    "dllInstructions": "To use Bocchi, you must download cslol-dll.dll file by yourself. Please join our discord and in #tutorial channel theres a youtube video, you can find the .dll links there, and place it in the tools folder.",
     "dllWithoutNotice": "Click the button below to open the folder where you should place the DLL. Without this file, Bocchi cannot function.",
     "openToolsFolder": "Open Tools Folder"
   },

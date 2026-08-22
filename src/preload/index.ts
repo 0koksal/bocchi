@@ -514,7 +514,13 @@ const api = {
     const handler = (_: IpcRendererEvent, language: string) => callback(language)
     ipcRenderer.on('language-changed', handler)
     return () => ipcRenderer.removeListener('language-changed', handler)
-  }
+  },
+
+  // Auxiliary window
+  toggleAuxWindow: () => ipcRenderer.invoke('aux:toggle'),
+  isAuxWindowVisible: () => ipcRenderer.invoke('aux:is-visible'),
+  forwardThemeToAux: (cssVariables: string, isDark: boolean) =>
+    ipcRenderer.send('aux:forward-theme', { cssVariables, isDark })
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

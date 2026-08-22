@@ -11,7 +11,8 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/preload/index.ts')
+          index: resolve(__dirname, 'src/preload/index.ts'),
+          aux: resolve(__dirname, 'src/preload/auxWindow.ts')
         }
       }
     }
@@ -27,7 +28,8 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/renderer/index.html')
+          index: resolve(__dirname, 'src/renderer/index.html'),
+          aux: resolve(__dirname, 'src/renderer/auxWindow.html')
         }
       }
     }

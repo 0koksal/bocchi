@@ -43,15 +43,35 @@ export function AutoBanPickSettings({ disabled = false }: AutoBanPickSettingsPro
       // Load owned champions for pick selection
       const ownedResult = await window.api.lcuGetOwnedChampions()
       if (ownedResult.success && ownedResult.champions) {
+        const seen = new Set<string>()
         setOwnedChampions(
-          ownedResult.champions.sort((a: any, b: any) => a.name.localeCompare(b.name))
+          ownedResult.champions
+            .filter((c: any) => c.id > 0 && c.id < 60000)
+            .filter((c: any) => {
+              const key = c.name.toLowerCase()
+              if (seen.has(key)) return false
+              seen.add(key)
+              return true
+            })
+            .sort((a: any, b: any) => a.name.localeCompare(b.name))
         )
       }
 
       // Load all champions for ban selection
       const allResult = await window.api.lcuGetAllChampions()
       if (allResult.success && allResult.champions) {
-        setAllChampions(allResult.champions.sort((a: any, b: any) => a.name.localeCompare(b.name)))
+        const seen = new Set<string>()
+        setAllChampions(
+          allResult.champions
+            .filter((c: any) => c.id > 0 && c.id < 60000)
+            .filter((c: any) => {
+              const key = c.name.toLowerCase()
+              if (seen.has(key)) return false
+              seen.add(key)
+              return true
+            })
+            .sort((a: any, b: any) => a.name.localeCompare(b.name))
+        )
       }
     } catch (error) {
       console.error('Failed to load champions:', error)

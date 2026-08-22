@@ -332,9 +332,12 @@ export function useSkinManagement() {
             console.log(`  Generated filename: ${skinFileName}`)
           }
 
-          // Check if skin is already downloaded
+          // Check if skin is already downloaded (extension-agnostic)
+          const skinBaseName = skinFileName.replace(/\.(zip|fantome)$/i, '')
           const isSkinDownloaded = downloadedSkins.some(
-            (ds) => (ds.championName === champion.key || ds.championName === champion.name) && ds.skinName === skinFileName
+            (ds) =>
+              (ds.championName === champion.key || ds.championName === champion.name) &&
+              ds.skinName.replace(/\.(zip|fantome)$/i, '') === skinBaseName
           )
 
           if (!isSkinDownloaded) {
@@ -343,7 +346,7 @@ export function useSkinManagement() {
               const championNameForUrl = getChampionDisplayName(champion)
 
               if (selectedSkin.chromaId) {
-                const downloadName = skinFileName.replace(/\.zip$/i, '').replace(/\s+\d+$/, '')
+                const downloadName = skinFileName.replace(/\.(zip|fantome)$/i, '').replace(/\s+\d+$/, '')
                 const urlResult = await window.api.repositoryConstructUrl(
                   championNameForUrl,
                   skinFileName,

@@ -7,7 +7,7 @@ import {
   defaultLightTheme,
   defaultDarkTheme
 } from '../themes/themes'
-import { applyTheme, getSystemThemePreference } from '../themes/utils'
+import { applyTheme, getSystemThemePreference, generateCSSVariables } from '../themes/utils'
 
 interface ThemeContextType {
   theme: Theme
@@ -57,6 +57,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Apply theme whenever it changes
   useEffect(() => {
     applyTheme(theme)
+    // Forward theme to auxiliary window
+    try {
+      const cssVariables = generateCSSVariables(theme)
+      window.api.forwardThemeToAux(cssVariables, theme.isDark)
+    } catch {
+      // Aux window might not exist yet
+    }
   }, [theme])
 
   // Save theme config to localStorage

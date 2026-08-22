@@ -49,71 +49,58 @@ function normalizeSkinName(name: string): string {
 }
 
 // Parse directory structure text into a Map
+// New format: simple list of paths (one per line)
+// Example:
+//   Aatrox/Aatrox.zip
+//   Aatrox/Justicar Aatrox.zip
+//   103/103001/103001.fantome
 function parseDirectoryStructure(directoryText: string): Map<string, LolSkinInfo[]> {
   const skinsMap = new Map<string, LolSkinInfo[]>()
   const lines = directoryText.split('\n')
 
-  let currentChampion = ''
-  let currentPath: string[] = []
-
   for (const line of lines) {
-    // Skip empty lines and header
-    if (!line.trim() || line.includes('Directory structure:')) continue
+    const trimmedLine = line.trim()
+    if (!trimmedLine) continue
 
-    // Skip the root "skins/" line
-    if (line.includes('└── skins/')) continue
+    // Check if this is a skin file (.zip or .fantome)
+    if (!/\.(zip|fantome)$/i.test(trimmedLine)) continue
 
-    // Find the position of the actual branch character (├ or └)
-    const branchPos = Math.max(line.search(/├/), line.search(/└/))
-    if (branchPos === -1) continue
-
-    // Extract content after "── "
-    const contentMatch = line.match(/[├└]──\s+(.+)/)
-    if (!contentMatch) continue
-
-    const content = contentMatch[1].trim()
-    if (!content) continue
-
-    // Calculate depth based on the position of the branch character
-    // Each level adds 4 characters of indentation
-    const depth = Math.floor(branchPos / 4)
-
-    // Check if it's a directory (ends with /)
-    if (content.endsWith('/')) {
-      const dirName = content.slice(0, -1)
-
-      // Update current path based on depth
-      // Trim the path to the current depth level
-      currentPath = currentPath.slice(0, depth)
-      currentPath[depth] = dirName
-
-      if (depth === 1) {
-        // Champion folder (4 spaces indentation)
-        currentChampion = dirName
-        skinsMap.set(currentChampion, [])
-      }
+    const parts = trimmedLine.split('/')
+    
+    // For name-based repos: Champion/SkinFile.zip (2 parts)
+    // For ID-based repos: ChampionId/SkinId/SkinId.fantome (3 parts for skins, 4 for chromas)
+    
+    if (parts.length === 2) {
+      // Name-based structure: Champion/SkinFile.zip
+      const championName = parts[0]
+      const fileName = parts[1]
+      const skinName = fileName.replace(/\.(zip|fantome)$/i, '')
+      
+      // Skip chroma files (they have numeric IDs at the end like "Skin Name 103052.zip")
+      if (/\s\d{5,}$/i.test(skinName)) continue
+      
+      const skins = skinsMap.get(championName) || []
+      skins.push({
+        championName,
+        skinName,
+        fileName
+      })
+      skinsMap.set(championName, skins)
+    } else if (parts.length === 3) {
+      // ID-based structure: ChampionId/SkinId/SkinId.fantome (regular skin)
+      const championId = parts[0]
+      const fileName = parts[2]
+      const skinId = fileName.replace(/\.(zip|fantome)$/i, '')
+      
+      const skins = skinsMap.get(championId) || []
+      skins.push({
+        championName: championId,
+        skinName: skinId,
+        fileName
+      })
+      skinsMap.set(championId, skins)
     }
-    // Check if it's a .zip file
-    else if (content.endsWith('.zip')) {
-      // When we encounter a file, we need to trim the path to its parent depth
-      // Files are siblings to directories, so we trim to depth-1
-      currentPath = currentPath.slice(0, depth)
-
-      // Only process skin files (not chromas)
-      // Skin files are at depth 2 (8 spaces) and not under 'chromas' folder
-      if (currentChampion && depth === 2 && !currentPath.includes('chromas')) {
-        const fileName = content
-        const skinName = fileName.slice(0, -4) // Remove .zip extension
-
-        const skins = skinsMap.get(currentChampion) || []
-        skins.push({
-          championName: currentChampion,
-          skinName: skinName,
-          fileName: fileName
-        })
-        skinsMap.set(currentChampion, skins)
-      }
-    }
+    // Skip 4-level paths (chromas) - they are not base skins
   }
 
   return skinsMap

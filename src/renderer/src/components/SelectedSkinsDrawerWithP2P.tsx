@@ -257,7 +257,8 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
         } else if (skin.skinId.startsWith('custom_[User] ')) {
           // New format: Custom mod with champion assigned
           const modFileName = skin.skinId.replace('custom_', '')
-          modPath = downloadedSkins.find((ds) => ds.skinName === modFileName)?.localPath
+          const modFileBase = modFileName.replace(/\.(zip|fantome)$/i, '')
+          modPath = downloadedSkins.find((ds) => ds.skinName.replace(/\.(zip|fantome)$/i, '') === modFileBase)?.localPath
         }
 
         if (modPath && !customImages[modPath]) {
@@ -400,7 +401,8 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
       } else {
         // New format: Custom mod with champion assigned
         const modFileName = skin.skinId.replace('custom_', '')
-        modPath = downloadedSkins.find((ds) => ds.skinName === modFileName)?.localPath
+        const modFileBase = modFileName.replace(/\.(zip|fantome)$/i, '')
+        modPath = downloadedSkins.find((ds) => ds.skinName.replace(/\.(zip|fantome)$/i, '') === modFileBase)?.localPath
       }
 
       if (modPath && customImages[modPath]) {
@@ -473,14 +475,17 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
 
     // Use stored filename if available
     if (skin.downloadedFilename) {
-      return downloadedSkins.some((ds) => ds.skinName === skin.downloadedFilename)
+      // Custom skins with downloadedFilename already include extension
+      const baseFilename = skin.downloadedFilename.replace(/\.(zip|fantome)$/i, '')
+      return downloadedSkins.some((ds) => ds.skinName.replace(/\.(zip|fantome)$/i, '') === baseFilename)
     }
 
     // Generate filename for comparison
     const skinFileName = getSkinFileName(skin)
+    const skinFileBase = skinFileName.replace(/\.(zip|fantome)$/i, '')
 
-    // Check if skin is downloaded
-    return downloadedSkins.some((ds) => ds.skinName === skinFileName)
+    // Check if skin is downloaded (extension-agnostic)
+    return downloadedSkins.some((ds) => ds.skinName.replace(/\.(zip|fantome)$/i, '') === skinFileBase)
   }
 
   const getSkinFileName = (skin: SelectedSkin): string => {
@@ -528,7 +533,7 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
     // Check if this is a custom skin that needs file transfer
     const isCustomMod = skin.championKey === 'Custom' || skin.skinId.startsWith('custom_[User] ')
     if (isCustomMod && skin.customModInfo?.supportsTransfer) {
-      // Check if we already have this mod locally
+      // Check if we already have this mod locally (extension-agnostic)
       let localMod
       if (skin.championKey === 'Custom') {
         localMod = downloadedSkins.find(
@@ -537,7 +542,8 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
       } else {
         // Custom mod with champion
         const modFileName = skin.skinId.replace('custom_', '')
-        localMod = downloadedSkins.find((ds) => ds.skinName === modFileName)
+        const modFileBase = modFileName.replace(/\.(zip|fantome)$/i, '')
+        localMod = downloadedSkins.find((ds) => ds.skinName.replace(/\.(zip|fantome)$/i, '') === modFileBase)
       }
 
       if (!localMod) {

@@ -91,7 +91,7 @@ export class SkinMigrationService {
           const skinFiles = await fs.readdir(championPath)
 
           for (const skinFile of skinFiles) {
-            if (skinFile.endsWith('.zip') && !skinFile.startsWith('[User]')) {
+            if ((skinFile.endsWith('.zip') || skinFile.endsWith('.fantome')) && !skinFile.startsWith('[User]')) {
               // Log found skins for debugging
               console.log(`[Migration] Found existing skin: ${championDir}/${skinFile}`)
             }

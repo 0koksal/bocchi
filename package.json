@@ -1,6 +1,6 @@
 {
   "name": "bocchi",
-  "version": "1.25.5",
+  "version": "1.25.6",
   "description": "Bocchi - League of Legends Skin Changer",
   "main": "./out/main/index.js",
   "author": "Bocchi Team",
@@ -19,7 +19,8 @@
     "build:win": "npm run build && electron-builder --win",
     "fetch-champion-data": "bun run scripts/fetch-champion-data.ts",
     "fetch-champion-data:force": "bun run scripts/fetch-champion-data.ts --force",
-    "fetch-champion-data:sequential": "bun run scripts/fetch-champion-data.ts --sequential"
+    "fetch-champion-data:sequential": "bun run scripts/fetch-champion-data.ts --sequential",
+    "update-skin-directory": "node scripts/update-skin-directory.js"
   },
   "dependencies": {
     "7z-wasm": "^1.2.0",
