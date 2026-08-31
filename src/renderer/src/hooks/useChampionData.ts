@@ -1,0 +1,132 @@
+import { useCallback } from 'react'
+import { useAtom, useSetAtom } from 'jotai'
+import { useTranslation } from 'react-i18next'
+import { useLocale } from '../contexts/useLocale'
+import {
+  championDataAtom,
+  selectedChampionAtom,
+  showChampionDataUpdateAtom
+} from '../store/atoms/champion.atoms'
+import {
+  statusMessageAtom,
+  loadingStatesAtom,
+  activeOperationAtom
+} from '../store/atoms/game.atoms'
+import { selectedChampionKeyAtom } from '../store/atoms'
+import { downloadedSkinsAtom } from '../store/atoms/skin.atoms'
+
+export function useChampionData() {
+  const { t } = useTranslation()
+  const { currentLanguage } = useLocale()
+  const [championData, setChampionData] = useAtom(championDataAtom)
+  const [selectedChampion, setSelectedChampion] = useAtom(selectedChampionAtom)
+  const [selectedChampionKey] = useAtom(selectedChampionKeyAtom)
+  const setShowChampionDataUpdate = useSetAtom(showChampionDataUpdateAtom)
+  const setStatusMessage = useSetAtom(statusMessageAtom)
+  const [loadingStates, setLoadingStates] = useAtom(loadingStatesAtom)
+  const [activeOperation, setActiveOperation] = useAtom(activeOperationAtom)
+  const setDownloadedSkins = useSetAtom(downloadedSkinsAtom)
+
+  const loadChampionData = useCallback(
+    async (preserveSelection = false) => {
+      const result = await window.api.loadChampionData(currentLanguage)
+      if (result.success && result.data) {
+        // Cast the data to ChampionData type
+        const championData = result.data as unknown as {
+          version: string
+          lastUpdated: string
+          champions: Array<{ key: string; [key: string]: unknown }>
+        }
+        setChampionData(championData as any)
+
+        // Try to restore selected champion from persisted key
+        if (selectedChampionKey && selectedChampionKey !== 'all') {
+          const champion = championData.champions.find((c) => c.key === selectedChampionKey)
+          if (champion) {
+            setSelectedChampion(champion as any)
+          }
+        } else if (selectedChampionKey === 'all') {
+          setSelectedChampion(null)
+        }
+
+        // Handle preserve selection
+        if (preserveSelection && selectedChampion) {
+          const sameChampion = championData.champions.find((c) => c.key === selectedChampion.key)
+          if (sameChampion) {
+            setSelectedChampion(sameChampion as any)
+          }
+        }
+
+        return championData as any
+      }
+      return null
+    },
+    [currentLanguage, selectedChampionKey, selectedChampion, setChampionData, setSelectedChampion]
+  )
+
+  const fetchChampionData = useCallback(async () => {
+    // Prevent concurrent fetches
+    if (activeOperation === 'fetchChampionData') {
+      return
+    }
+
+    setActiveOperation('fetchChampionData')
+    setLoadingStates((prev) => ({ ...prev, isLoadingChampionData: true }))
+    setStatusMessage(t('status.fetchingData'))
+
+    try {
+      const result = await window.api.fetchChampionData(currentLanguage)
+      if (result.success) {
+        setStatusMessage(t('status.dataFetched', { count: result.championCount }))
+        await loadChampionData()
+
+        // Also refresh downloaded skins so the UI reflects current state
+        const skinsResult = await window.api.listDownloadedSkins()
+        if (skinsResult.success && skinsResult.skins) {
+          setDownloadedSkins(skinsResult.skins)
+        }
+      } else {
+        setStatusMessage(`${t('errors.generic')}: ${result.message}`)
+      }
+    } catch (error) {
+      setStatusMessage(
+        `${t('errors.generic')}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, isLoadingChampionData: false }))
+      setActiveOperation(null)
+    }
+  }, [
+    activeOperation,
+    currentLanguage,
+    t,
+    loadChampionData,
+    setActiveOperation,
+    setLoadingStates,
+    setStatusMessage,
+    setDownloadedSkins
+  ])
+
+  const updateChampionData = useCallback(async () => {
+    setLoadingStates((prev) => ({ ...prev, isUpdatingChampionData: true }))
+    try {
+      await fetchChampionData()
+      setShowChampionDataUpdate(false)
+      await loadChampionData(true)
+    } catch (error) {
+      console.error('Failed to update champion data:', error)
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, isUpdatingChampionData: false }))
+    }
+  }, [fetchChampionData, loadChampionData, setLoadingStates, setShowChampionDataUpdate])
+
+  return {
+    championData,
+    selectedChampion,
+    loadChampionData,
+    fetchChampionData,
+    updateChampionData,
+    isLoadingChampionData: loadingStates.isLoadingChampionData,
+    isUpdatingChampionData: loadingStates.isUpdatingChampionData
+  }
+}

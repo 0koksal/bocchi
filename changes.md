@@ -1,0 +1,2 @@
+- Pre-import after selecting skin to reduce inject time
+- New inject system (no need to download dll anymore, faster inject, no more window bug)

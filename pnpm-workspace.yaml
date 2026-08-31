@@ -1,0 +1,13 @@
+allowBuilds:
+  electron: false
+  esbuild: false
+  koffi: true
+  xxhash-addon: true
+  zstd-napi: true
+
+ignoredBuiltDependencies:
+  - xxhash-addon
+
+onlyBuiltDependencies:
+  - electron
+  - esbuild
