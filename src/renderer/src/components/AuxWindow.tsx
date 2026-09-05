@@ -188,6 +188,11 @@ export function AuxWindow() {
     }
     setDodging(false)
   }
+  // The dodge button below is disabled until Riot's patch is bypassed —
+  // keep this working implementation (marked unused) so it survives typecheck.
+  void dodging
+  void dodgeStatus
+  void handleDodge
 
   const handlePin = () => {
     const newPinned = !isPinned
@@ -334,21 +339,17 @@ export function AuxWindow() {
         {/* Only show actions when connected to League Client */}
         {isConnected ? (
           <>
-            {/* Dodge button */}
+            {/* Dodge button - disabled until Riot's patch is bypassed */}
             <button
               className="aux-btn dodge"
-              onClick={handleDodge}
-              disabled={!isInChampSelect || dodging}
+              disabled={true}
+              title="Dodge is temporarily unavailable — Riot patched this feature"
             >
               <svg className="aux-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
-              {dodging ? 'Dodging...' : 'Dodge'}
+              Dodge (Unavailable)
             </button>
-            {dodgeStatus && (
-              <div className="aux-status">{dodgeStatus}</div>
-            )}
-
             {/* Lobby Reveal section */}
             <div className="aux-section-label">Lobby Reveal</div>
             <div className="aux-reveal-buttons">

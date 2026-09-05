@@ -8,12 +8,27 @@ import { gameflowMonitor } from './gameflowMonitor'
 class AuxWindowService {
   private auxWindow: BrowserWindow | null = null
   private autoShowEnabled = true
+  private enabled = true
   private currentPhase = 'None'
 
   initialize(_mainWindow: BrowserWindow): void {
     this.autoShowEnabled = settingsService.get('auxAutoShow') !== false
+    this.enabled = settingsService.get('auxWindowEnabled') !== false
     this.setupIpcHandlers()
     this.setupGameflowListeners()
+  }
+
+  /**
+   * Enable or disable the aux window entirely (like LeagueAkari's
+   * "Enable Auxiliary Window" setting). When disabled, any open window is
+   * destroyed and the window can no longer be opened via toggle or auto-show.
+   */
+  setEnabled(value: boolean): void {
+    this.enabled = value
+    settingsService.set('auxWindowEnabled', value)
+    if (!value) {
+      this.destroy()
+    }
   }
 
   private setupGameflowListeners(): void {
@@ -121,7 +136,34 @@ class AuxWindowService {
           return { success: false, error: 'Not connected' }
         }
 
-        // Get champ select session
+        // Primary: use Riot Client chat API for all 5 players (including streamer mode)
+        if (lcuConnector.hasRiotClientConnection()) {
+          try {
+            const chat = await lcuConnector.rcRequest('GET', '/chat/v5/participants')
+            if (chat && chat.participants) {
+              const champSelectPlayers = chat.participants.filter(
+                (p: any) => p.cid && p.cid.includes('champ-select')
+              )
+
+              if (champSelectPlayers.length > 0) {
+                const players = champSelectPlayers.map((p: any) => ({
+                  summonerName: p.game_name && p.game_tag
+                    ? `${p.game_name}#${p.game_tag}`
+                    : p.gameName && p.gameTag
+                      ? `${p.gameName}#${p.gameTag}`
+                      : p.name || 'Unknown',
+                  championId: 0,
+                  teamId: 0
+                }))
+                return { success: true, players }
+              }
+            }
+          } catch {
+            // RC API failed, fall through to LCU
+          }
+        }
+
+        // Fallback: LCU champ select session (won't see streamer mode players)
         const session = await lcuConnector.request('GET', '/lol-champ-select/v1/session')
         if (!session || !session.myTeam) {
           return { success: false, error: 'Not in champ select' }
@@ -147,7 +189,6 @@ class AuxWindowService {
               teamId: player.team || 0
             })
           } catch {
-            // If we can't get summoner info, try with cellId
             players.push({
               summonerName: `Player ${player.cellId || player.summonerId}`,
               championId: player.championId || 0,
@@ -225,6 +266,9 @@ class AuxWindowService {
 
     // Toggle from main window
     ipcMain.handle('aux:toggle', () => {
+      if (!this.enabled) {
+        return { visible: false }
+      }
       if (this.auxWindow && !this.auxWindow.isDestroyed() && this.auxWindow.isVisible()) {
         this.hideWindow()
       } else {
@@ -318,6 +362,9 @@ class AuxWindowService {
   }
 
   showWindow(): void {
+    if (!this.enabled) {
+      return
+    }
     if (!this.auxWindow || this.auxWindow.isDestroyed()) {
       this.createWindow()
     } else {

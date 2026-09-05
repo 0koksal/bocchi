@@ -2001,6 +2001,11 @@ function setupIpcHandlers(): void {
       await gamePathService.setGamePath(value)
     }
 
+    // If the aux (Bocchi Mini) window is being enabled/disabled, apply it live
+    if (key === 'auxWindowEnabled' && typeof value === 'boolean') {
+      auxWindowService.setEnabled(value)
+    }
+
     // Update tray menu when relevant settings change
     const trayRelevantSettings = [
       'minimizeToTray',

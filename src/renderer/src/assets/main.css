@@ -167,3 +167,9 @@
     opacity: 1 !important;
   }
 }
+
+/* Legacy League of Legends cursor — replaces the OS cursor everywhere in the app window.
+   The .cur hotspot is 0,0; `auto` is the fallback if the image fails to load. */
+* {
+  cursor: url('./cursor/league-legacy.cur') 0 0, auto !important;
+}

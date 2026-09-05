@@ -12,7 +12,8 @@ import {
   championDetectionEnabledAtom,
   smartApplyEnabledAtom,
   autoApplyEnabledAtom,
-  autoApplyTriggerTimeAtom
+  autoApplyTriggerTimeAtom,
+  auxWindowEnabledAtom
 } from '../store/atoms/settings.atoms'
 import { presetsAtom } from '../store/atoms/presets'
 import { presetService } from '../services/presetService'
@@ -42,6 +43,7 @@ export function useAppInitialization() {
   const setChampionSearchQuery = useSetAtom(championSearchQueryAtom)
   const setSkinSearchQuery = useSetAtom(skinSearchQueryAtom)
   const setLeagueClientEnabled = useSetAtom(leagueClientEnabledAtom)
+  const setAuxWindowEnabled = useSetAtom(auxWindowEnabledAtom)
   const setChampionDetectionEnabled = useSetAtom(championDetectionEnabledAtom)
   const setAutoViewSkinsEnabled = useSetAtom(autoViewSkinsEnabledAtom)
   const setAutoRandomRaritySkinEnabled = useSetAtom(autoRandomRaritySkinEnabledAtom)
@@ -172,7 +174,8 @@ export function useAppInitialization() {
       window.api.getSettings('autoPickChampions'),
       window.api.getSettings('autoBanEnabled'),
       window.api.getSettings('autoBanForce'),
-      window.api.getSettings('autoBanChampions')
+      window.api.getSettings('autoBanChampions'),
+      window.api.getSettings('auxWindowEnabled')
     ]).then(
       ([
         leagueClient,
@@ -192,9 +195,11 @@ export function useAppInitialization() {
         autoPickChampions,
         autoBanEnabled,
         autoBanForce,
-        autoBanChampions
+        autoBanChampions,
+        auxWindowEnabled
       ]) => {
         setLeagueClientEnabled(leagueClient !== false)
+        setAuxWindowEnabled(auxWindowEnabled !== false) // Default to true
         setChampionDetectionEnabled(championDetection !== false)
         setAutoViewSkinsEnabled(autoViewSkins === true)
         setAutoRandomRaritySkinEnabled(autoRandomRaritySkin === true)

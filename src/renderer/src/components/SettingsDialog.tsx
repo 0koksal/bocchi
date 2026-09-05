@@ -22,6 +22,7 @@ import {
 import {
   autoApplyEnabledAtom,
   autoApplyTriggerTimeAtom,
+  auxWindowEnabledAtom,
   championDetectionEnabledAtom,
   leagueClientEnabledAtom,
   smartApplyEnabledAtom
@@ -79,6 +80,7 @@ export function SettingsDialog({
   const [autoAcceptEnabled, setAutoAcceptEnabled] = useState(false)
   const [autoFixModIssues, setAutoFixModIssues] = useState(false)
   const [minimizeToTray, setMinimizeToTray] = useState(false)
+  const [auxWindowEnabled, setAuxWindowEnabled] = useState(true)
   const [autoExtractImages, setAutoExtractImages] = useState(false)
   const [modToolsTimeout, setModToolsTimeout] = useState(300) // Default 300 seconds
   const [loading, setLoading] = useState(true)
@@ -103,6 +105,7 @@ export function SettingsDialog({
   )
   const setAutoRandomMostPlayedSkinEnabledAtom = useSetAtom(autoRandomMostPlayedSkinEnabledAtom)
   const setSmartApplyEnabledAtom = useSetAtom(smartApplyEnabledAtom)
+  const setAuxWindowEnabledAtom = useSetAtom(auxWindowEnabledAtom)
   const setAutoApplyEnabledAtom = useSetAtom(autoApplyEnabledAtom)
   const setAutoApplyTriggerTimeAtom = useSetAtom(autoApplyTriggerTimeAtom)
   const setAutoAcceptEnabledAtom = useSetAtom(autoAcceptEnabledAtom)
@@ -224,6 +227,7 @@ export function SettingsDialog({
       setAutoAcceptEnabled((settings.autoAcceptEnabled as boolean | undefined) === true)
       setAutoFixModIssues((settings.autoFixModIssues as boolean | undefined) === true)
       setMinimizeToTray((settings.minimizeToTray as boolean | undefined) === true)
+      setAuxWindowEnabled((settings.auxWindowEnabled as boolean | undefined) !== false)
       setAutoExtractImages((settings.autoExtractImages as boolean | undefined) === true)
       setModToolsTimeout((settings.modToolsTimeout as number | undefined) || 300) // Default 300 seconds
     } catch (error) {
@@ -492,6 +496,17 @@ export function SettingsDialog({
     }
   }
 
+  const handleAuxWindowEnabledChange = async (checked: boolean) => {
+    setAuxWindowEnabled(checked)
+    setAuxWindowEnabledAtom(checked)
+    try {
+      // Main process destroys the window when disabling; the guard blocks re-opening
+      await window.api.setSettings('auxWindowEnabled', checked)
+    } catch (error) {
+      console.error('Failed to save aux window enabled setting:', error)
+    }
+  }
+
   const handleAutoExtractImagesChange = async (checked: boolean) => {
     setAutoExtractImages(checked)
     try {
@@ -632,6 +647,26 @@ export function SettingsDialog({
               <Switch
                 checked={minimizeToTray}
                 onCheckedChange={handleMinimizeToTrayChange}
+                disabled={loading}
+              />
+            </div>
+
+            {/* Mini Window (Bocchi Mini) Setting */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-text-primary">
+                  {t('settings.auxWindow.title', 'Mini Window')}
+                </h3>
+                <p className="text-xs text-text-secondary mt-1">
+                  {t(
+                    'settings.auxWindow.description',
+                    'Enable the Bocchi Mini window (Dodge / Lobby Reveal). Can be opened from the title bar.'
+                  )}
+                </p>
+              </div>
+              <Switch
+                checked={auxWindowEnabled}
+                onCheckedChange={handleAuxWindowEnabledChange}
                 disabled={loading}
               />
             </div>

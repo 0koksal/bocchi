@@ -773,8 +773,8 @@ export class RepositoryService {
       return `https://github.com/${repo.owner}/${repo.repo}/blob/${repo.branch}/${skinsPath}/${championId}/${skinId}/${skinId}.fantome`
     }
 
-    console.error(`[ID-Based URL] Could not resolve skin "${baseName}" for champion ${champion.name} (${championId})`)
-    console.error(`[ID-Based URL] Available skins: ${champion.skins.map(s => `${s.num}:${(s as any).lolSkinsName || s.nameEn || s.name}`).join(', ')}`)
+    // Chromas, form variants (Kayn/DJ Sona), and unreleased skins have sub-IDs
+    // that don't map to a real skin entry — this is expected, not an error
     throw new Error(`Skin "${baseName}" not found for champion ${champion.name}`)
   }
 

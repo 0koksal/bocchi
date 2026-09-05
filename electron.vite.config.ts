@@ -18,6 +18,7 @@ export default defineConfig({
     }
   },
   renderer: {
+    assetsInclude: ['**/*.cur'],
     resolve: {
       alias: {
         '@': resolve('src/renderer/src'),

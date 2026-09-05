@@ -420,3 +420,8 @@ html {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* Legacy League of Legends cursor — same as the main window */
+* {
+  cursor: url('./cursor/league-legacy.cur') 0 0, auto !important;
+}

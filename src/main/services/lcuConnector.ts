@@ -15,6 +15,8 @@ interface LCUCredentials {
   port: number
   username: string
   password: string
+  rcPort?: string
+  rcPassword?: string
 }
 
 interface LCUConnectionOptions {
@@ -29,6 +31,7 @@ export class LCUConnector extends EventEmitter {
   private pollInterval: NodeJS.Timeout | null = null
   private subscriptions: Set<string> = new Set()
   private axiosInstance: any = null
+  private rcAxiosInstance: any = null  // Riot Client API (separate port/auth)
   private cachedLockfilePath: string | null = null
   private lockfileCacheExpiry: number = 0
   private readonly lockfileCacheDuration = 30000 // 30 seconds
@@ -52,6 +55,19 @@ export class LCUConnector extends EventEmitter {
         return false
       }
 
+      // If RC creds weren't found via the process (e.g. lockfile path was used),
+      // fetch them separately so the lobby revealer can reach the Riot Client API
+      if (!credentials.rcPort || !credentials.rcPassword) {
+        console.log('LCU: Attempting to find Riot Client credentials...')
+        const rcCreds = await this.findRiotClientCredentials()
+        if (rcCreds) {
+          credentials.rcPort = rcCreds.rcPort
+          credentials.rcPassword = rcCreds.rcPassword
+        } else {
+          console.log('LCU: Riot Client credentials NOT found')
+        }
+      }
+
       this.credentials = credentials
 
       // Create axios instance with credentials
@@ -66,6 +82,24 @@ export class LCUConnector extends EventEmitter {
         }),
         timeout: 5000
       })
+
+      // Create Riot Client axios instance if RC credentials are available
+      if (credentials.rcPort && credentials.rcPassword) {
+        this.rcAxiosInstance = axios.create({
+          baseURL: `https://127.0.0.1:${credentials.rcPort}`,
+          auth: {
+            username: 'riot',
+            password: credentials.rcPassword
+          },
+          httpsAgent: new https.Agent({
+            rejectUnauthorized: false
+          }),
+          timeout: 5000
+        })
+        console.log(`LCU: Riot Client API available on port ${credentials.rcPort}`)
+      } else {
+        this.rcAxiosInstance = null
+      }
 
       // Test connection with a simple API call
       const isConnected = await this.testConnection()
@@ -206,6 +240,22 @@ export class LCUConnector extends EventEmitter {
       }
       throw error
     }
+  }
+
+  /**
+   * Request against the Riot Client's own REST API (separate port from LCU).
+   * Used for /chat/v5/participants which returns all players including streamer mode.
+   */
+  async rcRequest(method: string, endpoint: string): Promise<any> {
+    if (!this.rcAxiosInstance) {
+      throw new Error('Riot Client API not available')
+    }
+    const response = await this.rcAxiosInstance.request({ method, url: endpoint })
+    return response.data
+  }
+
+  hasRiotClientConnection(): boolean {
+    return this.rcAxiosInstance !== null
   }
 
   async getGameflowSession(): Promise<any> {
@@ -367,6 +417,66 @@ export class LCUConnector extends EventEmitter {
     }
   }
 
+  /**
+   * Extract Riot Client API credentials from the running process command line.
+   * These live on a separate port from the LCU and are needed for the
+   * /chat/v5/participants endpoint used by the lobby revealer.
+   */
+  private async findRiotClientCredentials(): Promise<{ rcPort: string; rcPassword: string } | null> {
+    if (process.platform !== 'win32') return null
+
+    const execAsync = promisify(exec)
+
+    // Get a process's command line. Try WMIC first (older Windows), then
+    // fall back to PowerShell CIM (Windows 11 24H2+ removed WMIC).
+    const getCommandLine = async (procName: string): Promise<string> => {
+      // WMIC
+      try {
+        const { stdout } = await execAsync(
+          `wmic process where "name='${procName}'" get CommandLine /format:list`
+        )
+        if (stdout && stdout.trim()) return stdout
+      } catch {
+        // WMIC missing, try PowerShell
+      }
+      // PowerShell CIM fallback
+      try {
+        const { stdout } = await execAsync(
+          `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"name='${procName}'\\" | Select-Object -ExpandProperty CommandLine"`
+        )
+        if (stdout && stdout.trim()) return stdout
+      } catch {
+        // PowerShell also failed
+      }
+      return ''
+    }
+
+    // The League client process carries the RC creds as --riotclient-* args
+    const leagueCmd = await getCommandLine('LeagueClientUx.exe')
+    if (leagueCmd) {
+      const rcPort = leagueCmd.match(/--riotclient-app-port=(\d+)/)?.[1]
+      const rcPassword = leagueCmd.match(/--riotclient-auth-token=([a-zA-Z0-9_-]+)/)?.[1]
+      if (rcPort && rcPassword) {
+        console.log(`LCU: Found Riot Client creds via LeagueClientUx.exe (port ${rcPort})`)
+        return { rcPort, rcPassword }
+      }
+    }
+
+    // The Riot Client's own process carries --app-port + --remoting-auth-token
+    for (const procName of ['RiotClientServices.exe', 'RiotClientUx.exe']) {
+      const cmd = await getCommandLine(procName)
+      if (!cmd) continue
+      const rcPort = cmd.match(/--app-port=(\d+)/)?.[1]
+      const rcPassword = cmd.match(/--remoting-auth-token=([a-zA-Z0-9_-]+)/)?.[1]
+      if (rcPort && rcPassword) {
+        console.log(`LCU: Found Riot Client creds via ${procName} (port ${rcPort})`)
+        return { rcPort, rcPassword }
+      }
+    }
+
+    return null
+  }
+
   private async findLockfileFromProcess(): Promise<LCUCredentials | null> {
     if (process.platform === 'win32') {
       try {
@@ -388,7 +498,9 @@ export class LCUConnector extends EventEmitter {
               address: '127.0.0.1',
               port: parseInt(portMatch[1], 10),
               username: 'riot',
-              password: tokenMatch[1]
+              password: tokenMatch[1],
+              rcPort: stdout.match(/--riotclient-app-port=(\d+)/)?.[1],
+              rcPassword: stdout.match(/--riotclient-auth-token=([a-zA-Z0-9_-]+)/)?.[1]
             }
           }
         }

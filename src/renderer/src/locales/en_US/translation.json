@@ -319,6 +319,10 @@
       "title": "Minimize to Tray",
       "description": "Hide the app to system tray instead of closing when clicking the close button"
     },
+    "auxWindow": {
+      "title": "Mini Window",
+      "description": "Enable the Bocchi Mini window (Dodge / Lobby Reveal). Can be opened from the title bar."
+    },
     "autoExtractImages": {
       "title": "Auto Extract Preview Images",
       "description": "Automatically extract preview images from WAD files when importing skins (requires conversion tools)"
