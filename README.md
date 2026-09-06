@@ -1,7 +1,7 @@
 # Bocchi - League of Legends Skin Changer
 
 <div align="center">
-  <img src="./resources/demo.gif" alt="Bocchi Logo" width="128" height="128">
+  <img src="./resources/demo.gif">
   
   [![Installer](https://img.shields.io/badge/Installer-Windows-blue)](https://github.com/0koksal/bocchi/releases/latest)
   [![Discord](https://img.shields.io/discord/1537070071825043486?color=5865F2&logo=discord&logoColor=white)](https://discord.gg/FVxNNhzNcP)
