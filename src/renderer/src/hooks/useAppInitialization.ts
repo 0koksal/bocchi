@@ -111,6 +111,33 @@ export function useAppInitialization() {
     return () => clearTimeout(timer)
   }, [setCslolToolsUpdateInfo, setShowCslolToolsUpdateDialog])
 
+  // Check for LTK Patcher binary updates on app start
+  useEffect(() => {
+    const checkLtkPatcherUpdate = async () => {
+      try {
+        const toolsExist = await window.api.checkToolsExist()
+        if (!toolsExist) return
+
+        const result = await window.api.checkLtkPatcherUpdate()
+        if (result.success && result.updateAvailable) {
+          console.log(`[LTKPatcher] Update available (${result.currentSha?.slice(0,7) ?? 'unknown'} → ${result.latestSha?.slice(0,7) ?? 'unknown'}), downloading...`)
+          const downloadResult = await window.api.downloadLtkPatcher()
+          if (downloadResult.success) {
+            console.log('[LTKPatcher] Binaries updated successfully')
+          } else {
+            console.warn('[LTKPatcher] Failed to update binaries:', downloadResult.error)
+          }
+        }
+      } catch (error) {
+        console.warn('[LTKPatcher] Failed to check for patcher updates:', error)
+      }
+    }
+
+    // Stagger the check to avoid hitting GitHub API at the same time as cslol-tools check
+    const timer = setTimeout(checkLtkPatcherUpdate, 5000)
+    return () => clearTimeout(timer)
+  }, [])
+
   // Set up update event listeners
   useEffect(() => {
     const unsubscribe = window.api.onUpdateAvailable((info) => {

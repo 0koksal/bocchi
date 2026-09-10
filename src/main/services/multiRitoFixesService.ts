@@ -19,16 +19,14 @@ export class MultiRitoFixesService {
   async ensureToolExists(): Promise<void> {
     const exists = await this.toolsDownloader.checkMultiRitoFixesExist()
     if (!exists) {
-      throw new Error('MultiRitoFixes tool not found. Please download it first.')
+      throw new Error('Hematite tool not found. Please download it first.')
     }
   }
 
   async fixMod(modPath: string, onProgress?: (message: string) => void): Promise<FixResult> {
     try {
-      // Ensure the tool exists
       await this.ensureToolExists()
 
-      // Verify the mod file exists
       try {
         await fs.access(modPath)
       } catch {
@@ -42,20 +40,25 @@ export class MultiRitoFixesService {
           windowsHide: true
         })
 
+        // Hematite waits for "Press Enter to exit..." — auto-confirm immediately
+        process.stdin?.write('\n')
+        process.stdin?.end()
+
         let stdout = ''
         let stderr = ''
 
         process.stdout.on('data', (data) => {
           const output = data.toString()
           stdout += output
-          // Parse progress messages
           if (onProgress) {
             const lines = output.split('\n').filter((line) => line.trim())
             for (const line of lines) {
               if (
                 line.includes('Processing') ||
                 line.includes('Fixing') ||
-                line.includes('Converting')
+                line.includes('Converting') ||
+                line.includes('Migrating') ||
+                line.includes('migrat')
               ) {
                 onProgress(line.trim())
               }
@@ -68,55 +71,66 @@ export class MultiRitoFixesService {
         })
 
         process.on('error', (error) => {
-          resolve({
+          safeResolve({
             success: false,
-            error: `Failed to run MultiRitoFixes: ${error.message}`
+            error: `Failed to run Hematite: ${error.message}`
           })
         })
 
-        process.on('close', (code) => {
+        let resolved = false
+        const safeResolve = (result: FixResult) => {
+          if (!resolved) {
+            resolved = true
+            resolve(result)
+          }
+        }
+
+        process.on('close', async (code) => {
           if (code === 0) {
-            resolve({
-              success: true,
-              output: stdout
-            })
+            // Hematite puts the fixed file in a "Hematite-Fixed" folder next to the original.
+            // Move it back over the original so Bocchi doesn't see a duplicate.
+            try {
+              const dir = path.dirname(modPath)
+              const fileName = path.basename(modPath)
+              const fixedPath = path.join(dir, 'Hematite-Fixed', fileName)
+
+              let fixedExists = false
+              try {
+                await fs.access(fixedPath)
+                fixedExists = true
+              } catch {
+                // Hematite found nothing to fix — original is already correct
+              }
+
+              if (fixedExists) {
+                await fs.copyFile(fixedPath, modPath)
+                await fs.rm(path.join(dir, 'Hematite-Fixed'), { recursive: true, force: true })
+                console.log('[Hematite] Replaced original with fixed file, cleaned up Hematite-Fixed folder')
+              }
+            } catch (cleanupError) {
+              console.warn('[Hematite] Could not replace original with fixed file:', cleanupError)
+            }
+
+            safeResolve({ success: true, output: stdout })
           } else {
-            // Parse error messages from output
             let errorMessage = 'Fix process failed'
             if (stderr) {
               errorMessage = stderr.trim()
-            } else if (
-              stdout.includes('error') ||
-              stdout.includes('Error') ||
-              stdout.includes('failed')
-            ) {
-              // Extract error message from stdout
+            } else if (stdout.includes('error') || stdout.includes('Error') || stdout.includes('failed')) {
               const lines = stdout.split('\n')
               const errorLine = lines.find(
-                (line) =>
-                  line.toLowerCase().includes('error') || line.toLowerCase().includes('failed')
+                (line) => line.toLowerCase().includes('error') || line.toLowerCase().includes('failed')
               )
-              if (errorLine) {
-                errorMessage = errorLine.trim()
-              }
+              if (errorLine) errorMessage = errorLine.trim()
             }
-
-            resolve({
-              success: false,
-              error: errorMessage,
-              output: stdout
-            })
+            safeResolve({ success: false, error: errorMessage, output: stdout })
           }
         })
 
-        // Set a timeout of 60 seconds
         setTimeout(() => {
           if (!process.killed) {
             process.kill()
-            resolve({
-              success: false,
-              error: 'Fix process timed out after 60 seconds'
-            })
+            safeResolve({ success: false, error: 'Fix process timed out after 60 seconds' })
           }
         }, 60000)
       })
@@ -134,23 +148,19 @@ export class MultiRitoFixesService {
     onDownloadProgress?: (progress: number) => void
   ): Promise<FixResult> {
     try {
-      // Check if tool exists
       const exists = await this.toolsDownloader.checkMultiRitoFixesExist()
 
       if (!exists) {
-        // Download the tool
-        onProgress?.('Downloading MultiRitoFixes tool...')
+        onProgress?.('Downloading Hematite tool...')
         await this.toolsDownloader.downloadMultiRitoFixes(onDownloadProgress)
       } else {
-        // Check for updates
         const needsUpdate = await this.toolsDownloader.checkMultiRitoFixesUpdate()
         if (needsUpdate) {
-          onProgress?.('Updating MultiRitoFixes tool...')
+          onProgress?.('Updating Hematite tool...')
           await this.toolsDownloader.downloadMultiRitoFixes(onDownloadProgress)
         }
       }
 
-      // Run the fix
       onProgress?.('Fixing mod issues...')
       return await this.fixMod(modPath, onProgress)
     } catch (error) {
@@ -165,7 +175,6 @@ export class MultiRitoFixesService {
     const ext = path.extname(filePath).toLowerCase()
     const fileName = path.basename(filePath).toLowerCase()
 
-    // Check for supported file types
     if (fileName.endsWith('.wad.client')) return true
     if (ext === '.wad') return true
     if (ext === '.zip') return true

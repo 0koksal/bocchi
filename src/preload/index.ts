@@ -155,6 +155,8 @@ const api = {
   // Tools management
   checkToolsExist: () => ipcRenderer.invoke('check-tools-exist'),
   checkCslolToolsUpdate: () => ipcRenderer.invoke('check-cslol-tools-update'),
+  checkLtkPatcherUpdate: () => ipcRenderer.invoke('check-ltk-patcher-update'),
+  downloadLtkPatcher: () => ipcRenderer.invoke('download-ltk-patcher'),
   downloadTools: (attempt?: number) => ipcRenderer.invoke('download-tools', attempt),
   getToolsInfo: () => ipcRenderer.invoke('get-tools-info'),
   onToolsDownloadProgress: (callback: (progress: number) => void) => {
@@ -178,6 +180,7 @@ const api = {
   // Window controls
   minimizeWindow: () => ipcRenderer.send('window-minimize'),
   maximizeWindow: () => ipcRenderer.send('window-maximize'),
+
   closeWindow: () => ipcRenderer.send('window-close'),
   isWindowMaximized: () => ipcRenderer.invoke('window-is-maximized'),
 

@@ -8,11 +8,14 @@ import { TextureExtractor } from './textureExtractor'
 import { ImageConverter } from './imageConverter'
 import { SettingsService } from './settingsService'
 import { ModToolsWrapper } from './modToolsWrapper'
+import { repairModFile, RepairReport } from './modRepairService'
 
 export interface ImportResult {
   success: boolean
   skinInfo?: SkinInfo
   error?: string
+  /** 16.17 Hashpocalypse auto-repair result, when the file was scanned */
+  repair?: RepairReport
 }
 
 export interface BatchImportResult {
@@ -259,18 +262,17 @@ export class FileImportService {
       }
 
       const modFolderName = championName ? `${championName}_${skinName}` : `Custom_${skinName}`
-      const finalPath = path.join(this.modsDir, modFolderName)
-
-      if (await this.fileExists(finalPath)) {
-        await fs.rm(finalPath, { recursive: true, force: true })
-      }
-
-      await this.moveFile(tempExtractPath, finalPath)
 
       // Copy the original .wad file to mod-files directory
       const modFileName = `${modFolderName}.wad`
       const modFilePath = path.join(this.modFilesDir, modFileName)
       await fs.copyFile(wadPath, modFilePath)
+
+      // Clean up temp extraction — we only need the original file in mod-files
+      await this.cleanupTemp(tempExtractPath)
+
+      // Auto-repair outdated bin property types (16.17 Hashpocalypse) if present
+      const repair = await repairModFile(modFilePath)
 
       const skinInfo: SkinInfo = {
         championName: championName || 'Custom',
@@ -280,7 +282,7 @@ export class FileImportService {
         source: 'user'
       }
 
-      return { success: true, skinInfo }
+      return { success: true, skinInfo, repair }
     } catch (error) {
       await this.cleanupTemp(tempExtractPath)
       throw error
@@ -384,19 +386,19 @@ export class FileImportService {
       const skinName = (options.skinName || info.Name || fileName).trim()
 
       const modFolderName = championName ? `${championName}_${skinName}` : `Custom_${skinName}`
-      const finalPath = path.join(this.modsDir, modFolderName)
-
-      if (await this.fileExists(finalPath)) {
-        await fs.rm(finalPath, { recursive: true, force: true })
-      }
-
-      await this.moveFile(tempExtractPath, finalPath)
 
       // Copy the original mod file to mod-files directory
       const ext = path.extname(zipPath)
       const modFileName = `${modFolderName}${ext}`
       const modFilePath = path.join(this.modFilesDir, modFileName)
       await fs.copyFile(zipPath, modFilePath)
+
+      // Clean up temp extraction — we only need the original file in mod-files
+      await this.cleanupTemp(tempExtractPath)
+      await fs.copyFile(zipPath, modFilePath)
+
+      // Auto-repair outdated bin property types (16.17 Hashpocalypse) if present
+      const repair = await repairModFile(modFilePath)
 
       const skinInfo: SkinInfo = {
         championName: championName || 'Custom',
@@ -406,7 +408,7 @@ export class FileImportService {
         source: 'user'
       }
 
-      return { success: true, skinInfo }
+      return { success: true, skinInfo, repair }
     } catch (error) {
       await this.cleanupTemp(tempExtractPath)
       throw error

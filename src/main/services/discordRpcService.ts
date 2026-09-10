@@ -152,7 +152,7 @@ export class DiscordRpcService {
             large_image: 'bocchi_logo',
             large_text: 'Bocchi Skin Changer',
             small_image: 'bocchi_small',
-            small_text: 'Bocchi v2.0.1'
+            small_text: 'Bocchi v2.0.2'
           },
           buttons: [
             { label: 'Get Bocchi', url: 'https://github.com/0koksal/bocchi' },

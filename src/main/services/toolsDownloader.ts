@@ -31,11 +31,12 @@ export class ToolsDownloader {
   private imageMagickPath: string
   private imageMagickVersionPath: string
   private cslolToolsVersionPath: string
+  private ltkPatcherVersionPath: string
 
   constructor() {
     // Other tools still stored in userData
-    this.multiRitoFixesPath = path.join(app.getPath('userData'), 'MultiRitoFixes.exe')
-    this.multiRitoFixesVersionPath = path.join(app.getPath('userData'), 'multiritofix-version.txt')
+    this.multiRitoFixesPath = path.join(app.getPath('userData'), 'hematite-cli.exe')
+    this.multiRitoFixesVersionPath = path.join(app.getPath('userData'), 'hematite-version.txt')
     this.ritoddstexPath = path.join(app.getPath('userData'), 'tools', 'ritoddstex', 'tex2dds.exe')
     this.ritoddstexVersionPath = path.join(
       app.getPath('userData'),
@@ -49,6 +50,7 @@ export class ToolsDownloader {
       'imagemagick-version.txt'
     )
     this.cslolToolsVersionPath = path.join(app.getPath('userData'), 'cslol-tools-version.txt')
+    this.ltkPatcherVersionPath = path.join(app.getPath('userData'), 'ltk-patcher-version.txt')
   }
 
   async checkToolsExist(): Promise<boolean> {
@@ -363,6 +365,12 @@ export class ToolsDownloader {
         })
         await fs.promises.writeFile(ltkDllPath, Buffer.from(dllResponse.data))
         console.log('[ToolsDownloader] Downloaded ltk_patcher_dll.dll')
+
+        // Save the commit SHA so we can detect updates later
+        const sha = await this.getLtkPatcherLatestSha()
+        if (sha) {
+          await fs.promises.writeFile(this.ltkPatcherVersionPath, sha)
+        }
       } catch (ltkError) {
         console.warn('[ToolsDownloader] Failed to download LTK Patcher (will fall back to legacy):', ltkError)
         // Non-fatal: app can fall back to mod-tools.exe runoverlay
@@ -448,6 +456,87 @@ export class ToolsDownloader {
     }
   }
 
+  /**
+   * Get the latest commit SHA for the LTK patcher binaries from GitHub.
+   */
+  async getLtkPatcherLatestSha(): Promise<string | null> {
+    try {
+      const response = await axios.get(
+        'https://api.github.com/repos/LeagueToolkit/ltk-manager/commits?path=src-tauri/resources/ltk_patcher_host.exe&per_page=1',
+        { headers: { Accept: 'application/vnd.github.v3+json' }, timeout: 10000 }
+      )
+      return response.data?.[0]?.sha ?? null
+    } catch {
+      return null
+    }
+  }
+
+  async getLtkPatcherCurrentSha(): Promise<string | null> {
+    try {
+      const sha = await fs.promises.readFile(this.ltkPatcherVersionPath, 'utf-8')
+      return sha.trim()
+    } catch {
+      return null
+    }
+  }
+
+  async checkLtkPatcherUpdate(): Promise<{
+    updateAvailable: boolean
+    currentSha: string | null
+    latestSha: string | null
+  }> {
+    try {
+      const toolsPath = settingsService.getModToolsPath()
+      if (!toolsPath) return { updateAvailable: false, currentSha: null, latestSha: null }
+
+      const [currentSha, latestSha] = await Promise.all([
+        this.getLtkPatcherCurrentSha(),
+        this.getLtkPatcherLatestSha()
+      ])
+
+      // No version file means the patcher was downloaded before we started tracking — update it
+      if (!currentSha) {
+        return { updateAvailable: true, currentSha: null, latestSha }
+      }
+
+      return {
+        updateAvailable: latestSha !== null && currentSha !== latestSha,
+        currentSha,
+        latestSha
+      }
+    } catch {
+      return { updateAvailable: false, currentSha: null, latestSha: null }
+    }
+  }
+
+  /**
+   * Re-download just the LTK patcher binaries without re-downloading all tools.
+   */
+  async downloadLtkPatcherBinaries(): Promise<void> {
+    const toolsPath = settingsService.getModToolsPath()
+    if (!toolsPath) throw new Error('Tools path not set')
+
+    const ltkBaseUrl = 'https://raw.githubusercontent.com/LeagueToolkit/ltk-manager/main/src-tauri/resources'
+    const ltkHostPath = path.join(toolsPath, 'ltk_patcher_host.exe')
+    const ltkDllPath = path.join(toolsPath, 'ltk_patcher_dll.dll')
+
+    console.log('[ToolsDownloader] Updating LTK Patcher binaries...')
+
+    const [hostResponse, dllResponse] = await Promise.all([
+      axios.get(`${ltkBaseUrl}/ltk_patcher_host.exe`, { responseType: 'arraybuffer', timeout: 60000 }),
+      axios.get(`${ltkBaseUrl}/ltk_patcher_dll.dll`, { responseType: 'arraybuffer', timeout: 60000 })
+    ])
+
+    await fs.promises.writeFile(ltkHostPath, Buffer.from(hostResponse.data))
+    await fs.promises.writeFile(ltkDllPath, Buffer.from(dllResponse.data))
+
+    // Save new SHA
+    const sha = await this.getLtkPatcherLatestSha()
+    if (sha) await fs.promises.writeFile(this.ltkPatcherVersionPath, sha)
+
+    console.log('[ToolsDownloader] LTK Patcher updated successfully')
+  }
+
   async checkMultiRitoFixesExist(): Promise<boolean> {
     try {
       await fs.promises.access(this.multiRitoFixesPath, fs.constants.F_OK)
@@ -464,22 +553,18 @@ export class ToolsDownloader {
   }> {
     try {
       const response = await axios.get(
-        'https://api.github.com/repos/TheMartynasXS/MultiRitoFixes/releases/latest',
-        {
-          headers: {
-            Accept: 'application/vnd.github.v3+json'
-          }
-        }
+        'https://api.github.com/repos/RitoShark/Hematite/releases/latest',
+        { headers: { Accept: 'application/vnd.github.v3+json' }, timeout: 10000 }
       )
 
       const release = response.data
-      // Find the executable asset (e.g., MultiRitoFixes-v25.13.exe)
+      // Hematite ships hematite-cli.exe as a direct download
       const asset = release.assets.find(
-        (a: any) => a.name.startsWith('MultiRitoFixes-v') && a.name.endsWith('.exe')
+        (a: any) => a.name === 'hematite-cli.exe'
       )
 
       if (!asset) {
-        throw new Error('Could not find MultiRitoFixes executable in latest release')
+        throw new Error('Could not find hematite-cli.exe in latest Hematite release')
       }
 
       return {
@@ -489,7 +574,7 @@ export class ToolsDownloader {
       }
     } catch (error) {
       throw new Error(
-        `Failed to get MultiRitoFixes release info: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get Hematite release info: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }
@@ -498,7 +583,7 @@ export class ToolsDownloader {
     try {
       const { downloadUrl, version } = await this.getMultiRitoFixesLatestVersion()
 
-      // Download the file
+      // Download hematite-cli.exe directly
       const response = await axios.get(downloadUrl, {
         responseType: 'stream',
         onDownloadProgress: (progressEvent) => {
@@ -509,7 +594,6 @@ export class ToolsDownloader {
         }
       })
 
-      // Save to file
       const writer = fs.createWriteStream(this.multiRitoFixesPath)
       response.data.pipe(writer)
 
@@ -518,11 +602,10 @@ export class ToolsDownloader {
         writer.on('error', reject)
       })
 
-      // Save version info
       await fs.promises.writeFile(this.multiRitoFixesVersionPath, version)
     } catch (error) {
       throw new Error(
-        `Failed to download MultiRitoFixes: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to download Hematite: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }

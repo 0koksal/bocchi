@@ -1,6 +1,7 @@
 import { FileImage, Image, Loader2, Upload, X } from 'lucide-react'
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import type { Champion } from '../App'
 import { useToolsManagement } from '../hooks/useToolsManagement'
 import { detectChampionFromText, getChampionDisplayName } from '../utils/championUtils'
@@ -186,6 +187,15 @@ export const FileUploadButton = forwardRef<FileUploadButtonRef, FileUploadButton
 
             // Import with extracted options or default
             const result = await window.api.importSkinFile(filePath, importOptions)
+
+            if (result.success && result.repair && result.repair.repaired > 0) {
+              toast.success(
+                t('fileUpload.autoRepaired', {
+                  count: result.repair.repaired,
+                  defaultValue: 'Auto-repaired {{count}} outdated file reference(s) in this mod (patch 16.17)'
+                })
+              )
+            }
 
             // Fix mod issues if requested and import was successful
             if (result.success && fixModIssues && result.skinInfo?.localPath) {
@@ -451,6 +461,15 @@ export const FileUploadButton = forwardRef<FileUploadButtonRef, FileUploadButton
           author: customAuthor || undefined,
           imagePath: selectedImage || undefined
         })
+
+        if (result.success && result.repair && result.repair.repaired > 0) {
+          toast.success(
+            t('fileUpload.autoRepaired', {
+              count: result.repair.repaired,
+              defaultValue: 'Auto-repaired {{count}} outdated file reference(s) in this mod (patch 16.17)'
+            })
+          )
+        }
 
         // Fix mod issues if requested
         if (result.success && fixModIssues && result.skinInfo?.localPath) {

@@ -9,6 +9,7 @@ import * as tar from 'tar'
 import { SkinInfo, SkinMetadata, SkinUpdateInfo } from '../types'
 import { githubApiService } from './githubApiService'
 import { skinMetadataService } from './skinMetadataService'
+import { repairModFile } from './modRepairService'
 import { skinMigrationService } from './skinMigrationService'
 import { ModToolsWrapper } from './modToolsWrapper'
 import { repositoryService } from './repositoryService'
@@ -125,6 +126,18 @@ export class SkinDownloader {
       await pipeline(response.data, writer)
 
       console.log(`Downloaded ZIP: ${skinInfo.skinName} to ${zipPath}`)
+
+      // Auto-repair outdated bin property types (16.17 Hashpocalypse) if present
+      try {
+        const repair = await repairModFile(zipPath)
+        if (repair.repaired > 0) {
+          console.log(
+            `[SkinDownloader] Auto-repaired ${repair.repaired} bin property type(s) in ${skinInfo.skinName}`
+          )
+        }
+      } catch (repairError) {
+        console.warn('[SkinDownloader] Auto-repair failed:', repairError)
+      }
 
       // Try to fetch and store commit info (non-blocking)
       try {
@@ -691,12 +704,19 @@ export class SkinDownloader {
     try {
       // First try to list from mod-files directory (new structure)
       const modFiles = await fs.readdir(this.modFilesDir).catch(() => [])
+      // Track base names (without extension) already covered by mod-files entries
+      const modFileBaseNames = new Set<string>()
       for (const modFile of modFiles) {
         const modFilePath = path.join(this.modFilesDir, modFile)
         if (seenPaths.has(modFilePath)) continue
         const stat = await fs.stat(modFilePath)
         if (stat.isFile()) {
           const nameWithoutExt = path.basename(modFile, path.extname(modFile))
+          // Handle .wad.client double extension
+          const cleanName = nameWithoutExt.endsWith('.wad')
+            ? nameWithoutExt.slice(0, -4)
+            : nameWithoutExt
+          modFileBaseNames.add(cleanName.toLowerCase())
           const parts = nameWithoutExt.split('_')
           if (parts.length >= 2) {
             const championName = parts[0]
@@ -738,9 +758,11 @@ export class SkinDownloader {
           if (parts.length >= 2) {
             const championName = parts[0]
             const skinName = parts.slice(1).join('_')
-            // Check if there's a corresponding mod file
+            // Skip if there's already a mod-files entry with the same base name
+            if (modFileBaseNames.has(modFolder.toLowerCase())) continue
+            // Also check explicitly for any file extension match
             let hasModFile = false
-            for (const ext of ['.wad', '.zip', '.fantome']) {
+            for (const ext of ['.wad', '.wad.client', '.zip', '.fantome']) {
               const modFilePath = path.join(this.modFilesDir, `${modFolder}${ext}`)
               try {
                 await fs.access(modFilePath)

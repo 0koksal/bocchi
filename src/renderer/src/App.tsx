@@ -607,6 +607,10 @@ function AppContent(): React.JSX.Element {
         console.log(
           `[AutoSelect] Custom skin already available locally: ${randomCustomSkin.skinName}`
         )
+        // Pre-import so it's ready when Apply is clicked
+        if (randomCustomSkin.localPath) {
+          window.api.preImportSkin(randomCustomSkin.localPath, champion.name)
+        }
       }
     }
   })
@@ -731,16 +735,26 @@ function AppContent(): React.JSX.Element {
 
         // Trigger pre-import in background so the skin is ready when Apply is clicked
         try {
-          const skinFileName = generateSkinFilename({
-            ...skin,
-            chromaId: chromaId,
-            variantId: variantId
-          })
-          const ds = downloadedSkins.find(
-            (d) =>
-              (d.championName === champion.key || d.championName === champion.name) &&
-              d.skinName.replace(/\.(zip|fantome)$/i, '') === skinFileName
-          )
+          let ds: (typeof downloadedSkins)[number] | undefined
+          if (champion.key === 'Custom' || skin.id.startsWith('custom_')) {
+            // Custom mods: skin.id is `custom_<skinName>` where skinName matches
+            // the downloaded entry (e.g. "[User] kassadin tenka.fantome")
+            const customSkinName = skin.id.replace(/^custom_/, '')
+            ds =
+              downloadedSkins.find((d) => d.skinName.includes('[User]') && d.skinName === customSkinName) ||
+              downloadedSkins.find((d) => d.skinName.includes('[User]') && d.skinName.includes(skin.name))
+          } else {
+            const skinFileName = generateSkinFilename({
+              ...skin,
+              chromaId: chromaId,
+              variantId: variantId
+            })
+            ds = downloadedSkins.find(
+              (d) =>
+                (d.championName === champion.key || d.championName === champion.name) &&
+                d.skinName.replace(/\.(zip|fantome)$/i, '') === skinFileName
+            )
+          }
           if (ds?.localPath) {
             window.api.preImportSkin(ds.localPath, champion.name)
           }

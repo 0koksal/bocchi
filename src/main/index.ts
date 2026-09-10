@@ -1919,6 +1919,24 @@ function setupIpcHandlers(): void {
     }
   })
 
+  ipcMain.handle('check-ltk-patcher-update', async () => {
+    try {
+      const updateInfo = await toolsDownloader.checkLtkPatcherUpdate()
+      return { success: true, ...updateInfo }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to check' }
+    }
+  })
+
+  ipcMain.handle('download-ltk-patcher', async () => {
+    try {
+      await toolsDownloader.downloadLtkPatcherBinaries()
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update' }
+    }
+  })
+
   ipcMain.handle('download-tools', async (event) => {
     try {
       await toolsDownloader.downloadAndExtractTools((progress, details) => {

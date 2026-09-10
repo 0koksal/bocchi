@@ -1,3 +1,5 @@
-- Added Enable/Disable button for bocchi mini window
-- Disabled dodge button since riot patched it
-- QoL changes
+- Auto hash fix for custom skins after import
+- Auto fixer changed from multiritofixes to hematite
+- Inject fix/auto update
+- Pre-Import fix for some custom skins are not imported
+- Fix custom skins showing duplicated when searching in All Champions tab

@@ -95,7 +95,7 @@ export interface IApi {
   importSkinFile: (
     filePath: string,
     options?: { championName?: string; skinName?: string; author?: string; imagePath?: string }
-  ) => Promise<{ success: boolean; skinInfo?: SkinInfo; error?: string }>
+  ) => Promise<{ success: boolean; skinInfo?: SkinInfo; error?: string; repair?: { scanned: boolean; findings: number; repaired: number; unfixed: number; modified: boolean; details: string[] } }>
   importSkinFilesBatch: (filePaths: string[]) => Promise<{
     success: boolean
     totalFiles: number
@@ -234,6 +234,14 @@ export interface IApi {
     latestVersion?: string | null
     error?: string
   }>
+  checkLtkPatcherUpdate: () => Promise<{
+    success: boolean
+    updateAvailable?: boolean
+    currentSha?: string | null
+    latestSha?: string | null
+    error?: string
+  }>
+  downloadLtkPatcher: () => Promise<{ success: boolean; error?: string }>
   downloadTools: (attempt?: number) => Promise<{
     success: boolean
     error?: string

@@ -79,6 +79,22 @@ const rarityOrder = [
 ]
 
 // 1. Create champion-to-skins lookup (expensive, cache once)
+// Flatten every champion's list into one array. Skins assigned to a real champion
+// also live in the 'Custom' catch-all list, so dedupe by skin id (first occurrence
+// wins, which is the champion-keyed copy since 'Custom' is set last in the map).
+function flattenSkinsDeduped(championSkinsMap: Map<string, DisplaySkin[]>): DisplaySkin[] {
+  const seen = new Set<string>()
+  const result: DisplaySkin[] = []
+  for (const skins of championSkinsMap.values()) {
+    for (const displaySkin of skins) {
+      if (seen.has(displaySkin.skin.id)) continue
+      seen.add(displaySkin.skin.id)
+      result.push(displaySkin)
+    }
+  }
+  return result
+}
+
 export const championSkinsMapAtom = atom((get) => {
   const championData = get(championDataAtom)
   const downloadedSkins = get(downloadedSkinsAtom)
@@ -175,8 +191,8 @@ export const baseFilteredSkinsAtom = atom((get) => {
   if (selectedChampion) {
     return championSkinsMap.get(selectedChampion.key) || []
   } else if (selectedChampionKey === 'all') {
-    // Flatten all skins
-    return Array.from(championSkinsMap.values()).flat()
+    // Flatten all skins, skipping copies already merged into their champion's list
+    return flattenSkinsDeduped(championSkinsMap)
   } else if (selectedChampionKey === 'custom') {
     return championSkinsMap.get('Custom') || []
   }
@@ -193,7 +209,7 @@ export const searchFilteredSkinsAtom = atom((get) => {
   // If searching globally, search all skins
   if (searchQuery.trim()) {
     const searchLower = searchQuery.toLowerCase()
-    const allSkins = Array.from(championSkinsMap.values()).flat()
+    const allSkins = flattenSkinsDeduped(championSkinsMap)
     return allSkins.filter(({ skin }) => skin.name.toLowerCase().includes(searchLower))
   }
 
