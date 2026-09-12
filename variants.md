@@ -50,7 +50,12 @@ Bocchi checks this file whenever it refreshes champion data (app start, patch ch
     { "id": 234997, "name": "Revenant Reign Viego (Form 4)", "parentSkinNum": 43, "colors": ["#FF4500", "#8B0000"] },
     { "id": 234998, "name": "Revenant Reign Viego (Form 5)", "parentSkinNum": 43, "colors": ["#FFD700", "#B8860B"] },
     { "id": 234999, "name": "Revenant Reign Viego (Form 6)", "parentSkinNum": 43, "colors": ["#FF1493", "#8B008B"] }
-  ] }
+  ] },
+  { "championId": 18, "variants": [
+  { "id": 18081, "name": "Immortalized Legend Tristana (Form 2)", "parentSkinNum": 80, "colors": ["#4169E1", "#191970"], "parentFolderId": 18080 },
+  { "id": 18082, "name": "Immortalized Legend Tristana (Form 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "parentFolderId": 18080 },
+  { "id": 18083, "name": "Immortalized Legend Tristana (Form 4)", "parentSkinNum": 80, "colors": ["#2E8B57", "#006400"], "parentFolderId": 18080 }
+] }
 ]
 ```
 
