@@ -21,6 +21,12 @@ Bocchi checks this file whenever it refreshes champion data (app start, patch ch
 | `colors` | yes | One or more hex colors, shown as the wheel slice |
 | `parentFolderId` | no | Full skin ID of the repo folder that contains the `{id}.png` preview image, only needed if it differs from the parent skin's own ID (e.g. Tristana's 18080 lives at champion level, so use `"parentFolderId": 18080`) |
 
+**Disabling a champion's variants:** an entry with an empty list removes the chroma wheel entirely for that champion — including the auto-detected "(Variant)" that Bocchi adds on its own for tiered skins. Use this when the auto-entry points at files that don't exist in the repo yet:
+
+```json
+{ "championId": 18, "variants": [] }
+```
+
 ## Variants
 
 ```json
