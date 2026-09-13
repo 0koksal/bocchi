@@ -14,7 +14,7 @@ export function DragDropOverlay() {
       <div className="bg-surface rounded-2xl p-12 shadow-2xl flex flex-col items-center gap-4">
         <Upload className="w-16 h-16 text-primary-500" />
         <p className="text-2xl font-bold text-text-primary">Drop skin files here</p>
-        <p className="text-sm text-text-secondary">Supports .wad, .zip, and .fantome files</p>
+        <p className="text-sm text-text-secondary">Supports .wad, .zip, .fantome, and .modpkg files</p>
       </div>
     </div>
   )

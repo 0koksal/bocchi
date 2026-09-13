@@ -28,6 +28,25 @@ export function ToolsDownloadModal() {
   const { getProgressBarFillStyle } = useClassNames()
   const [showDetails, setShowDetails] = useState(false)
   const [dllExists, setDllExists] = useState<boolean | null>(null)
+  const [injectionMethod, setInjectionMethod] = useState<'ltk' | 'cslol'>('ltk')
+
+  // Load the injection method setting — the DLL Required dialog only applies
+  // to the CSLOL injection method (LTK is self-contained)
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const method = await window.api.getSettings('injectionMethod')
+        if (method === 'cslol') setInjectionMethod('cslol')
+      } catch {
+        // Default to LTK
+      }
+    })()
+  }, [])
+
+  // Listen for the main process signaling a missing DLL during apply
+  useEffect(() => {
+    window.api.onDllRequired?.(() => setInjectionMethod('cslol'))
+  }, [])
 
   const checkDll = useCallback(async () => {
     if (toolsExist) {
@@ -48,8 +67,30 @@ export function ToolsDownloadModal() {
     return () => clearInterval(interval)
   }, [toolsExist, dllExists, checkDll])
 
-  // Modal is hidden when tools exist (LTK patcher is downloaded with tools, no separate DLL needed)
-  if (toolsExist) return null
+
+  // Poll the injection method + DLL presence while tools exist so the DLL
+  // Required dialog reacts immediately when the method changes in Settings
+  useEffect(() => {
+    if (!toolsExist) return
+    const interval = setInterval(async () => {
+      try {
+        const method = await window.api.getSettings('injectionMethod')
+        setInjectionMethod(method === 'cslol' ? 'cslol' : 'ltk')
+      } catch {
+        // Keep current value
+      }
+      const exists = await window.api.checkDllExist()
+      setDllExists(exists)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [toolsExist, injectionMethod])
+
+  // Phase selection:
+  //   Phase 1 (download): tools are missing entirely
+  //   Phase 2 (DLL required): CSLOL injection selected but cslol-dll.dll missing
+  //   Otherwise nothing shows — LTK (default) is self-contained
+  const showDllRequired = toolsExist && injectionMethod === 'cslol' && dllExists === false
+  if (toolsExist && !showDllRequired) return null
 
   // Format bytes to human readable
   const formatBytes = (bytes: number) => {
@@ -153,8 +194,8 @@ export function ToolsDownloadModal() {
     window.api.openToolsFolder()
   }
 
-  // Phase 2: Tools downloaded but DLL missing
-  if (toolsExist && dllExists === false) {
+  // Phase 2: CSLOL injection selected but cslol-dll.dll missing
+  if (showDllRequired) {
     return (
       <div className={styles.toolsModalOverlay.className}>
         <div className={styles.toolsModalContent.className}>

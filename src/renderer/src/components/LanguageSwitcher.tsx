@@ -45,11 +45,13 @@ export const LanguageSwitcher: React.FC = () => {
           'ro_RO',
           'el_GR',
           'tr_TR',
-          'pt_BR'
+          'pt_BR',
+          'pt_PT',
+          'bg_BG'
         ].includes(lang.code)
       ),
       asian: filtered.filter((lang) =>
-        ['ja_JP', 'ko_KR', 'vi_VN', 'th_TH', 'id_ID'].includes(lang.code)
+        ['ja_JP', 'ko_KR', 'vi_VN', 'th_TH', 'id_ID', 'tl_PH', 'ms_MY'].includes(lang.code)
       ),
       arabic: filtered.filter((lang) => lang.code === 'ar_AE'),
       russian: filtered.filter((lang) => lang.code === 'ru_RU')

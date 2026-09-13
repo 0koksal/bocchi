@@ -126,6 +126,10 @@ export interface IApi {
   browseImageFile: () => Promise<{ success: boolean; filePath?: string }>
   // URL download
   downloadFromUrl: (url: string) => Promise<{ success: boolean; filePath?: string; error?: string }>
+  openWebImport: (url: string) => Promise<{ success: boolean; error?: string }>
+  onDllRequired: (callback: () => void) => void
+  injectionMethodChanged: (method: string) => Promise<{ success: boolean }>
+  onWebImportFileDownloaded: (callback: (filePath: string) => void) => void
 
   // File path helper
   getPathForFile: (file: File) => string
@@ -273,6 +277,7 @@ export interface IApi {
   // Settings
   getSettings: (key?: string) => Promise<unknown>
   setSettings: (key: string, value: unknown) => Promise<void>
+  setDiscordRpcEnabled: (enabled: boolean) => Promise<void>
   getSystemLocale: () => Promise<{ success: boolean; locale: string }>
 
   // Auto-updater

@@ -9,6 +9,7 @@ import { ImageConverter } from './imageConverter'
 import { SettingsService } from './settingsService'
 import { ModToolsWrapper } from './modToolsWrapper'
 import { repairModFile, RepairReport } from './modRepairService'
+import { injectEntryIntoZip } from '../utils/modPreview'
 
 export interface ImportResult {
   success: boolean
@@ -95,6 +96,19 @@ export class FileImportService {
         case 'zip':
         case 'fantome':
           return await this.importZipFile(filePath, options)
+        case 'modpkg': {
+          // .modpkg (League Mod Toolkit container) is converted to a standard
+          // fantome zip first, then imported through the normal pipeline
+          const { modpkgService } = await import('./modpkgService')
+          const converted = await modpkgService.convertToFantome(filePath)
+          if (!converted.success || !converted.fantomePath) {
+            return { success: false, error: converted.error || 'Failed to convert .modpkg' }
+          }
+          const zipResult = await this.importZipFile(converted.fantomePath, options)
+          // The converted fantome is a temporary intermediate — remove it
+          await fs.rm(converted.fantomePath, { force: true })
+          return zipResult
+        }
         default:
           return { success: false, error: 'Unsupported file type' }
       }
@@ -176,6 +190,7 @@ export class FileImportService {
     if (ext === '.wad') return 'wad'
     if (ext === '.zip') return 'zip'
     if (ext === '.fantome') return 'fantome'
+    if (ext === '.modpkg') return 'modpkg'
 
     // If no extension or unknown extension, try to detect by file signature
     try {
@@ -261,12 +276,28 @@ export class FileImportService {
         }
       }
 
-      const modFolderName = championName ? `${championName}_${skinName}` : `Custom_${skinName}`
+      // Sanitize: the custom name comes from user input and may contain
+      // Windows-illegal characters (e.g. "|") which break file creation
+      const safeChampion = (championName || '').replace(/[:/\\*?"<>|]/g, '').trim()
+      const safeSkinName = skinName.replace(/[:/\\*?"<>|]/g, '').trim()
+      const modFolderName = safeChampion ? `${safeChampion}_${safeSkinName}` : `Custom_${safeSkinName}`
+
 
       // Copy the original .wad file to mod-files directory
       const modFileName = `${modFolderName}.wad`
       const modFilePath = path.join(this.modFilesDir, modFileName)
       await fs.copyFile(wadPath, modFilePath)
+      // Preview image: if the user selected one, embed it INSIDE the mod file
+      // (archives that already contain an image need no extra work — the image
+      // loader reads it directly from the archive)
+      if (options.imagePath) {
+        try {
+          const imageData = await fs.readFile(options.imagePath)
+          await injectEntryIntoZip(modFilePath, 'IMAGE/preview' + path.extname(options.imagePath).toLowerCase(), imageData)
+        } catch (error) {
+          console.warn('[FileImport] Failed to embed preview image:', error)
+        }
+      }
 
       // Clean up temp extraction — we only need the original file in mod-files
       await this.cleanupTemp(tempExtractPath)
@@ -385,13 +416,29 @@ export class FileImportService {
       // Remove trailing spaces from skin name
       const skinName = (options.skinName || info.Name || fileName).trim()
 
-      const modFolderName = championName ? `${championName}_${skinName}` : `Custom_${skinName}`
+      // Sanitize: the custom name comes from user input and may contain
+      // Windows-illegal characters (e.g. "|") which break file creation
+      const safeChampion = (championName || '').replace(/[:/\\*?"<>|]/g, '').trim()
+      const safeSkinName = skinName.replace(/[:/\\*?"<>|]/g, '').trim()
+      const modFolderName = safeChampion ? `${safeChampion}_${safeSkinName}` : `Custom_${safeSkinName}`
+
 
       // Copy the original mod file to mod-files directory
       const ext = path.extname(zipPath)
       const modFileName = `${modFolderName}${ext}`
       const modFilePath = path.join(this.modFilesDir, modFileName)
       await fs.copyFile(zipPath, modFilePath)
+      // Preview image: if the user selected one, embed it INSIDE the mod file
+      // (archives that already contain an image need no extra work — the image
+      // loader reads it directly from the archive)
+      if (options.imagePath) {
+        try {
+          const imageData = await fs.readFile(options.imagePath)
+          await injectEntryIntoZip(modFilePath, 'IMAGE/preview' + path.extname(options.imagePath).toLowerCase(), imageData)
+        } catch (error) {
+          console.warn('[FileImport] Failed to embed preview image:', error)
+        }
+      }
 
       // Clean up temp extraction — we only need the original file in mod-files
       await this.cleanupTemp(tempExtractPath)
@@ -446,10 +493,10 @@ export class FileImportService {
       const fileType = await this.detectFileType(filePath)
 
       if (fileType === 'unknown' || fileType === 'invalid') {
-        return {
-          valid: false,
-          error: 'Unsupported file type. Supported: .wad.client, .wad, .zip, .fantome'
-        }
+          return {
+            valid: false,
+            error: 'Unsupported file type. Supported: .wad.client, .wad, .zip, .fantome, .modpkg'
+          }
       }
 
       return { valid: true }
@@ -592,6 +639,11 @@ export class FileImportService {
         // Also delete the corresponding metadata folder if it exists
         const fileName = path.basename(modPath, path.extname(modPath))
         const metadataPath = path.join(this.modsDir, fileName)
+        try {
+          await fs.rm(path.join(this.modFilesDir, '.previews', fileName), { recursive: true, force: true })
+        } catch {
+          // Ignore
+        }
         try {
           await fs.rm(metadataPath, { recursive: true, force: true })
         } catch {

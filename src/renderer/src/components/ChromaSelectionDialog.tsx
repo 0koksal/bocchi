@@ -43,6 +43,7 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
   const { t } = useTranslation()
   const setDownloadedSkins = useSetAtom(downloadedSkinsAtom)
   const [downloadingIds, setDownloadingIds] = useState<Set<number>>(new Set())
+  const [zoomedChroma, setZoomedChroma] = useState<Chroma | null>(null)
   const isChromaSelected = (chromaId: number) => {
     return selectedSkins.some(
       (s) =>
@@ -102,8 +103,13 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
                   <img
                     src={chroma.chromaPath || undefined}
                     alt={chroma.name}
-                    className="w-16 h-16 rounded-lg object-cover ml-2"
+                    className="w-20 h-20 rounded-lg object-cover ml-2 cursor-zoom-in hover:ring-2 hover:ring-primary-400 transition-all"
                     loading="lazy"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setZoomedChroma(chroma)
+                    }}
+                    title="Click to enlarge"
                   />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-text-primary">{chroma.name}</p>
@@ -198,6 +204,39 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
             })}
           </div>
         </div>
+
+        {zoomedChroma && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 cursor-zoom-out"
+            onClick={() => setZoomedChroma(null)}
+          >
+            <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center gap-3">
+              <div className="text-white/50 text-xs mb-1 tracking-wide">Click anywhere to close</div>
+              <img
+                src={zoomedChroma.chromaPath || undefined}
+                alt={zoomedChroma.name}
+                className="rounded-lg object-contain shadow-2xl ring-2 ring-white/30 w-80 h-80 max-w-[95vw] max-h-[85vh]"
+                style={{ imageRendering: 'auto' }}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-black/60 text-white">
+                <p className="text-sm font-medium">{zoomedChroma.name}</p>
+                <span className="text-xs text-white/60">ID: {zoomedChroma.id}</span>
+                {zoomedChroma.colors && zoomedChroma.colors.length > 0 && (
+                  <span className="flex gap-1">
+                    {zoomedChroma.colors.map((color, i) => (
+                      <span
+                        key={i}
+                        className="w-3 h-3 rounded-full border border-white/40"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

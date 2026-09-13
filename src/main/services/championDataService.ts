@@ -5,15 +5,21 @@ import { existsSync } from 'fs'
 import {
   fetchLatestVersion,
   fetchChampionData as fetchFromApis,
+  applyRemoteVariants,
+  CHAMPION_DATA_REVISION,
   type Champion,
   type Skin
 } from './championFetcher'
+import { remoteVariantsService } from './remoteVariantsService'
 
 export type { Champion, Skin }
 
 interface CachedFile {
   version: string
   champions: Champion[]
+  dataRevision?: number
+  /** Fingerprint of the remote variants active when this data was built */
+  variantsHash?: string
 }
 
 export class ChampionDataService {
@@ -70,13 +76,22 @@ export class ChampionDataService {
 
       console.log(`[ChampionData] Fetching data for ${language} from APIs...`)
 
+      // Load remote variants first so the fetched data includes them
+      const active = await remoteVariantsService.getActiveVariants()
+      applyRemoteVariants(active.variants)
+
       const data = await fetchFromApis(language)
+      const dataWithRevision: CachedFile = {
+        ...data,
+        dataRevision: CHAMPION_DATA_REVISION,
+        variantsHash: active.hash
+      }
 
       // Cache in memory
-      this.cachedData.set(language, data)
+      this.cachedData.set(language, dataWithRevision)
 
       // Save to disk
-      await this.saveToDisk(language, data)
+      await this.saveToDisk(language, dataWithRevision)
 
       console.log(
         `[ChampionData] Fetched ${data.champions.length} champions (v${data.version}) for ${language}`
@@ -122,17 +137,27 @@ export class ChampionDataService {
   ): Promise<{ version: string; champions: Champion[] } | null> {
     // Check disk cache
     const diskData = await this.loadFromDisk(language)
+
+    // Load remote variants before any data is used; a changed variants.md
+    // invalidates the cache so users get new chroma wheels without an app update
+    const active = await remoteVariantsService.getActiveVariants()
+    applyRemoteVariants(active.variants)
+
     if (diskData) {
-      // Always check if version is still current (force update to latest patch)
+      // Always check if version/revision/variants are still current (force update to latest)
       try {
         const latestVersion = await fetchLatestVersion()
-        if (diskData.version === latestVersion) {
+        if (
+          diskData.version === latestVersion &&
+          diskData.dataRevision === CHAMPION_DATA_REVISION &&
+          diskData.variantsHash === active.hash
+        ) {
           this.cachedData.set(language, diskData)
           console.log(`[ChampionData] Loaded ${language} from disk cache (v${diskData.version}) - already latest`)
           return diskData
         }
         console.log(
-          `[ChampionData] Disk cache outdated (${diskData.version} vs ${latestVersion}), fetching latest...`
+          `[ChampionData] Disk cache outdated (v${diskData.version}, revision ${diskData.dataRevision ?? 0}, variants ${diskData.variantsHash ?? 'none'} vs ${active.hash || 'none'}), fetching latest...`
         )
         // Fetch fresh data with the latest version
         const result = await this.fetchAndSaveChampionData(language)

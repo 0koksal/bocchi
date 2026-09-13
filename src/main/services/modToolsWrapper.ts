@@ -550,19 +550,26 @@ export class ModToolsWrapper {
         throw new Error('Operation cancelled by user')
       }
 
-      // Use native DLL injection (fast, no subprocess)
-      console.info('[ModToolsWrapper] Starting native injection...')
-      try {
-        startInjection(profilePath, this.mainWindow, () => {
-          console.info('[ModToolsWrapper] Injection stopped')
-          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-            this.mainWindow.webContents.send('patcher-status', '')
-          }
-        })
-      } catch (injectionError) {
-        console.error('[ModToolsWrapper] Native injection failed, falling back to mod-tools runoverlay')
+      // Injection method: 'ltk' (default, ltk_patcher_host) or 'cslol'
+      // (legacy mod-tools.exe runoverlay, requires user-provided cslol-dll.dll)
+      const injectionMethod = (settingsService.get('injectionMethod') as string) || 'ltk'
+      console.info(`[ModToolsWrapper] Injection method: ${injectionMethod}`)
 
-        // Fallback to mod-tools.exe runoverlay
+      if (injectionMethod === 'cslol') {
+        const dllOk = await this.checkDllExist()
+        if (!dllOk) {
+          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+            this.mainWindow.webContents.send('dll-required')
+          }
+          throw new Error(
+            'CSLOL injection requires cslol-dll.dll. Please place your cslol-dll.dll in the cslol-tools folder.'
+          )
+        }
+      }
+
+      if (injectionMethod === 'cslol') {
+        // CSLOL injection: mod-tools.exe runoverlay loads cslol-dll.dll
+        console.info('[ModToolsWrapper] Starting CSLOL (runoverlay) injection...')
         this.runningProcess = spawn(
           modToolsPath,
           [
@@ -608,6 +615,66 @@ export class ModToolsWrapper {
             this.mainWindow.webContents.send('patcher-status', '')
           }
         })
+      } else {
+        // LTK injection (default): fast, self-contained patcher
+        console.info('[ModToolsWrapper] Starting LTK injection...')
+        try {
+          startInjection(profilePath, this.mainWindow, () => {
+            console.info('[ModToolsWrapper] Injection stopped')
+            if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+              this.mainWindow.webContents.send('patcher-status', '')
+            }
+          })
+        } catch (injectionError) {
+          console.error('[ModToolsWrapper] LTK injection failed, falling back to mod-tools runoverlay')
+
+          // Fallback to mod-tools.exe runoverlay
+          this.runningProcess = spawn(
+            modToolsPath,
+            [
+              'runoverlay',
+              path.normalize(profilePath),
+              path.normalize(profileConfigPath),
+              `--game:${path.normalize(preset.gamePath)}`,
+              '--opts:none'
+            ],
+            { detached: false, stdio: ['pipe', 'pipe', 'pipe'] }
+          )
+          this.activeProcesses.push(this.runningProcess)
+
+          this.runningProcess.stdout?.on('data', (data: Buffer) => {
+            const output = data.toString()
+            const lines = output.split('\n').filter((line: string) => line.trim())
+            lines.forEach((line: string) => {
+              const trimmedLine = line.trim()
+              console.log(`[MOD-TOOLS]: ${trimmedLine}`)
+              if (this.mainWindow && !this.mainWindow.isDestroyed() && !trimmedLine.startsWith('[DLL]')) {
+                this.mainWindow.webContents.send('patcher-status', trimmedLine)
+              }
+            })
+          })
+
+          this.runningProcess.stderr?.on('data', (data: Buffer) => {
+            const output = data.toString()
+            const lines = output.split('\n').filter((line: string) => line.trim())
+            lines.forEach((line: string) => {
+              const trimmedLine = line.trim()
+              console.error(`[MOD-TOOLS ERROR]: ${trimmedLine}`)
+              if (this.mainWindow && !this.mainWindow.isDestroyed() && !trimmedLine.startsWith('[DLL]')) {
+                this.mainWindow.webContents.send('patcher-error', trimmedLine)
+              }
+            })
+          })
+
+          this.runningProcess.on('exit', (code: number | null) => {
+            console.log(`Mod tools process exited with code ${code}`)
+            this.cleanupProcess(this.runningProcess)
+            this.runningProcess = null
+            if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+              this.mainWindow.webContents.send('patcher-status', '')
+            }
+          })
+        }
       }
 
       this.applyInProgress = false

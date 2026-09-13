@@ -182,24 +182,43 @@ export class SkinDownloader {
     } catch (error) {
       console.error(`Failed to download skin: ${error}`)
 
-      // On 404, try alternative extension before giving up
+      // On 404, try fallback locations/extensions before giving up
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        let fallbackUrl: string | null = null
-        if (rawUrl.endsWith('.zip')) {
-          fallbackUrl = rawUrl.replace(/\.zip$/, '.fantome')
-        } else if (rawUrl.endsWith('.fantome')) {
-          fallbackUrl = rawUrl.replace(/\.fantome$/, '.zip')
-        } else {
-          // URL has no extension at all - try both extensions
-          fallbackUrl = rawUrl + '.zip'
+        const candidates: string[] = [rawUrl]
+
+        const addCandidates = (base: string) => {
+          candidates.push(base)
+          if (base.endsWith('.zip')) {
+            candidates.push(base.replace(/\.zip$/, '.fantome'))
+          } else if (base.endsWith('.fantome')) {
+            candidates.push(base.replace(/\.fantome$/, '.zip'))
+          } else {
+            // URL has no extension at all - try both extensions
+            candidates.push(base + '.zip', base + '.fantome')
+          }
         }
 
-        if (fallbackUrl) {
-          console.log(`[SkinDownloader] Trying fallback: ${fallbackUrl}`)
+        addCandidates(rawUrl)
+
+        // Some tiered skin variations (e.g. Immortalized Legend Tristana 18080)
+        // are stored in the champion folder (skins/18/18080/) instead of nested
+        // inside their parent skin (skins/18/18079/18080/). Try the flat path.
+        const flatMatch = rawUrl.match(
+          /(\/skins\/[^/]+)\/[^/]+\/([^/]+)\/([^/]+\.(?:zip|fantome))$/
+        )
+        if (flatMatch && flatMatch.index !== undefined) {
+          addCandidates(
+            `${rawUrl.slice(0, flatMatch.index)}${flatMatch[1]}/${flatMatch[2]}/${flatMatch[3]}`
+          )
+        }
+
+        for (const candidate of new Set(candidates)) {
+          if (candidate === rawUrl) continue
+          console.log(`[SkinDownloader] Trying fallback: ${candidate}`)
           try {
             const fallbackResponse = await axios({
               method: 'GET',
-              url: fallbackUrl,
+              url: candidate,
               responseType: 'stream'
             })
             const writer = createWriteStream(zipPath)
@@ -207,27 +226,31 @@ export class SkinDownloader {
             console.log(`Downloaded skin (fallback): ${skinInfo.skinName} to ${zipPath}`)
             return skinInfo
           } catch {
-            // If the first fallback failed and URL had no extension, try .fantome too
-            if (!rawUrl.endsWith('.zip') && !rawUrl.endsWith('.fantome')) {
-              const secondFallback = rawUrl + '.fantome'
-              console.log(`[SkinDownloader] Trying second fallback: ${secondFallback}`)
-              try {
-                const fallbackResponse2 = await axios({
-                  method: 'GET',
-                  url: secondFallback,
-                  responseType: 'stream'
-                })
-                const writer2 = createWriteStream(zipPath)
-                await pipeline(fallbackResponse2.data, writer2)
-                console.log(`Downloaded skin (second fallback): ${skinInfo.skinName} to ${zipPath}`)
-                return skinInfo
-              } catch {
-                console.warn(`[SkinDownloader] All fallbacks failed`)
-              }
-            } else {
-              console.warn(`[SkinDownloader] Fallback also failed`)
-            }
+            // Try the next candidate
           }
+        }
+
+        // Last resort: search the champion folder subtree via the GitHub API.
+        // Handles any repo structure change (file moved, renamed folder,
+        // deeper nesting) as long as the file is somewhere under its champion folder.
+        try {
+          const foundUrl = await githubApiService.findSkinFileByUrl(rawUrl)
+          if (foundUrl && foundUrl !== rawUrl) {
+            console.log(`[SkinDownloader] Champion folder search found: ${foundUrl}`)
+            const searchResponse = await axios({
+              method: 'GET',
+              url: foundUrl,
+              responseType: 'stream'
+            })
+            const writer = createWriteStream(zipPath)
+            await pipeline(searchResponse.data, writer)
+            console.log(
+              `Downloaded skin (champion folder search): ${skinInfo.skinName} to ${zipPath}`
+            )
+            return skinInfo
+          }
+        } catch (searchError) {
+          console.warn('[SkinDownloader] Champion folder search failed:', searchError)
         }
 
         throw new Error(`Skin not found (404): ${rawUrl}`)
@@ -754,6 +777,13 @@ export class SkinDownloader {
         if (seenPaths.has(modPath)) continue
         const stat = await fs.stat(modPath)
         if (stat.isDirectory()) {
+          // Skip preview-only metadata folders (leftovers from image persistence)
+          try {
+            const children = await fs.readdir(modPath)
+            if (children.length === 1 && children[0] === 'IMAGE') continue
+          } catch {
+            // Fall through to normal handling
+          }
           const parts = modFolder.split('_')
           if (parts.length >= 2) {
             const championName = parts[0]

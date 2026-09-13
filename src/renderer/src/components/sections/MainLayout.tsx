@@ -65,7 +65,7 @@ export function MainLayout({ children, fileUploadRef }: MainLayoutProps) {
       const files = Array.from(e.dataTransfer.files)
       const skinFiles = files.filter((file) => {
         const ext = file.name.toLowerCase()
-        return ext.endsWith('.wad') || ext.endsWith('.zip') || ext.endsWith('.fantome')
+        return ext.endsWith('.wad') || ext.endsWith('.zip') || ext.endsWith('.fantome') || ext.endsWith('.modpkg')
       })
 
       if (skinFiles.length > 0 && fileUploadRef.current) {

@@ -44,6 +44,7 @@ import {
 import { SkinInfo } from './types'
 import { PresetService } from './services/presetService'
 import { urlDownloadService } from './services/urlDownloadService'
+import { webImportService } from './services/webImportService'
 import { preImportService } from './services/preImportService'
 import { FileImportOptions } from './services/fileImportService'
 import {
@@ -558,6 +559,7 @@ if (gotTheLock) {
     await fileImportService.initialize()
     await presetService.initialize()
     await urlDownloadService.initialize()
+    await webImportService.initialize()
 
     // Initialize translation service with saved language
     const savedLanguage = settingsService.get('language') || 'en_US'
@@ -574,12 +576,15 @@ if (gotTheLock) {
     createWindow()
     createTray()
 
-    // Connect Discord Rich Presence
-    discordRpcService.connect().then(() => {
-      discordRpcService.setBrowsing()
-    }).catch((err) => {
-      console.warn('[DiscordRPC] Failed to connect:', err)
-    })
+  // Connect Discord Rich Presence (unless user disabled it)
+    const discordRpcEnabled = settingsService.get('discordRpcEnabled')
+    if (discordRpcEnabled !== false) {
+      discordRpcService.connect().then(() => {
+        discordRpcService.setBrowsing()
+      }).catch((err) => {
+        console.warn('[DiscordRPC] Failed to connect:', err)
+      })
+    }
 
     // Create overlay if enabled in settings
     const inGameOverlayEnabled = settingsService.get('inGameOverlayEnabled')
@@ -752,6 +757,13 @@ function setupIpcHandlers(): void {
   ipcMain.handle('import-skin-file', async (_, filePath: string, options?: FileImportOptions) => {
     try {
       const result = await fileImportService.importFile(filePath, options)
+      // URL/web imports download into a temp folder first — once the mod is
+      // imported into mod-files, the temp copy (and its scraped preview) is no
+      // longer needed and would only waste storage
+      if (result.success && filePath.includes(path.join(app.getPath("temp"), "bocchi-url-imports"))) {
+        await fs.promises.rm(filePath, { force: true })
+        await fs.promises.rm(filePath + ".preview.webp", { force: true })
+      }
       return result
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
@@ -794,13 +806,30 @@ function setupIpcHandlers(): void {
     }
   })
 
+  // Open a website in an embedded window for web imports that need human
+  // verification (e.g. divineskins.gg); intercepted downloads flow into the
+  // normal import path via 'web-import:file-downloaded'
+  ipcMain.handle('open-web-import', async (_, url: string) => {
+    try {
+      new URL(url)
+    } catch {
+      return { success: false, error: 'Invalid URL' }
+    }
+    webImportService.open(url, (filePath) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('web-import:file-downloaded', filePath)
+      }
+    })
+    return { success: true }
+  })
+
   ipcMain.handle('browse-skin-file', async () => {
     const result = await dialog.showOpenDialog({
       properties: ['openFile'],
       title: 'Select skin file',
       buttonLabel: 'Select',
       filters: [
-        { name: 'Skin Files', extensions: ['wad.client', 'wad', 'zip', 'fantome'] },
+        { name: 'Skin Files', extensions: ['wad.client', 'wad', 'zip', 'fantome', 'modpkg'] },
         { name: 'All Files', extensions: ['*'] }
       ]
     })
@@ -817,7 +846,7 @@ function setupIpcHandlers(): void {
       title: 'Select skin files',
       buttonLabel: 'Select',
       filters: [
-        { name: 'Skin Files', extensions: ['wad.client', 'wad', 'zip', 'fantome'] },
+        { name: 'Skin Files', extensions: ['wad.client', 'wad', 'zip', 'fantome', 'modpkg'] },
         { name: 'All Files', extensions: ['*'] }
       ]
     })
@@ -2045,6 +2074,63 @@ function setupIpcHandlers(): void {
     }
   })
 
+  // Called when the DLL appears while CSLOL injection is selected — kept for
+  // renderer compatibility (no marker needed in the hash-based approach)
+  ipcMain.handle('mark-cslol-dll-provided', async () => ({ success: true }))
+
+  // Injection method changed: when switching to CSLOL, delete the bundled
+  // placeholder cslol-dll.dll (matched by the sha256 stored at download time)
+  // so the DLL Required dialog appears. A user-provided DLL never matches the
+  // placeholder hash, so it is never touched. LTK needs no DLL at all, and the
+  // DLL (placeholder or user) is what mod-tools.exe import requires.
+  ipcMain.handle('injection-method-changed', async (_, method: string) => {
+    try {
+      const toolsPath = settingsService.getModToolsPath()
+      if (!toolsPath) return { success: false }
+      const dllPath = path.join(toolsPath, 'cslol-dll.dll')
+      const hashPath = path.join(toolsPath, 'cslol-dll.sha256')
+      if (method === 'cslol') {
+        let storedHash = ''
+        try {
+          storedHash = (await fs.promises.readFile(hashPath, 'utf-8')).trim()
+        } catch {
+          // No stored hash (older install) — leave any DLL alone
+        }
+        if (storedHash) {
+          let currentHash = ''
+          try {
+            currentHash = crypto.createHash('sha256').update(await fs.promises.readFile(dllPath)).digest('hex')
+          } catch {
+            // No DLL present — nothing to delete
+          }
+          if (currentHash && currentHash === storedHash) {
+            await fs.promises.rm(dllPath, { force: true })
+            console.log('[Main] Removed placeholder cslol-dll.dll for CSLOL injection')
+          }
+        }
+        // Clean up leftovers from the older stash/marker approach
+        await fs.promises.rm(dllPath + '.bak', { force: true })
+        await fs.promises.rm(path.join(toolsPath, 'cslol-dll.dll.user-provided'), { force: true })
+      }
+      return { success: true }
+    } catch (error) {
+      console.error('[Main] Failed to handle injection method change:', error)
+      return { success: false }
+    }
+  })
+  // Discord RPC toggle
+  ipcMain.handle('set-discord-rpc-enabled', async (_, enabled: boolean) => {
+    if (enabled) {
+      discordRpcService.connect().then(() => {
+        discordRpcService.setBrowsing()
+      }).catch((err) => {
+        console.warn('[DiscordRPC] Failed to reconnect:', err)
+      })
+    } else {
+      discordRpcService.disconnect()
+    }
+  })
+
   // System locale detection
   ipcMain.handle('get-system-locale', async () => {
     try {
@@ -2894,8 +2980,17 @@ function setupLCUConnection(): void {
 }
 
 // Cleanup function for graceful shutdown
+let cleanupDone = false
 function cleanup(): void {
+  if (cleanupDone) return
+  cleanupDone = true
   console.log('Cleaning up LCU connections...')
+
+  // Remove all listeners FIRST so disconnect() doesn't trigger monitor resets
+  lcuConnector.removeAllListeners()
+  gameflowMonitor.removeAllListeners()
+  teamCompositionMonitor.removeAllListeners()
+  autoBanPickService.removeAllListeners()
 
   // Stop monitoring services
   gameflowMonitor.stop()
@@ -2905,12 +3000,6 @@ function cleanup(): void {
   // Stop auto-connect and disconnect from LCU
   lcuConnector.stopAutoConnect()
   lcuConnector.disconnect()
-
-  // Remove all listeners to prevent memory leaks
-  lcuConnector.removeAllListeners()
-  gameflowMonitor.removeAllListeners()
-  teamCompositionMonitor.removeAllListeners()
-  autoBanPickService.removeAllListeners()
 
   // Clean up tray
   if (tray) {

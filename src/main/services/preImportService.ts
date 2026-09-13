@@ -12,7 +12,6 @@ import path from 'path'
 import fs from 'fs/promises'
 import { app, BrowserWindow } from 'electron'
 import { settingsService } from './settingsService'
-import { repairModFile } from './modRepairService'
 
 interface ImportJob {
   skinPath: string       // e.g., %APPDATA%/bocchi/downloaded-skins/Ahri/Spirit Blossom Ahri.fantome
@@ -133,20 +132,7 @@ class PreImportService {
    * Remove any imported copies (mod_preimport_X / mod_N_X) of a skin from
    * cslol_installed so the next apply re-imports it from the repaired file.
    */
-  private async removeImportedCopies(baseName: string): Promise<void> {
-    try {
-      const entries = await fs.readdir(this.installedPath).catch(() => [] as string[])
-      for (const entry of entries) {
-        const match = entry.match(/^mod_(?:\d+|preimport)_(.+)$/)
-        if (match && match[1] === baseName) {
-          await fs.rm(path.join(this.installedPath, entry), { recursive: true, force: true })
-          console.log(`[PreImport] Removed stale imported copy: ${entry}`)
-        }
-      }
-    } catch {
-      // cslol_installed missing — nothing to clean
-    }
-  }
+
 
   /**
    * Queue a skin for pre-import after download.
@@ -156,20 +142,7 @@ class PreImportService {
     const ext = path.extname(skinPath)
     const baseName = path.basename(skinPath, ext).trim()
 
-    // Auto-repair outdated bin property types (16.17 Hashpocalypse) at selection
-    // time, so mods added before this fix get corrected too. A repaired file makes
-    // any previously imported copy stale, so it is dropped and re-imported.
-    try {
-      const repair = await repairModFile(skinPath)
-      if (repair.repaired > 0) {
-        console.log(
-          `[PreImport] Auto-repaired ${repair.repaired} bin property type(s) in ${baseName}`
-        )
-        await this.removeImportedCopies(baseName)
-      }
-    } catch (repairError) {
-      console.warn('[PreImport] Auto-repair failed for ' + baseName + ':', repairError)
-    }
+    // Note: bin-type repair happens only at import time (skinDownloader /
 
     // Skip if already imported
     if (await this.isAlreadyImported(baseName)) {
@@ -243,18 +216,7 @@ class PreImportService {
    * with numbered mod_0_X, mod_1_X names used during Apply.
    */
   private async importSkin(job: ImportJob): Promise<void> {
-    // Auto-repair outdated bin property types (16.17 Hashpocalypse) before importing,
-    // so mods added before this fix also get corrected when they are selected
-    try {
-      const repair = await repairModFile(job.skinPath)
-      if (repair.repaired > 0) {
-        console.log(
-          `[PreImport] Auto-repaired ${repair.repaired} bin property type(s) in ${job.baseName}`
-        )
-      }
-    } catch (repairError) {
-      console.warn('[PreImport] Auto-repair failed for ' + job.baseName + ':', repairError)
-    }
+    // Note: bin-type repair already ran when the skin was imported into Bocchi;
 
     const modToolsPath = this.getModToolsExePath()
     if (!modToolsPath) {

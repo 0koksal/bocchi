@@ -1,5 +1,7 @@
-- Auto hash fix for custom skins after import
-- Auto fixer changed from multiritofixes to hematite
-- Inject fix/auto update
-- Pre-Import fix for some custom skins are not imported
-- Fix custom skins showing duplicated when searching in All Champions tab
+- Custom skin download from link and import (RuneForge and DivineSkins supported , .modpkg also supported)
+- Injection Method setting: choose between LTK Patcher (default) and CSLOL with your own cslol-dll.dll
+- Fixed error while downloading skins and added a universal fallback that searches the champion folder on any 404
+- Added Discord Rich Presence toggle in Settings with a confirmation dialog
+- Added 4 new languages: Filipino, Bahasa Melayu, Bulgarian and Português (Portugal) 
+- Added image zoom in the chroma selection dialog
+- Fixed .modpkg drag & drop not being accepted

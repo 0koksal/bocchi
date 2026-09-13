@@ -299,7 +299,8 @@ export class LCUConnector extends EventEmitter {
     try {
       return await this.request('GET', '/lol-champions/v1/owned-champions-minimal')
     } catch (error) {
-      console.error('[LCUConnector] Failed to get owned champions:', error)
+      if (!this.connected) return []
+      console.warn('[LCUConnector] Failed to get owned champions:', error)
       return []
     }
   }
@@ -308,7 +309,8 @@ export class LCUConnector extends EventEmitter {
     try {
       return await this.request('GET', '/lol-game-data/assets/v1/champion-summary.json')
     } catch (error) {
-      console.error('[LCUConnector] Failed to get all champions:', error)
+      if (!this.connected) return []
+      console.warn('[LCUConnector] Failed to get all champions:', error)
       return []
     }
   }

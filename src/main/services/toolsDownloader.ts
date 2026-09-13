@@ -339,8 +339,30 @@ export class ToolsDownloader {
       // Save version info
       await fs.promises.writeFile(this.cslolToolsVersionPath, version)
 
-      // Keep the bundled cslol-dll.dll - it's needed by mod-tools.exe for import operations
-      // (Injection now uses LTK Patcher instead, but import still needs the DLL)
+      // Keep the bundled cslol-dll.dll: mod-tools.exe import links against it
+      // (import fails with 0xC0000135 without it). Store its sha256 so the
+      // CSLOL injection method can later tell the placeholder apart from a
+      // user-provided DLL (see 'injection-method-changed' handler).
+      try {
+        const dllBytes = await fs.promises.readFile(path.join(targetPath, 'cslol-dll.dll'))
+        const dllHash = require('crypto').createHash('sha256').update(dllBytes).digest('hex')
+        await fs.promises.writeFile(path.join(targetPath, 'cslol-dll.sha256'), dllHash)
+      } catch {
+        // Hash storage is best-effort
+      }
+      // Remove files Bocchi never uses (debug/diagnostic utilities that ship
+      // with cslol-tools): keeps the tools folder slim
+      const unusedToolFiles = [
+        'cslol-diag.exe',
+        'wad-extract.exe',
+        'wad-make.exe',
+        'wad-extract-multi.bat',
+        'wad-make-multi.bat',
+        'wexy-extract-multi.bat'
+      ]
+      for (const file of unusedToolFiles) {
+        await fs.promises.rm(path.join(targetPath, file), { force: true })
+      }
 
       // Download LTK Patcher binaries (faster injection than legacy cslol-dll)
       try {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Upload, Link, Loader2, AlertCircle, Check, FileDown, ClipboardPaste } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog'
@@ -29,6 +29,26 @@ export const ImportMethodDialog: React.FC<ImportMethodDialogProps> = ({
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  // Latest onFileSelected, so the web-import listener can always call the current one
+  const fileSelectedRef = useRef(onFileSelected)
+  fileSelectedRef.current = onFileSelected
+
+  // DivineSkins (and similar) need human verification in a real browser —
+  // those imports complete via the embedded window download interception
+  const isDivineSkinsUrl = useCallback((url: string): boolean => {
+    try {
+      return /(^|\.)divineskins\.gg$/i.test(new URL(url).hostname)
+    } catch {
+      return false
+    }
+  }, [])
+
+  // Receive files downloaded through the embedded web-import window
+  useEffect(() => {
+    window.api.onWebImportFileDownloaded((filePath) => {
+      fileSelectedRef.current(filePath)
+    })
+  }, [])
 
   // Reset global drag state when dialog closes
   useEffect(() => {
@@ -37,10 +57,24 @@ export const ImportMethodDialog: React.FC<ImportMethodDialogProps> = ({
     }
   }, [open, setGlobalIsDragging])
 
-  // Validate URL - only allow direct download links
+  // Validate URL - allow direct download links and Runeforge mod pages
   const isValidUrl = useCallback((url: string): boolean => {
     try {
       const urlObj = new URL(url)
+      // Runeforge links: mod pages (resolved to latest release automatically)
+      // and release/artifact download links (302-redirect to the .fantome file)
+      if (/(^|\.)runeforge\.dev$/i.test(urlObj.hostname)) {
+        if (/^\/mods\/[a-f0-9-]+(\/releases)?\/?$/i.test(urlObj.pathname)) return true
+        if (
+          /^\/mods\/[a-f0-9-]+\/releases\/[a-f0-9-]+(\/artifacts\/[a-f0-9-]+)?\/download$/i.test(
+            urlObj.pathname
+          )
+        ) {
+          return true
+        }
+      }
+      // DivineSkins links are opened in an embedded window for verification
+      if (/(^|\.)divineskins\.gg$/i.test(urlObj.hostname)) return true
       // Check if it's a direct download link with supported extensions
       const isDirectDownload = ['.zip', '.fantome', '.wad', '.client'].some((ext) =>
         urlObj.pathname.toLowerCase().includes(ext)
@@ -60,6 +94,31 @@ export const ImportMethodDialog: React.FC<ImportMethodDialogProps> = ({
 
     if (!isValidUrl(urlInput)) {
       setDownloadError(t('importMethod.invalidUrl'))
+      return
+    }
+
+    // DivineSkins links need human verification — open the site in an embedded
+    // window; the file download there is intercepted and fed back as an import
+    if (isDivineSkinsUrl(urlInput)) {
+      setDownloadError('')
+      setIsDownloading(true)
+      try {
+        const result = await window.api.openWebImport(urlInput)
+        if (result.success) {
+          setUrlInput('')
+          toast.info(
+            'Just tick the verification checkbox in the opened window — Bocchi downloads and imports the mod automatically.',
+            { duration: 8000 }
+          )
+          onClose()
+        } else {
+          setDownloadError(result.error || t('importMethod.downloadFailed'))
+        }
+      } catch {
+        setDownloadError(t('importMethod.downloadFailed'))
+      } finally {
+        setIsDownloading(false)
+      }
       return
     }
 
@@ -148,7 +207,8 @@ export const ImportMethodDialog: React.FC<ImportMethodDialogProps> = ({
           ext.endsWith('.wad.client') ||
           ext.endsWith('.wad') ||
           ext.endsWith('.zip') ||
-          ext.endsWith('.fantome')
+          ext.endsWith('.fantome') ||
+          ext.endsWith('.modpkg')
         )
       })
 
@@ -263,15 +323,19 @@ export const ImportMethodDialog: React.FC<ImportMethodDialogProps> = ({
                 <ul className="space-y-1">
                   <li className="flex items-center gap-2 text-sm text-text-primary">
                     <Check className="h-3 w-3 text-state-success" />
-                    .zip files
+                    {t('importMethod.zipFiles', '.zip files')}
                   </li>
                   <li className="flex items-center gap-2 text-sm text-text-primary">
                     <Check className="h-3 w-3 text-state-success" />
-                    .fantome files
+                    {t('importMethod.fantomeFiles', '.fantome files')}
                   </li>
                   <li className="flex items-center gap-2 text-sm text-text-primary">
                     <Check className="h-3 w-3 text-state-success" />
-                    .wad / .wad.client files
+                    {t('importMethod.wadFiles', '.wad / .wad.client files')}
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-text-primary">
+                    <Check className="h-3 w-3 text-state-success" />
+                    {t('importMethod.modpkgFiles', '.modpkg files (auto-converted to .fantome)')}
                   </li>
                 </ul>
                 <p className="text-xs text-text-muted mt-2">

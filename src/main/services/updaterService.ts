@@ -143,7 +143,12 @@ export class UpdaterService {
 
   async getChangelog(): Promise<string | null> {
     try {
-      // Always fetch latest changes.md from our repo's main branch
+      // Dev builds read the local changes.md so release notes can be previewed
+      // before pushing them to GitHub
+      if (!app.isPackaged) {
+        return await fs.promises.readFile(path.join(process.cwd(), 'changes.md'), 'utf-8')
+      }
+      // Packaged builds fetch latest changes.md from our repo's main branch
       const url = `https://raw.githubusercontent.com/0koksal/bocchi/main/changes.md`
       const response = await axios.get(url)
       return response.data

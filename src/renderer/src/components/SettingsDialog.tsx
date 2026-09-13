@@ -1,8 +1,9 @@
 import { useAtom, useSetAtom } from 'jotai'
-import { ChevronDown, Gamepad2, Package, Settings, Monitor, RefreshCw, Trash2 } from 'lucide-react'
+import { ChevronDown, Check, Gamepad2, Package, Settings, Monitor, RefreshCw, Trash2 } from 'lucide-react'
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { DiscordRpcConfirmDialog } from './DiscordRpcConfirmDialog'
 import { showUpdateDialogAtom, appVersionAtom } from '../store/atoms/game.atoms'
 import { isCheckingForUpdatesAtom } from '../store/atoms/ui.atoms'
 import { Button } from './ui/button'
@@ -42,6 +43,12 @@ import { Label } from './ui/label'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Slider } from './ui/slider'
 import { Switch } from './ui/switch'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from './ui/dropdown-menu'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 
 interface SettingsDialogProps {
@@ -81,6 +88,9 @@ export function SettingsDialog({
   const [autoFixModIssues, setAutoFixModIssues] = useState(false)
   const [minimizeToTray, setMinimizeToTray] = useState(false)
   const [auxWindowEnabled, setAuxWindowEnabled] = useState(true)
+  const [discordRpcEnabled, setDiscordRpcEnabled] = useState(true)
+  const [injectionMethod, setInjectionMethod] = useState<'ltk' | 'cslol'>('ltk')
+  const [showDiscordRpcConfirm, setShowDiscordRpcConfirm] = useState(false)
   const [autoExtractImages, setAutoExtractImages] = useState(false)
   const [modToolsTimeout, setModToolsTimeout] = useState(300) // Default 300 seconds
   const [loading, setLoading] = useState(true)
@@ -228,6 +238,9 @@ export function SettingsDialog({
       setAutoFixModIssues((settings.autoFixModIssues as boolean | undefined) === true)
       setMinimizeToTray((settings.minimizeToTray as boolean | undefined) === true)
       setAuxWindowEnabled((settings.auxWindowEnabled as boolean | undefined) !== false)
+      setDiscordRpcEnabled((settings.discordRpcEnabled as boolean | undefined) !== false)
+      const savedMethod = settings.injectionMethod as string | undefined
+      setInjectionMethod(savedMethod === 'cslol' ? 'cslol' : 'ltk')
       setAutoExtractImages((settings.autoExtractImages as boolean | undefined) === true)
       setModToolsTimeout((settings.modToolsTimeout as number | undefined) || 300) // Default 300 seconds
     } catch (error) {
@@ -507,6 +520,56 @@ export function SettingsDialog({
     }
   }
 
+  const handleDiscordRpcChange = async (checked: boolean) => {
+    if (!checked) {
+      // Show confirmation dialog before disabling
+      setShowDiscordRpcConfirm(true)
+      return
+    }
+    setDiscordRpcEnabled(true)
+    try {
+      await window.api.setSettings('discordRpcEnabled', true)
+      await window.api.setDiscordRpcEnabled(true)
+    } catch (error) {
+      console.error('Failed to enable Discord RPC:', error)
+    }
+  }
+
+  const handleDiscordRpcConfirm = async () => {
+    setShowDiscordRpcConfirm(false)
+    setDiscordRpcEnabled(false)
+    try {
+      await window.api.setSettings('discordRpcEnabled', false)
+      await window.api.setDiscordRpcEnabled(false)
+    } catch (error) {
+      console.error('Failed to disable Discord RPC:', error)
+    }
+  }
+
+  const handleDiscordRpcCancel = () => {
+    setShowDiscordRpcConfirm(false)
+  }
+
+
+  const handleInjectionMethodChange = async (method: 'ltk' | 'cslol') => {
+    setInjectionMethod(method)
+    try {
+      await window.api.setSettings('injectionMethod', method)
+      await window.api.injectionMethodChanged(method)
+      if (method === 'cslol') {
+        const dllExists = await window.api.checkDllExist()
+        if (!dllExists) {
+          toast.info(
+            'CSLOL injection requires cslol-dll.dll. Please place your cslol-dll.dll in the cslol-tools folder.',
+            { duration: 8000 }
+          )
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save injection method:', error)
+    }
+  }
+
   const handleAutoExtractImagesChange = async (checked: boolean) => {
     setAutoExtractImages(checked)
     try {
@@ -581,6 +644,7 @@ export function SettingsDialog({
   }
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
@@ -669,6 +733,68 @@ export function SettingsDialog({
                 onCheckedChange={handleAuxWindowEnabledChange}
                 disabled={loading}
               />
+            </div>
+
+            {/* Discord Rich Presence Setting */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-text-primary">
+                  {t('settings.discordRpc.title', 'Discord Rich Presence')}
+                </h3>
+                <p className="text-xs text-text-secondary mt-1">
+                  {t(
+                    'settings.discordRpc.description',
+                    'Show Bocchi in your Discord status. Helps others discover the app .'
+                  )}
+                </p>
+              </div>
+              <Switch
+                checked={discordRpcEnabled}
+                onCheckedChange={handleDiscordRpcChange}
+                disabled={loading}
+              />
+            </div>
+
+            {/* Injection Method Setting */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-text-primary">
+                  {t('settings.injectionMethod.title', 'Injection Method')}
+                </h3>
+                <p className="text-xs text-text-secondary mt-1">
+                  {t(
+                    'settings.injectionMethod.description',
+                    'Choose how Bocchi injects skins into the game. LTK Patcher is recommended. CSLOL requires your own cslol-dll.dll file.'
+                  )}
+                </p>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="px-3 py-2 text-xs font-medium rounded-lg border border-border bg-surface-lighter hover:bg-surface-light text-text-secondary transition-colors flex items-center gap-2 flex-shrink-0"
+                    disabled={loading}
+                  >
+                    {injectionMethod === 'ltk' ? 'LTK Patcher' : 'CSLOL'}
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => handleInjectionMethodChange('ltk')}
+                    className="flex items-center justify-between gap-4"
+                  >
+                    <span>LTK Patcher ({t('settings.injectionMethod.recommended', 'Recommended')})</span>
+                    {injectionMethod === 'ltk' && <Check className="w-3 h-3" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleInjectionMethodChange('cslol')}
+                    className="flex items-center justify-between gap-4"
+                  >
+                    <span>CSLOL ({t('settings.injectionMethod.legacy', 'requires cslol-dll.dll')})</span>
+                    {injectionMethod === 'cslol' && <Check className="w-3 h-3" />}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </TabsContent>
 
@@ -1057,5 +1183,12 @@ export function SettingsDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <DiscordRpcConfirmDialog
+      open={showDiscordRpcConfirm}
+      onConfirm={handleDiscordRpcConfirm}
+      onCancel={handleDiscordRpcCancel}
+    />
+    </>
   )
 }

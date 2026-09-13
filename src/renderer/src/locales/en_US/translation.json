@@ -330,6 +330,21 @@
     "applicationUpdate": {
       "title": "Application Updates",
       "description": "Current version: {{version}}"
+    },
+    "discordRpc": {
+      "title": "Discord Rich Presence",
+      "description": "Show Bocchi in your Discord status. Helps others discover the app .",
+      "confirmTitle": "Disable Discord Rich Presence?",
+      "confirmBody1": "Discord Rich Presence lets your friends see Bocchi in your status — every time someone spots it and asks \"what's that?\", our community grows a little bigger.",
+      "confirmBody2": "Turning it off means fewer people discover Bocchi. Are you sure you want to disable it?",
+      "keepItOn": "Keep it on 💙",
+      "disableAnyway": "Disable anyway"
+    },
+    "injectionMethod": {
+      "title": "Injection Method",
+      "description": "Choose how Bocchi injects skins into the game. LTK Patcher is recommended. CSLOL requires your own cslol-dll.dll file.",
+      "recommended": "Recommended",
+      "legacy": "requires cslol-dll.dll"
     }
   },
   "tray": {
@@ -389,8 +404,12 @@
     "downloadFailed": "Failed to download mod",
     "downloading": "Downloading...",
     "download": "Download & Import",
-    "directDownloadNote": "Only direct download links are supported",
-    "clipboardError": "Failed to read clipboard"
+    "directDownloadNote": "Supports direct links, Runeforge mod pages and DivineSkins pages (opens a browser window for verification)",
+    "clipboardError": "Failed to read clipboard",
+    "zipFiles": ".zip files",
+    "fantomeFiles": ".fantome files",
+    "wadFiles": ".wad / .wad.client files",
+    "modpkgFiles": ".modpkg files (auto-converted to .fantome)"
   },
   "editCustomSkin": {
     "title": "Edit Custom Mod",

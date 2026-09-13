@@ -18,6 +18,22 @@ const RPC_STRINGS: Record<string, { browsing: string; inGame: string; skinsActiv
   pl_PL: { browsing: 'Przeglądanie skinów', inGame: 'W grze', skinsActive: (n) => `${n} skin${n > 1 ? 'ów' : ''} aktywnych` },
   it_IT: { browsing: 'Sfogliando le skin', inGame: 'In gioco', skinsActive: (n) => `${n} skin attiv${n > 1 ? 'e' : 'a'}` },
   vi_VN: { browsing: 'Đang xem skin', inGame: 'Trong trận', skinsActive: (n) => `${n} skin đang hoạt động` },
+  cs_CZ: {
+    browsing: 'Prochází skiny',
+    inGame: 'Ve hře',
+    skinsActive: (n) => (n === 1 ? '1 skin aktivní' : n < 5 ? `${n} skiny aktivní` : `${n} skinů aktivních`)
+  },
+  el_GR: { browsing: 'Προβλέπει skins', inGame: 'Στο παιχνίδι', skinsActive: (n) => `${n} skins ενεργά` },
+  ar_AE: { browsing: 'يتصفح السكنات', inGame: 'في اللعبة', skinsActive: (n) => `${n} سكن نشط` },
+  id_ID: { browsing: 'Menjelajah Skin', inGame: 'Dalam Permainan', skinsActive: (n) => `${n} skin aktif` },
+  hu_HU: { browsing: 'Skinek böngészése', inGame: 'Játékban', skinsActive: (n) => `${n} skin aktív` },
+  ro_RO: { browsing: 'Răsfoiește skinuri', inGame: 'În joc', skinsActive: (n) => `${n} skinuri active` },
+  th_TH: { browsing: 'กำลังดูสกิน', inGame: 'กำลังเล่นเกม', skinsActive: (n) => `${n} สกินที่ใช้งาน` },
+  zh_TW: { browsing: '瀏覽皮膚', inGame: '遊戲中', skinsActive: (n) => `${n}個皮膚已啟用` },
+  tl_PH: { browsing: 'Nagba-browse ng skins', inGame: 'Sa laro', skinsActive: (n) => `${n} skin ang aktibo` },
+  ms_MY: { browsing: 'Melihat skin', inGame: 'Dalam permainan', skinsActive: (n) => `${n} skin aktif` },
+  bg_BG: { browsing: 'Разглежда скинове', inGame: 'В игра', skinsActive: (n) => `${n} активни скина` },
+  pt_PT: { browsing: 'A navegar skins', inGame: 'Em jogo', skinsActive: (n) => `${n} skins ativos` },
 }
 
 interface RpcPayload {
@@ -152,7 +168,7 @@ export class DiscordRpcService {
             large_image: 'bocchi_logo',
             large_text: 'Bocchi Skin Changer',
             small_image: 'bocchi_small',
-            small_text: 'Bocchi v2.0.2'
+            small_text: 'Bocchi v2.0.3'
           },
           buttons: [
             { label: 'Get Bocchi', url: 'https://github.com/0koksal/bocchi' },

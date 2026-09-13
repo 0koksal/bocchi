@@ -73,6 +73,14 @@ const api = {
   browseSkinFile: () => ipcRenderer.invoke('browse-skin-file'),
   // URL download
   downloadFromUrl: (url: string) => ipcRenderer.invoke('download-from-url', url),
+  openWebImport: (url: string) => ipcRenderer.invoke('open-web-import', url),
+  onDllRequired: (callback: () => void) => {
+    ipcRenderer.on('dll-required', callback)
+  },
+  injectionMethodChanged: (method: string) => ipcRenderer.invoke('injection-method-changed', method),
+  onWebImportFileDownloaded: (callback: (filePath: string) => void) => {
+    ipcRenderer.on('web-import:file-downloaded', (_event, filePath) => callback(filePath))
+  },
   browseSkinFiles: () => ipcRenderer.invoke('browse-skin-files'),
   browseImageFile: () => ipcRenderer.invoke('browse-image-file'),
 
@@ -187,6 +195,7 @@ const api = {
   // Settings
   getSettings: (key?: string) => ipcRenderer.invoke('get-settings', key),
   setSettings: (key: string, value: unknown) => ipcRenderer.invoke('set-settings', key, value),
+  setDiscordRpcEnabled: (enabled: boolean) => ipcRenderer.invoke('set-discord-rpc-enabled', enabled),
   getSystemLocale: () => ipcRenderer.invoke('get-system-locale'),
 
   // Auto-updater

@@ -52,7 +52,7 @@ export const useStyles = () => {
       },
       toolsModalOverlay: {
         className:
-          'fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in'
+          'fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in pointer-events-auto'
       },
       toolsModalContent: {
         className:

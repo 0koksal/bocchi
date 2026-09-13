@@ -71,6 +71,68 @@ export class GitHubApiService {
     }
   }
 
+  /**
+   * Searches the champion folder subtree for a skin file. Used as a fallback
+   * when the constructed URL 404s (e.g. the repo structure changed and the
+   * file lives somewhere else under the champion folder than expected).
+   * Returns a raw download URL for the file, or null if not found.
+   */
+  async findSkinFileByUrl(url: string): Promise<string | null> {
+    try {
+      const parsed = repositoryService.parseGitHubUrl(url)
+      if (!parsed) return null
+
+      const path = decodeURIComponent(parsed.path)
+      const segments = path.split('/')
+      const skinsIdx = segments.indexOf(LEAGUESKINS_REPO.skinsPath)
+      // Need at least skins/{championFolder}/{fileName}
+      if (skinsIdx === -1 || segments.length < skinsIdx + 3) return null
+
+      const championFolder = segments[skinsIdx + 1]
+      const fileName = segments[segments.length - 1]
+      const fileBase = fileName.replace(/\.(zip|fantome)$/i, '').toLowerCase()
+      if (!fileBase) return null
+
+      const headers = {
+        Accept: 'application/vnd.github.v3+json',
+        'User-Agent': 'Bocchi-LoL-Skin-Manager'
+      }
+
+      // Find the champion folder entry to get its subtree SHA
+      await this.enforceRateLimit()
+      const contentsResponse = await axios.get(
+        `${GitHubApiService.API_BASE}/repos/${parsed.owner}/${parsed.repo}/contents/${LEAGUESKINS_REPO.skinsPath}`,
+        { params: { ref: parsed.branch }, timeout: 10000, headers }
+      )
+      const championEntry = (
+        contentsResponse.data as Array<{ name: string; sha: string; type: string }>
+      ).find((e) => e.type === 'dir' && e.name.toLowerCase() === championFolder.toLowerCase())
+      if (!championEntry) return null
+
+      // List every file under the champion folder and match by file base name
+      await this.enforceRateLimit()
+      const treeResponse = await axios.get(
+        `${GitHubApiService.API_BASE}/repos/${parsed.owner}/${parsed.repo}/git/trees/${championEntry.sha}`,
+        { params: { recursive: '1' }, timeout: 15000, headers }
+      )
+      const entries = treeResponse.data?.tree as Array<{ path: string; type: string }> | undefined
+      if (!entries) return null
+
+      const match = entries.find((e) => {
+        if (e.type !== 'blob') return false
+        const base = e.path.split('/').pop()?.replace(/\.(zip|fantome)$/i, '').toLowerCase()
+        return base === fileBase
+      })
+      if (!match) return null
+
+      console.log(`[GitHubAPI] Champion folder search found: ${match.path}`)
+      return `https://raw.githubusercontent.com/${parsed.owner}/${parsed.repo}/${parsed.branch}/${match.path}`
+    } catch (error) {
+      console.warn('[GitHubAPI] Champion folder search failed:', error)
+      return null
+    }
+  }
+
   parseGitHubPathFromUrl(url: string): string {
     // Convert GitHub URL to file path for API
     // Works with any repository structure

@@ -92,6 +92,10 @@ export interface Champion {
 
 // --- Constants ---
 
+// Bump this whenever champion data generation logic changes (e.g. REPO_ONLY_VARIANTS)
+// so disk caches from older app versions are invalidated even within the same patch
+export const CHAMPION_DATA_REVISION = 3
+
 const DDRAGON_BASE = 'https://ddragon.leagueoflegends.com'
 const CDRAGON_BASE = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global'
 
@@ -145,9 +149,15 @@ function pLimit(concurrency: number) {
 
 // --- Skin processing ---
 
-// Known repo-only variants that aren't in CDragon data but exist in the LeagueSkins repository
-// These get added as synthetic chromas so users can select them from the chroma wheel
-const REPO_ONLY_VARIANTS: Record<number, Array<{ id: number; name: string; parentSkinNum: number; colors: string[] }>> = {
+export interface VariantsMap {
+  [championId: number]: Array<{ id: number; name: string; parentSkinNum: number; colors: string[]; parentFolderId?: number }>
+}
+
+// Built-in fallback variants, used when the remote variants.md can't be fetched.
+// Kept in sync with https://github.com/0koksal/bocchi/blob/main/variants.md —
+// if you change this list, also bump CHAMPION_DATA_REVISION so caches refresh.
+// Live variants come from variants.md via remoteVariantsService (see applyRemoteVariants).
+export const DEFAULT_REPO_ONLY_VARIANTS: VariantsMap = {
   // Jinx - Arcane Fractured Jinx (222060) has two variant forms
   222: [
     { id: 222998, name: 'Arcane Fractured Jinx (Form 1)', parentSkinNum: 60, colors: ['#00FF00', '#006400'] },
@@ -170,7 +180,23 @@ const REPO_ONLY_VARIANTS: Record<number, Array<{ id: number; name: string; paren
   // Kai'Sa - Immortalized Legend Kai'Sa (145071) has one variant form
   145: [
     { id: 145999, name: 'Immortalized Legend Kai\'Sa (Form 2)', parentSkinNum: 71, colors: ['#ff0000', '#FF1493'] }
+  ],
+  // Viego - Revenant Reign Viego (234043) has six variant forms
+  234: [
+    { id: 234994, name: 'Revenant Reign Viego (Form 1)', parentSkinNum: 43, colors: ['#00FF7F', '#006400'] },
+    { id: 234995, name: 'Revenant Reign Viego (Form 2)', parentSkinNum: 43, colors: ['#00CED1', '#008B8B'] },
+    { id: 234996, name: 'Revenant Reign Viego (Form 3)', parentSkinNum: 43, colors: ['#9370DB', '#4B0082'] },
+    { id: 234997, name: 'Revenant Reign Viego (Form 4)', parentSkinNum: 43, colors: ['#FF4500', '#8B0000'] },
+    { id: 234998, name: 'Revenant Reign Viego (Form 5)', parentSkinNum: 43, colors: ['#FFD700', '#B8860B'] },
+    { id: 234999, name: 'Revenant Reign Viego (Form 6)', parentSkinNum: 43, colors: ['#FF1493', '#8B008B'] }
   ]
+}
+
+// Active variant map, swapped out by remoteVariantsService when variants.md loads
+let activeVariants: VariantsMap = DEFAULT_REPO_ONLY_VARIANTS
+
+export function applyRemoteVariants(variants: VariantsMap): void {
+  activeVariants = variants
 }
 
 function processChromas(skin: CDragonSkin): Chroma[] | undefined {
@@ -202,8 +228,12 @@ function processTieredSkin(
     // that exists in the repo but not in CDragon (e.g., 103087 for Immortalized Legend Ahri)
     // Skip if champion has explicit REPO_ONLY_VARIANTS entries for this skin
     let chromaList: Chroma[] | undefined
-    const hasExplicitVariants = REPO_ONLY_VARIANTS[championId]?.some((v) => v.parentSkinNum === skinNum)
-    if (index === tiers.length - 1 && !hasExplicitVariants) {
+    const championVariants = activeVariants[championId]
+    const hasExplicitVariants = championVariants?.some((v) => v.parentSkinNum === skinNum)
+    // An entry with an empty variants list ("variants": []) means "no variants
+    // for this champion" — it must also suppress the auto-detected variant
+    const suppressAutoVariants = championId in activeVariants
+    if (index === tiers.length - 1 && !hasExplicitVariants && !suppressAutoVariants) {
       const nextId = tier.id + 1
       // Only add if the next ID doesn't belong to another skin in the tiers
       const nextIsInTiers = tiers.some((t) => t.id === nextId)
@@ -220,14 +250,17 @@ function processTieredSkin(
       }
     }
 
-    // Inject explicit REPO_ONLY_VARIANTS as chromas for this tiered skin
+    // Inject explicit variants as chromas for this tiered skin
     if (hasExplicitVariants) {
-      const parentSkinId = tiers[0].id // e.g., 145070
-      const matchingVariants = REPO_ONLY_VARIANTS[championId]!.filter((v) => v.parentSkinNum === skinNum)
+      // Parent skin ID is the first tier's ID (e.g., 145070)
+      const parentSkinId = tiers[0].id
+      const matchingVariants = activeVariants[championId]!.filter((v) => v.parentSkinNum === skinNum)
       const syntheticChromas: Chroma[] = matchingVariants.map((v) => ({
         id: v.id,
         name: v.name,
-        chromaPath: `https://raw.githubusercontent.com/Alban1911/LeagueSkins/refs/heads/main/skins/${championId}/${parentSkinId}/${v.id}/${v.id}.png`,
+        // The variant folder can differ from the first tier (e.g. the skin got
+        // its own top-level folder like Tristana 18080)
+        chromaPath: `https://raw.githubusercontent.com/Alban1911/LeagueSkins/refs/heads/main/skins/${championId}/${v.parentFolderId ?? parentSkinId}/${v.id}/${v.id}.png`,
         colors: v.colors
       }))
       chromaList = chromaList ? [...chromaList, ...syntheticChromas] : syntheticChromas
@@ -263,15 +296,14 @@ function processRegularSkin(
   let chromaList = processChromas(skin)
 
   // Inject repo-only variants as synthetic chromas
-  const repoVariants = REPO_ONLY_VARIANTS[championId]
+  const repoVariants = activeVariants[championId]
   if (repoVariants) {
     const matchingVariants = repoVariants.filter((v) => v.parentSkinNum === skinNum)
     if (matchingVariants.length > 0) {
-      const parentSkinId = skin.id // e.g., 222060
       const syntheticChromas: Chroma[] = matchingVariants.map((v) => ({
         id: v.id,
         name: v.name,
-        chromaPath: `https://raw.githubusercontent.com/Alban1911/LeagueSkins/refs/heads/main/skins/${championId}/${parentSkinId}/${v.id}/${v.id}.png`,
+        chromaPath: `https://raw.githubusercontent.com/Alban1911/LeagueSkins/refs/heads/main/skins/${championId}/${v.parentFolderId ?? skin.id}/${v.id}/${v.id}.png`,
         colors: v.colors
       }))
       chromaList = chromaList ? [...chromaList, ...syntheticChromas] : syntheticChromas

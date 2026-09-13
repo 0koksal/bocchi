@@ -28,6 +28,10 @@ import itIT from '../locales/it_IT/translation.json'
 import plPL from '../locales/pl_PL/translation.json'
 import roRO from '../locales/ro_RO/translation.json'
 import trTR from '../locales/tr_TR/translation.json'
+import tlPH from '../locales/tl_PH/translation.json'
+import msMY from '../locales/ms_MY/translation.json'
+import bgBG from '../locales/bg_BG/translation.json'
+import ptPT from '../locales/pt_PT/translation.json'
 
 export const supportedLanguages = [
   { code: 'en_US', name: 'English', flag: '🇺🇸' },
@@ -57,7 +61,11 @@ export const supportedLanguages = [
   { code: 'it_IT', name: 'Italiano', flag: '🇮🇹' },
   { code: 'pl_PL', name: 'Polski', flag: '🇵🇱' },
   { code: 'ro_RO', name: 'Română', flag: '🇷🇴' },
-  { code: 'tr_TR', name: 'Türkçe', flag: '🇹🇷' }
+  { code: 'tr_TR', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'tl_PH', name: 'Filipino', flag: '🇵🇭' },
+  { code: 'ms_MY', name: 'Bahasa Melayu', flag: '🇲🇾' },
+  { code: 'bg_BG', name: 'Български', flag: '🇧🇬' },
+  { code: 'pt_PT', name: 'Português (Portugal)', flag: '🇵🇹' }
 ] as const
 
 export type LanguageCode = (typeof supportedLanguages)[number]['code']
@@ -146,6 +154,18 @@ const resources = {
   },
   tr_TR: {
     translation: trTR
+  },
+  tl_PH: {
+    translation: tlPH
+  },
+  ms_MY: {
+    translation: msMY
+  },
+  bg_BG: {
+    translation: bgBG
+  },
+  pt_PT: {
+    translation: ptPT
   }
 }
 
