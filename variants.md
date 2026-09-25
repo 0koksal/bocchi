@@ -59,8 +59,7 @@ Bocchi checks this file whenever it refreshes champion data (app start, patch ch
   ] },
   { "championId": 18, "variants": [
   { "id": 18081, "name": "Immortalized Legend Tristana (Form 2)", "parentSkinNum": 80, "colors": ["#4169E1", "#191970"], "parentFolderId": 18080 },
-  { "id": 18082, "name": "Immortalized Legend Tristana (Form 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "parentFolderId": 18080 },
-  { "id": 18083, "name": "Immortalized Legend Tristana (Form 4)", "parentSkinNum": 80, "colors": ["#2E8B57", "#006400"], "parentFolderId": 18080 }
+  { "id": 18082, "name": "Immortalized Legend Tristana (Form 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "parentFolderId": 18080 }
 ] }
 ]
 ```
@@ -72,8 +71,7 @@ When Rose pushes the Immortalized Legend Tristana variants (3 forms, expected ID
 ```json
 { "championId": 18, "variants": [
   { "id": 18081, "name": "Immortalized Legend Tristana (Form 2)", "parentSkinNum": 80, "colors": ["#4169E1", "#191970"], "parentFolderId": 18080 },
-  { "id": 18082, "name": "Immortalized Legend Tristana (Form 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "parentFolderId": 18080 },
-  { "id": 18083, "name": "Immortalized Legend Tristana (Form 4)", "parentSkinNum": 80, "colors": ["#2E8B57", "#006400"], "parentFolderId": 18080 }
+  { "id": 18082, "name": "Immortalized Legend Tristana (Form 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "parentFolderId": 18080 }
 ] }
 ```
 
