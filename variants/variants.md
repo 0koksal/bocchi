@@ -48,15 +48,15 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 82999, "name": "Sahn-Uzal Mordekaiser (Form 3)", "parentSkinNum": 54, "colors": ["#f39609", "#f39609"] }
   ] },
   { "championId": 25, "variants": [
-    { "id": 25999, "name": "Spirit Blossom Morgana (Form 2)", "parentSkinNum": 80, "colors": ["#FF69B4", "#8B008B"] },
-    { "id": 80989, "name": "Spirit Blossom Morgana (Stage 2 - Mask 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"] },
-    { "id": 80990, "name": "Spirit Blossom Morgana (Stage 2 - Mask 2)", "parentSkinNum": 80, "colors": ["#00CED1", "#008B8B"] },
-    { "id": 80991, "name": "Spirit Blossom Morgana (Stage 1 - Mask 3)", "parentSkinNum": 80, "colors": ["#98FB98", "#228B22"] },
-    { "id": 80992, "name": "Spirit Blossom Morgana (Stage 1 - Mask 2)", "parentSkinNum": 80, "colors": ["#FFA500", "#FF8C00"] }
+    { "id": 25999, "name": "Spirit Blossom Morgana (Stage 2)", "parentSkinNum": 80, "colors": ["#FF69B4", "#8B008B"], "previewId": 25999 },
+    { "id": 25989, "name": "Spirit Blossom Morgana (Stage 2 - Mask 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "previewId": 25999 },
+    { "id": 25990, "name": "Spirit Blossom Morgana (Stage 2 - Mask 2)", "parentSkinNum": 80, "colors": ["#00CED1", "#008B8B"], "previewId": 25999 },
+    { "id": 25991, "name": "Spirit Blossom Morgana (Stage 1 - Mask 3)", "parentSkinNum": 80, "colors": ["#98FB98", "#228B22"], "previewId": 25080 },
+    { "id": 25992, "name": "Spirit Blossom Morgana (Stage 1 - Mask 2)", "parentSkinNum": 80, "colors": ["#FFA500", "#FF8C00"], "previewId": 25080 }
   ] },
   { "championId": 145, "variants": [
-    { "id": 145998, "name": "Immortalized Legend Kai'Sa (Form 2)", "parentSkinNum": 71, "colors": ["#ff0000", "#FF1493"] },
-    { "id": 145999, "name": "Immortalized Legend Kai'Sa (Form 3)", "parentSkinNum": 71, "colors": ["#C41E3A", "#FFD700"] }
+    { "id": 145071, "name": "Immortalized Legend Kai'Sa (Stage 2)", "parentSkinNum": 71, "colors": ["#C41E3A", "#FFD700"] },
+    { "id": 145999, "name": "Immortalized Legend Kai'Sa (Stage 3)", "parentSkinNum": 71, "colors": ["#ff0000", "#FF1493"] }
   ] },
   { "championId": 21, "variants": [
     { "id": 21997, "name": "Gun Goddess Miss Fortune (Zero Hour)", "parentSkinNum": 16, "colors": ["#191970", "#B0B0B0"] },
@@ -64,8 +64,8 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 21999, "name": "Gun Goddess Miss Fortune (Starswarm)", "parentSkinNum": 16, "colors": ["#7DF9FF", "#4B0082"] }
   ] },
   { "championId": 103, "variants": [
-    { "id": 103998, "name": "Immortalized Legend Ahri - Form 2", "parentSkinNum": 86, "colors": ["#FFD700", "#FFFACD"] },
-    { "id": 103999, "name": "Immortalized Legend Ahri - Form 3", "parentSkinNum": 86, "colors": ["#ECF9F8", "#ECF9F8"] }
+    { "id": 103086, "name": "Immortalized Legend Ahri (Stage 2)", "parentSkinNum": 86, "colors": ["#FFD700", "#FFFACD"] },
+    { "id": 103087, "name": "Immortalized Legend Ahri (Stage 3)", "parentSkinNum": 86, "colors": ["#ECF9F8", "#ECF9F8"] }
   ] },
   { "championId": 99, "variants": [
     { "id": 997991, "name": "Elementalist Lux (Air)", "parentSkinNum": 7, "colors": ["#E0FFFF", "#B0E0E6"] },
@@ -83,8 +83,8 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 147003, "name": "K/DA ALL OUT Seraphine (Stage 3)", "parentSkinNum": 1, "colors": ["#FFD700", "#FF1493"] }
   ] },
   { "championId": 18, "variants": [
-    { "id": 18998, "name": "Immortalized Legend Tristana Form 2", "parentSkinNum": 80, "colors": ["#3CB371", "#228B22"] },
-    { "id": 18999, "name": "Immortalized Legend Tristana Form 3", "parentSkinNum": 80, "colors": ["#FFD700", "#FFFACD"] }
+    { "id": 18080, "name": "Immortalized Legend Tristana (Stage 2)", "parentSkinNum": 80, "colors": ["#3CB371", "#228B22"] },
+    { "id": 18998, "name": "Immortalized Legend Tristana (Stage 3)", "parentSkinNum": 80, "colors": ["#FFD700", "#FFFACD"] }
   ] },
   { "championId": 234, "variants": [] }
 ]
