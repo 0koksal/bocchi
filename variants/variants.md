@@ -55,8 +55,8 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 80992, "name": "Spirit Blossom Morgana (Stage 1 - Mask 2)", "parentSkinNum": 80, "colors": ["#FFA500", "#FF8C00"] }
   ] },
   { "championId": 145, "variants": [
-    { "id": 145998, "name": "Immortalized Legend Kai'Sa (Form 2)", "parentSkinNum": 71, "colors": ["#C41E3A", "#FFD700"] },
-    { "id": 145999, "name": "Immortalized Legend Kai'Sa (Form 3)", "parentSkinNum": 71, "colors": ["#ff0000", "#FF1493"] }
+    { "id": 145998, "name": "Immortalized Legend Kai'Sa (Form 2)", "parentSkinNum": 71, "colors": ["#ff0000", "#FF1493"] },
+    { "id": 145999, "name": "Immortalized Legend Kai'Sa (Form 3)", "parentSkinNum": 71, "colors": ["#C41E3A", "#FFD700"] }
   ] },
   { "championId": 21, "variants": [
     { "id": 21997, "name": "Gun Goddess Miss Fortune (Zero Hour)", "parentSkinNum": 16, "colors": ["#191970", "#B0B0B0"] },
