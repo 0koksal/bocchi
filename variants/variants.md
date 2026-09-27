@@ -63,7 +63,7 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 21999, "name": "Gun Goddess Miss Fortune (Starswarm)", "parentSkinNum": 16, "colors": ["#7DF9FF", "#4B0082"] }
   ] },
   { "championId": 103, "variants": [
-    { "id": 103999, "name": "Risen Legend Ahri (Immortalized - Form 1)", "parentSkinNum": 85, "colors": ["#FFD700", "#FFFACD"] }
+    { "id": 103999, "name": "Risen Legend Ahri (Immortalized - Form 1)", "parentSkinNum": 86, "colors": ["#FFD700", "#FFFACD"] }
   ] },
   { "championId": 99, "variants": [
     { "id": 997991, "name": "Elementalist Lux (Air)", "parentSkinNum": 7, "colors": ["#E0FFFF", "#B0E0E6"] },
