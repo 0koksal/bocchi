@@ -24,321 +24,7 @@ Bocchi checks this file whenever it refreshes champion data (app start, patch ch
 **Disabling a champion's variants:** an entry with an empty list removes the chroma wheel entirely for that champion — including the auto-detected "(Variant)" that Bocchi adds on its own for tiered skins. Use this when the auto-entry points at files that don't exist in the repo yet:
 
 ```json
-[
-  {
-    "championId": 222,
-    "variants": [
-      {
-        "id": 222998,
-        "name": "Arcane Fractured Jinx (Form 1)",
-        "parentSkinNum": 60,
-        "colors": [
-          "#00FF00",
-          "#006400"
-        ]
-      },
-      {
-        "id": 222999,
-        "name": "Arcane Fractured Jinx (Form 2)",
-        "parentSkinNum": 60,
-        "colors": [
-          "#FF00FF",
-          "#4B0082"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 875,
-    "variants": [
-      {
-        "id": 875998,
-        "name": "Radiant Serpent Sett (Form 2)",
-        "parentSkinNum": 66,
-        "colors": [
-          "#04e8f8",
-          "#04e8f8"
-        ]
-      },
-      {
-        "id": 875999,
-        "name": "Radiant Serpent Sett (Form 3)",
-        "parentSkinNum": 66,
-        "colors": [
-          "#ec2323",
-          "#ec2323"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 82,
-    "variants": [
-      {
-        "id": 82998,
-        "name": "Sahn-Uzal Mordekaiser (Form 2)",
-        "parentSkinNum": 54,
-        "colors": [
-          "#8B0000",
-          "#FF4500"
-        ]
-      },
-      {
-        "id": 82999,
-        "name": "Sahn-Uzal Mordekaiser (Form 3)",
-        "parentSkinNum": 54,
-        "colors": [
-          "#f39609",
-          "#f39609"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 25,
-    "variants": [
-      {
-        "id": 25999,
-        "name": "Spirit Blossom Morgana (Form 2)",
-        "parentSkinNum": 80,
-        "colors": [
-          "#FF69B4",
-          "#8B008B"
-        ]
-      },
-      {
-        "id": 80989,
-        "name": "Spirit Blossom Morgana (Stage 2 - Mask 3)",
-        "parentSkinNum": 80,
-        "colors": [
-          "#9370DB",
-          "#4B0082"
-        ]
-      },
-      {
-        "id": 80990,
-        "name": "Spirit Blossom Morgana (Stage 2 - Mask 2)",
-        "parentSkinNum": 80,
-        "colors": [
-          "#00CED1",
-          "#008B8B"
-        ]
-      },
-      {
-        "id": 80991,
-        "name": "Spirit Blossom Morgana (Stage 1 - Mask 3)",
-        "parentSkinNum": 80,
-        "colors": [
-          "#98FB98",
-          "#228B22"
-        ]
-      },
-      {
-        "id": 80992,
-        "name": "Spirit Blossom Morgana (Stage 1 - Mask 2)",
-        "parentSkinNum": 80,
-        "colors": [
-          "#FFA500",
-          "#FF8C00"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 145,
-    "variants": [
-      {
-        "id": 145999,
-        "name": "Immortalized Legend Kai'Sa (Form 2)",
-        "parentSkinNum": 71,
-        "colors": [
-          "#ff0000",
-          "#FF1493"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 21,
-    "variants": [
-      {
-        "id": 21997,
-        "name": "Gun Goddess Miss Fortune (Zero Hour)",
-        "parentSkinNum": 16,
-        "colors": [
-          "#191970",
-          "#B0B0B0"
-        ]
-      },
-      {
-        "id": 21998,
-        "name": "Gun Goddess Miss Fortune (Royal Arms)",
-        "parentSkinNum": 16,
-        "colors": [
-          "#C41E3A",
-          "#FFD700"
-        ]
-      },
-      {
-        "id": 21999,
-        "name": "Gun Goddess Miss Fortune (Starswarm)",
-        "parentSkinNum": 16,
-        "colors": [
-          "#7DF9FF",
-          "#4B0082"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 103,
-    "variants": [
-      {
-        "id": 103999,
-        "name": "Risen Legend Ahri (Immortalized - Form 1)",
-        "parentSkinNum": 85,
-        "colors": [
-          "#FFD700",
-          "#FFFACD"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 99,
-    "variants": [
-      {
-        "id": 997991,
-        "name": "Elementalist Lux (Air)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#E0FFFF",
-          "#B0E0E6"
-        ]
-      },
-      {
-        "id": 997992,
-        "name": "Elementalist Lux (Dark)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#2F2F4F",
-          "#191970"
-        ]
-      },
-      {
-        "id": 997993,
-        "name": "Elementalist Lux (Ice)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#ADD8E6",
-          "#87CEEB"
-        ]
-      },
-      {
-        "id": 997994,
-        "name": "Elementalist Lux (Magma)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#FF4500",
-          "#8B0000"
-        ]
-      },
-      {
-        "id": 997995,
-        "name": "Elementalist Lux (Mystic)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#9370DB",
-          "#6A0DAD"
-        ]
-      },
-      {
-        "id": 997996,
-        "name": "Elementalist Lux (Nature)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#32CD32",
-          "#228B22"
-        ]
-      },
-      {
-        "id": 997997,
-        "name": "Elementalist Lux (Storm)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#778899",
-          "#4682B4"
-        ]
-      },
-      {
-        "id": 997998,
-        "name": "Elementalist Lux (Water)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#1E90FF",
-          "#0000CD"
-        ]
-      },
-      {
-        "id": 997999,
-        "name": "Elementalist Lux (Fire)",
-        "parentSkinNum": 7,
-        "colors": [
-          "#FF4500",
-          "#FFD700"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 147,
-    "variants": [
-      {
-        "id": 147002,
-        "name": "K/DA ALL OUT Seraphine (Stage 2)",
-        "parentSkinNum": 1,
-        "colors": [
-          "#FF69B4",
-          "#00CED1"
-        ]
-      },
-      {
-        "id": 147003,
-        "name": "K/DA ALL OUT Seraphine (Stage 3)",
-        "parentSkinNum": 1,
-        "colors": [
-          "#FFD700",
-          "#FF1493"
-        ]
-      }
-    ]
-  },
-  {
-    "championId": 18,
-    "variants": [
-      {
-        "id": 18081,
-        "name": "Immortalized Legend Tristana (Form 2)",
-        "parentSkinNum": 80,
-        "colors": [
-          "#4169E1",
-          "#191970"
-        ],
-        "parentFolderId": 18080
-      },
-      {
-        "id": 18082,
-        "name": "Immortalized Legend Tristana (Form 3)",
-        "parentSkinNum": 80,
-        "colors": [
-          "#9370DB",
-          "#4B0082"
-        ],
-        "parentFolderId": 18080
-      }
-    ]
-  }
-]
+{ "championId": 18, "variants": [] }
 ```
 
 ## Preview images
@@ -362,23 +48,41 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 82999, "name": "Sahn-Uzal Mordekaiser (Form 3)", "parentSkinNum": 54, "colors": ["#f39609", "#f39609"] }
   ] },
   { "championId": 25, "variants": [
-    { "id": 25999, "name": "Spirit Blossom Morgana (Form 2)", "parentSkinNum": 80, "colors": ["#FF69B4", "#8B008B"] }
+    { "id": 25999, "name": "Spirit Blossom Morgana (Form 2)", "parentSkinNum": 80, "colors": ["#FF69B4", "#8B008B"] },
+    { "id": 80989, "name": "Spirit Blossom Morgana (Stage 2 - Mask 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"] },
+    { "id": 80990, "name": "Spirit Blossom Morgana (Stage 2 - Mask 2)", "parentSkinNum": 80, "colors": ["#00CED1", "#008B8B"] },
+    { "id": 80991, "name": "Spirit Blossom Morgana (Stage 1 - Mask 3)", "parentSkinNum": 80, "colors": ["#98FB98", "#228B22"] },
+    { "id": 80992, "name": "Spirit Blossom Morgana (Stage 1 - Mask 2)", "parentSkinNum": 80, "colors": ["#FFA500", "#FF8C00"] }
   ] },
   { "championId": 145, "variants": [
     { "id": 145999, "name": "Immortalized Legend Kai'Sa (Form 2)", "parentSkinNum": 71, "colors": ["#ff0000", "#FF1493"] }
   ] },
-  { "championId": 234, "variants": [
-    { "id": 234994, "name": "Revenant Reign Viego (Form 1)", "parentSkinNum": 43, "colors": ["#00FF7F", "#006400"] },
-    { "id": 234995, "name": "Revenant Reign Viego (Form 2)", "parentSkinNum": 43, "colors": ["#00CED1", "#008B8B"] },
-    { "id": 234996, "name": "Revenant Reign Viego (Form 3)", "parentSkinNum": 43, "colors": ["#9370DB", "#4B0082"] },
-    { "id": 234997, "name": "Revenant Reign Viego (Form 4)", "parentSkinNum": 43, "colors": ["#FF4500", "#8B0000"] },
-    { "id": 234998, "name": "Revenant Reign Viego (Form 5)", "parentSkinNum": 43, "colors": ["#FFD700", "#B8860B"] },
-    { "id": 234999, "name": "Revenant Reign Viego (Form 6)", "parentSkinNum": 43, "colors": ["#FF1493", "#8B008B"] }
+  { "championId": 21, "variants": [
+    { "id": 21997, "name": "Gun Goddess Miss Fortune (Zero Hour)", "parentSkinNum": 16, "colors": ["#191970", "#B0B0B0"] },
+    { "id": 21998, "name": "Gun Goddess Miss Fortune (Royal Arms)", "parentSkinNum": 16, "colors": ["#C41E3A", "#FFD700"] },
+    { "id": 21999, "name": "Gun Goddess Miss Fortune (Starswarm)", "parentSkinNum": 16, "colors": ["#7DF9FF", "#4B0082"] }
+  ] },
+  { "championId": 103, "variants": [
+    { "id": 103999, "name": "Risen Legend Ahri (Immortalized - Form 1)", "parentSkinNum": 85, "colors": ["#FFD700", "#FFFACD"] }
+  ] },
+  { "championId": 99, "variants": [
+    { "id": 997991, "name": "Elementalist Lux (Air)", "parentSkinNum": 7, "colors": ["#E0FFFF", "#B0E0E6"] },
+    { "id": 997992, "name": "Elementalist Lux (Dark)", "parentSkinNum": 7, "colors": ["#2F2F4F", "#191970"] },
+    { "id": 997993, "name": "Elementalist Lux (Ice)", "parentSkinNum": 7, "colors": ["#ADD8E6", "#87CEEB"] },
+    { "id": 997994, "name": "Elementalist Lux (Magma)", "parentSkinNum": 7, "colors": ["#FF4500", "#8B0000"] },
+    { "id": 997995, "name": "Elementalist Lux (Mystic)", "parentSkinNum": 7, "colors": ["#9370DB", "#6A0DAD"] },
+    { "id": 997996, "name": "Elementalist Lux (Nature)", "parentSkinNum": 7, "colors": ["#32CD32", "#228B22"] },
+    { "id": 997997, "name": "Elementalist Lux (Storm)", "parentSkinNum": 7, "colors": ["#778899", "#4682B4"] },
+    { "id": 997998, "name": "Elementalist Lux (Water)", "parentSkinNum": 7, "colors": ["#1E90FF", "#0000CD"] },
+    { "id": 997999, "name": "Elementalist Lux (Fire)", "parentSkinNum": 7, "colors": ["#FF4500", "#FFD700"] }
+  ] },
+  { "championId": 147, "variants": [
+    { "id": 147002, "name": "K/DA ALL OUT Seraphine (Stage 2)", "parentSkinNum": 1, "colors": ["#FF69B4", "#00CED1"] },
+    { "id": 147003, "name": "K/DA ALL OUT Seraphine (Stage 3)", "parentSkinNum": 1, "colors": ["#FFD700", "#FF1493"] }
   ] },
   { "championId": 18, "variants": [
-  { "id": 18081, "name": "Immortalized Legend Tristana (Form 2)", "parentSkinNum": 80, "colors": ["#4169E1", "#191970"], "parentFolderId": 18080 },
-  { "id": 18082, "name": "Immortalized Legend Tristana (Form 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "parentFolderId": 18080 }
-] }
+    { "id": 18081, "name": "Immortalized Legend Tristana (Form 2)", "parentSkinNum": 80, "colors": ["#4169E1", "#191970"], "parentFolderId": 18080 },
+    { "id": 18082, "name": "Immortalized Legend Tristana (Form 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "parentFolderId": 18080 }
+  ] }
 ]
 ```
-
