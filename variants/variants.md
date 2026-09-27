@@ -85,6 +85,6 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 18998, "name": "Immortalized Legend Tristana Form 2", "parentSkinNum": 80, "colors": ["#3CB371", "#228B22"] },
     { "id": 18999, "name": "Immortalized Legend Tristana Form 3", "parentSkinNum": 80, "colors": ["#FFD700", "#FFFACD"] }
   ] },
-  { "championId": 18, "variants": [] }
+  { "championId": 234, "variants": [] }
 ]
 ```
