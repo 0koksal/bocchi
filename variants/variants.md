@@ -82,8 +82,8 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 147003, "name": "K/DA ALL OUT Seraphine (Stage 3)", "parentSkinNum": 1, "colors": ["#FFD700", "#FF1493"] }
   ] },
   { "championId": 18, "variants": [
-    { "id": 18998, "name": "Risen Legend Tristana (Stage 3)", "parentSkinNum": 80, "colors": ["#3CB371", "#228B22"] },
-    { "id": 18999, "name": "Risen Legend Tristana (Immortalized - Form 1)", "parentSkinNum": 80, "colors": ["#FFD700", "#FFFACD"] }
+    { "id": 18998, "name": "Immortalized Legend Tristana Form 2", "parentSkinNum": 80, "colors": ["#3CB371", "#228B22"] },
+    { "id": 18999, "name": "Immortalized Legend Tristana Form 3", "parentSkinNum": 80, "colors": ["#FFD700", "#FFFACD"] }
   ] }
 ]
 ```
