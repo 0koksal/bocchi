@@ -54,6 +54,8 @@ interface CDragonChampion {
 }
 
 export interface Chroma {
+  kind?: 'form' | 'chroma'
+  catalogPath?: string
   id: number
   name: string
   chromaPath: string
@@ -61,6 +63,7 @@ export interface Chroma {
 }
 
 export interface Skin {
+  catalogPath?: string
   id: string
   num: number
   name: string

@@ -11,6 +11,8 @@ import {
   type Skin
 } from './championFetcher'
 import { remoteVariantsService } from './remoteVariantsService'
+import { sunshineCatalogService } from './sunshineCatalogService'
+import { projectSunshineChampion } from './sunshineCatalog'
 
 export type { Champion, Skin }
 
@@ -28,6 +30,44 @@ export class ChampionDataService {
   private championNameCache: Map<string, Map<string, Champion>> = new Map()
   private pendingLoads: Map<string, Promise<{ version: string; champions: Champion[] } | null>> =
     new Map()
+
+  private projectedData = new Map<
+    string,
+    { raw: unknown; snapshot: unknown; data: { version: string; champions: Champion[] } }
+  >()
+
+  private getCurrentData(language: string) {
+    const raw =
+      this.cachedData.get(language) ??
+      this.cachedData.get('en_US') ??
+      this.cachedData.values().next().value
+    if (!raw) return undefined
+    const snapshot = sunshineCatalogService.isActive()
+      ? sunshineCatalogService.current()
+      : undefined
+    if (sunshineCatalogService.isActive() && !snapshot) return undefined
+    const previous = this.projectedData.get(language)
+    if (previous?.raw === raw && previous.snapshot === snapshot) return previous.data
+    const data = snapshot
+      ? {
+          ...raw,
+          champions: raw.champions.map((c) =>
+            projectSunshineChampion(c, snapshot.catalog, snapshot.classic)
+          )
+        }
+      : raw
+    this.projectedData.set(language, { raw, snapshot, data })
+    this.clearIdCache()
+    return data
+  }
+
+  public async loadChampionData(
+    language = 'en_US'
+  ): Promise<{ version: string; champions: Champion[] } | null> {
+    if (sunshineCatalogService.isActive()) await sunshineCatalogService.load()
+    await this.loadRawChampionData(language)
+    return this.getCurrentData(language) ?? null
+  }
 
   private getCacheDir(): string {
     return path.join(app.getPath('userData'), 'champion-data')
@@ -69,6 +109,7 @@ export class ChampionDataService {
     language: string = 'en_US'
   ): Promise<{ success: boolean; message: string; championCount?: number }> {
     try {
+      if (sunshineCatalogService.isActive()) await sunshineCatalogService.load(true)
       // Clear caches
       this.cachedData.delete(language)
       this.championIdCache.delete(language)
@@ -77,7 +118,9 @@ export class ChampionDataService {
       console.log(`[ChampionData] Fetching data for ${language} from APIs...`)
 
       // Load remote variants first so the fetched data includes them
-      const active = await remoteVariantsService.getActiveVariants()
+      const active = sunshineCatalogService.isActive()
+        ? { variants: {}, hash: 'sunshine' }
+        : await remoteVariantsService.getActiveVariants()
       applyRemoteVariants(active.variants)
 
       const data = await fetchFromApis(language)
@@ -111,7 +154,7 @@ export class ChampionDataService {
     }
   }
 
-  public async loadChampionData(
+  private async loadRawChampionData(
     language: string = 'en_US'
   ): Promise<{ version: string; champions: Champion[] } | null> {
     // Check memory cache
@@ -140,7 +183,9 @@ export class ChampionDataService {
 
     // Load remote variants before any data is used; a changed variants.md
     // invalidates the cache so users get new chroma wheels without an app update
-    const active = await remoteVariantsService.getActiveVariants()
+    const active = sunshineCatalogService.isActive()
+      ? { variants: {}, hash: 'sunshine' }
+      : await remoteVariantsService.getActiveVariants()
     applyRemoteVariants(active.variants)
 
     if (diskData) {
@@ -153,7 +198,9 @@ export class ChampionDataService {
           diskData.variantsHash === active.hash
         ) {
           this.cachedData.set(language, diskData)
-          console.log(`[ChampionData] Loaded ${language} from disk cache (v${diskData.version}) - already latest`)
+          console.log(
+            `[ChampionData] Loaded ${language} from disk cache (v${diskData.version}) - already latest`
+          )
           return diskData
         }
         console.log(
@@ -275,7 +322,7 @@ export class ChampionDataService {
   }
 
   public getChampionByNameSync(championName: string, language: string = 'en_US'): Champion | null {
-    const data = this.cachedData.get(language)
+    const data = this.getCurrentData(language)
     if (!data) return null
 
     if (!this.championNameCache.has(language)) {
@@ -286,7 +333,7 @@ export class ChampionDataService {
   }
 
   public getChampionByIdSync(championId: number, language: string = 'en_US'): Champion | null {
-    const data = this.cachedData.get(language)
+    const data = this.getCurrentData(language)
     if (!data) {
       console.warn(
         `[ChampionData] getChampionByIdSync: No data loaded for language ${language}. Champion ID: ${championId}`

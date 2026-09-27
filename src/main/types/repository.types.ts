@@ -44,14 +44,15 @@ export const DEFAULT_REPOSITORY_STRUCTURE: RepositoryStructure = {
 
 export const DEFAULT_REPOSITORY: SkinRepository = {
   id: 'leagueskins-default',
-  name: 'LeagueSkins Official',
-  owner: 'Alban1911',
+  name: 'Sunshine LeagueSkins',
+  owner: 'bettie9',
   repo: 'LeagueSkins',
   branch: 'main',
   isDefault: true,
   isCustom: false,
   structure: {
-    type: 'id-based',
+    type: 'name-based',
+    fileExtension: 'fantome',
     skinsPath: 'skins',
     autoDetected: true
   },
@@ -59,7 +60,7 @@ export const DEFAULT_REPOSITORY: SkinRepository = {
 }
 
 export const LEAGUESKINS_REPO = {
-  owner: 'Alban1911',
+  owner: 'bettie9',
   repo: 'LeagueSkins',
   branch: 'main',
   skinsPath: 'skins'

@@ -3,12 +3,16 @@ import path from 'path'
 import fs from 'fs/promises'
 import { app, BrowserWindow } from 'electron'
 import { settingsService } from './settingsService'
+import { isSunshineRepository, selectedRepository } from './sunshineCatalog'
 import { preImportService } from './preImportService'
 import { startInjection, stopInjection, isInjectionRunning } from './nativeInjector'
 
 export class ModToolsWrapper {
   private profilesPath: string
-  private installedPath: string
+  private get installedPath(): string {
+    const sunshine = isSunshineRepository(selectedRepository(settingsService.get('repositorySettings')))
+    return path.join(app.getPath('userData'), sunshine ? 'cslol_installed-sunshine' : 'cslol_installed')
+  }
   private runningProcess: ChildProcess | null = null
   private mainWindow: BrowserWindow | null = null
   private activeProcesses: ChildProcess[] = []
@@ -21,7 +25,6 @@ export class ModToolsWrapper {
   constructor() {
     const userData = app.getPath('userData')
     this.profilesPath = path.join(userData, 'profiles')
-    this.installedPath = path.join(userData, 'cslol_installed')
   }
 
   private getModToolsExePath(): string | null {

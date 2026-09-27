@@ -16,6 +16,7 @@ import { repositoryService } from './repositoryService'
 import { LEAGUESKINS_REPO } from '../types/repository.types'
 import { championDataService } from './championDataService'
 import { settingsService } from './settingsService'
+import { isSunshineRepository, sunshinePackages } from './sunshineCatalog'
 
 interface BulkDownloadProgress {
   phase: 'downloading' | 'extracting' | 'processing' | 'completed'
@@ -44,14 +45,17 @@ interface BulkDownloadOptions {
 type BulkProgressCallback = (progress: BulkDownloadProgress) => void
 
 export class SkinDownloader {
-  private cacheDir: string
+  private get cacheDir(): string {
+    const folder = isSunshineRepository(repositoryService.getActiveRepository())
+      ? 'downloaded-skins-sunshine' : 'downloaded-skins'
+    return path.join(app.getPath('userData'), folder)
+  }
   private modsDir: string
   private modFilesDir: string
   private modToolsWrapper: ModToolsWrapper
 
   constructor() {
     const userData = app.getPath('userData')
-    this.cacheDir = path.join(userData, 'downloaded-skins')
     this.modsDir = path.join(userData, 'mods')
     this.modFilesDir = path.join(userData, 'mod-files')
     this.modToolsWrapper = new ModToolsWrapper()
@@ -85,7 +89,29 @@ export class SkinDownloader {
     await fs.mkdir(this.modFilesDir, { recursive: true })
   }
 
+  private downloads = new Map<string, Promise<SkinInfo>>()
+
   async downloadSkin(url: string): Promise<SkinInfo> {
+    const existing = this.downloads.get(url)
+    if (existing) return existing
+    const pending = this.downloadSkinInternal(url)
+    this.downloads.set(url, pending)
+    try {
+      return await pending
+    } finally {
+      this.downloads.delete(url)
+    }
+  }
+
+  private async downloadSkinInternal(url: string): Promise<SkinInfo> {
+    const sunshine = isSunshineRepository(repositoryService.getActiveRepository())
+    if (sunshine) {
+      const source = repositoryService.parseGitHubUrl(url)
+      if (!source || !isSunshineRepository(source) || source.branch !== repositoryService.getActiveRepository().branch) {
+        throw new Error('This package belongs to a different repository. Refresh the selected skin.')
+      }
+      await championDataService.loadChampionData(settingsService.get('language') || 'en_US')
+    }
     // Parse GitHub URL to extract champion and skin name
     const skinInfo = this.parseGitHubUrl(url)
 
@@ -97,6 +123,7 @@ export class SkinDownloader {
     // Define paths
     const zipPath = path.join(championCacheDir, skinInfo.skinName)
     skinInfo.localPath = zipPath
+    const downloadPath = sunshine ? `${zipPath}.partial` : zipPath
 
     // Check if already downloaded
     try {
@@ -122,21 +149,24 @@ export class SkinDownloader {
         responseType: 'stream'
       })
 
-      const writer = createWriteStream(zipPath)
+      const writer = createWriteStream(downloadPath)
       await pipeline(response.data, writer)
+      if (sunshine) await fs.rename(downloadPath, zipPath)
 
       console.log(`Downloaded ZIP: ${skinInfo.skinName} to ${zipPath}`)
 
-      // Auto-repair outdated bin property types (16.17 Hashpocalypse) if present
-      try {
-        const repair = await repairModFile(zipPath)
-        if (repair.repaired > 0) {
-          console.log(
-            `[SkinDownloader] Auto-repaired ${repair.repaired} bin property type(s) in ${skinInfo.skinName}`
-          )
+      // Sunshine packages are built for the current patch; preserve their payloads.
+      if (!sunshine) {
+        try {
+          const repair = await repairModFile(zipPath)
+          if (repair.repaired > 0) {
+            console.log(
+              `[SkinDownloader] Auto-repaired ${repair.repaired} bin property type(s) in ${skinInfo.skinName}`
+            )
+          }
+        } catch (repairError) {
+          console.warn('[SkinDownloader] Auto-repair failed:', repairError)
         }
-      } catch (repairError) {
-        console.warn('[SkinDownloader] Auto-repair failed:', repairError)
       }
 
       // Try to fetch and store commit info (non-blocking)
@@ -182,6 +212,10 @@ export class SkinDownloader {
     } catch (error) {
       console.error(`Failed to download skin: ${error}`)
 
+      if (sunshine) {
+        await fs.rm(downloadPath, { force: true }).catch(() => {})
+        throw new Error(`Sunshine package download failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
       // On 404, try fallback locations/extensions before giving up
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         const candidates: string[] = [rawUrl]
@@ -268,6 +302,26 @@ export class SkinDownloader {
     const parsed = repositoryService.parseGitHubUrl(url)
     if (!parsed) {
       throw new Error('Invalid GitHub URL format')
+    }
+
+    if (isSunshineRepository(parsed)) {
+      const relativePath = decodeURIComponent(parsed.path)
+      const championKey = relativePath.split('/')[1]
+      const language = settingsService.get('language') || 'en_US'
+      const champion = relativePath.startsWith('classic/')
+        ? championDataService.getChampionByIdSync(
+            Math.floor(Number(relativePath.split('/').at(-1)?.split('.')[0]) / 1000) - 60000,
+            language
+          )
+        : championDataService.getChampionByNameSync(championKey, language)
+      const entry = champion && sunshinePackages(champion).find((p) => p.path === relativePath)
+      if (!champion || !entry) throw new Error('Package is not in the loaded Sunshine catalog')
+      return {
+        championName: champion.key,
+        skinName: `${entry.filename}.fantome`,
+        url,
+        source: 'repository'
+      }
     }
 
     const skinsPath = LEAGUESKINS_REPO.skinsPath
@@ -651,7 +705,7 @@ export class SkinDownloader {
           const skinFiles = await fs.readdir(championPath)
           for (const skinFile of skinFiles) {
             // Skip meta.json and .meta.json files
-            if (skinFile === 'meta.json' || skinFile.endsWith('.meta.json')) continue
+            if (skinFile === 'meta.json' || skinFile.endsWith('.meta.json') || skinFile.endsWith('.partial')) continue
 
             const skinPath = path.join(championPath, skinFile)
             if (seenPaths.has(skinPath)) continue
@@ -697,7 +751,7 @@ export class SkinDownloader {
               }
             } catch {
               // URL construction failed - use a placeholder URL
-              reconstructedUrl = `https://github.com/Alban1911/LeagueSkins/blob/main/skins/${encodeURIComponent(championName)}/${encodeURIComponent(skinName)}`
+              reconstructedUrl = '' // Unresolved local files must not be redirected to another catalog.
             }
 
             // Try to load metadata (non-blocking)
@@ -1019,7 +1073,8 @@ export class SkinDownloader {
     options: BulkDownloadOptions,
     onProgress?: BulkProgressCallback
   ): Promise<void> {
-    const repository = LEAGUESKINS_REPO
+    const active = repositoryService.getActiveRepository()
+    const repository = { ...active, skinsPath: active.structure?.skinsPath || 'skins' }
     const tempDir = path.join(app.getPath('temp'), 'bocchi-bulk-download')
     const archivePath = path.join(tempDir, `${repository.repo}.tar.gz`)
     const extractPath = path.join(tempDir, 'extracted')
@@ -1124,7 +1179,7 @@ export class SkinDownloader {
 
   private async downloadRepositoryArchive(
     archivePath: string,
-    repository: typeof LEAGUESKINS_REPO,
+    repository: { owner: string; repo: string; branch: string; skinsPath: string },
     onProgress?: (downloaded: number, total: number) => void
   ): Promise<void> {
     const url = `https://github.com/${repository.owner}/${repository.repo}/archive/refs/heads/${repository.branch}.tar.gz`
@@ -1160,7 +1215,7 @@ export class SkinDownloader {
   private async processSkins(
     skinsPath: string,
     options: BulkDownloadOptions,
-    _repository: typeof LEAGUESKINS_REPO,
+    _repository: { owner: string; repo: string; branch: string; skinsPath: string },
     onProgress?: (
       processed: number,
       total: number,
@@ -1170,7 +1225,8 @@ export class SkinDownloader {
     ) => void
   ): Promise<void> {
     const savedLanguage = settingsService.get('language') || 'en_US'
-    const championDirs = await fs.readdir(skinsPath)
+    const sunshine = isSunshineRepository(_repository)
+    const championDirs = sunshine ? [] : await fs.readdir(skinsPath)
     console.log(`[SkinDownloader] Found ${championDirs.length} champion directories in ${skinsPath}`)
     const files: Array<{
       source: string
@@ -1179,6 +1235,25 @@ export class SkinDownloader {
       skinName: string
     }> = []
 
+    if (sunshine) {
+      const data = await championDataService.loadChampionData(savedLanguage)
+      if (!data) throw new Error('Sunshine champion data is unavailable')
+      for (const champion of data.champions) {
+        for (const entry of sunshinePackages(champion)) {
+          if (entry.kind === 'chroma' && options.excludeChromas) continue
+          if (entry.kind === 'form' && options.excludeVariants) continue
+          const source = path.join(skinsPath, '..', entry.path)
+          if (!existsSync(source)) continue
+          const skinName = `${entry.filename}.fantome`
+          files.push({
+            source,
+            destination: path.join(this.cacheDir, champion.key, skinName),
+            championName: champion.key,
+            skinName
+          })
+        }
+      }
+    }
     // Collect all files to process
     for (const championDir of championDirs) {
       const championPath = path.join(skinsPath, championDir)

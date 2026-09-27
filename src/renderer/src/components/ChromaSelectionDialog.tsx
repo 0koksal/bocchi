@@ -41,6 +41,7 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
   onToggleChromaFavorite
 }) => {
   const { t } = useTranslation()
+  const hasForms = chromas.some((chroma) => chroma.kind === 'form')
   const setDownloadedSkins = useSetAtom(downloadedSkinsAtom)
   const [downloadingIds, setDownloadingIds] = useState<Set<number>>(new Set())
   const [zoomedChroma, setZoomedChroma] = useState<Chroma | null>(null)
@@ -68,9 +69,21 @@ export const ChromaSelectionDialog: React.FC<ChromaSelectionDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>{t('skins.selectChroma', { skinName: skin.name })}</DialogTitle>
+          <DialogTitle>
+            {hasForms
+              ? t('skins.selectFormOrChroma', {
+                  defaultValue: 'Forms and chromas · {{skinName}}',
+                  skinName: skin.name
+                })
+              : t('skins.selectChroma', { skinName: skin.name })}
+          </DialogTitle>
           <DialogDescription>
-            {t('skins.chooseChroma', { count: chromas.length })}
+            {hasForms
+              ? t('skins.chooseFormOrChroma', {
+                  defaultValue: 'Choose from {{count}} forms and chromas',
+                  count: chromas.length
+                })
+              : t('skins.chooseChroma', { count: chromas.length })}
           </DialogDescription>
         </DialogHeader>
 

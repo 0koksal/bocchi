@@ -127,6 +127,7 @@ export const p2pConnectionStatusAtom = atom<'disconnected' | 'connecting' | 'con
 
 // Chroma data types
 export interface Chroma {
+  kind?: 'form' | 'chroma'
   id: number
   name: string
   chromaPath: string

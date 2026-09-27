@@ -13,6 +13,9 @@ import {
   DialogTitle
 } from './ui/dialog'
 import { toast } from 'sonner'
+import { useChampionData } from '../hooks/useChampionData'
+import { useSetAtom } from 'jotai'
+import { downloadedSkinsAtom } from '../store/atoms/skin.atoms'
 
 interface Repository {
   id: string
@@ -32,6 +35,8 @@ interface RepositorySettingsProps {
 
 export function RepositorySettings({ disabled }: RepositorySettingsProps) {
   const { t } = useTranslation()
+  const { loadChampionData } = useChampionData()
+  const setDownloadedSkins = useSetAtom(downloadedSkinsAtom)
   const [repositories, setRepositories] = useState<Repository[]>([])
   const [activeRepositoryId, setActiveRepositoryId] = useState<string>('')
   const [loading, setLoading] = useState(true)
@@ -75,6 +80,9 @@ export function RepositorySettings({ disabled }: RepositorySettingsProps) {
       const result = await window.api.repositorySetActive(repositoryId)
       if (result.success) {
         setActiveRepositoryId(repositoryId)
+        await loadChampionData(true)
+        const downloaded = await window.api.listDownloadedSkins()
+        if (downloaded.success && downloaded.skins) setDownloadedSkins(downloaded.skins)
         toast.success(t('settings.repositories.setActiveSuccess', 'Repository set as active'))
       } else {
         toast.error(t('settings.repositories.setActiveError', 'Failed to set active repository'))

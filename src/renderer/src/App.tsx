@@ -67,6 +67,7 @@ export interface Skin {
   isInLolSkins?: boolean
   chromas: boolean
   chromaList?: Array<{
+    kind?: 'form' | 'chroma'
     id: number
     name: string
     chromaPath: string

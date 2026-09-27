@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { isSunshineRepository, resolveSunshinePackage, sunshinePackageUrl } from './sunshineCatalog'
+import { sunshineCatalogService } from './sunshineCatalogService'
 import { app } from 'electron'
 import path from 'path'
 import fs from 'fs/promises'
@@ -27,7 +29,7 @@ export class RepositoryService {
   private constructor() {
     this.loadRepositories()
     // Fetch skin IDs in background
-    this.fetchSkinIds()
+    if (!isSunshineRepository(this.getActiveRepository())) this.fetchSkinIds()
   }
 
   static getInstance(): RepositoryService {
@@ -225,61 +227,14 @@ export class RepositoryService {
     }
     this.repositories = filteredRepositories
 
-    // Find existing LeagueSkins repositories
-    const leagueSkinsEntries = this.repositories.filter((repo) =>
-      this.isLeagueSkinsRepository(repo)
-    )
-
-    let defaultRepositoryIndex = -1
-
-    if (leagueSkinsEntries.length > 0) {
-      hasChanges = true
-
-      const primaryEntry =
-        leagueSkinsEntries.find((repo) => repo.isDefault) ?? leagueSkinsEntries[0]
-
-      this.repositories = this.repositories.filter((repo) => {
-        if (!this.isLeagueSkinsRepository(repo)) {
-          return true
-        }
-        return repo === primaryEntry
-      })
-
-      defaultRepositoryIndex = this.repositories.findIndex((repo) => repo === primaryEntry)
-
-      if (this.activeRepositoryId === primaryEntry.id) {
-        this.activeRepositoryId = DEFAULT_REPOSITORY.id
-      }
-
-      const normalizedStructure = {
-        type: 'id-based' as const,
-        skinsPath: primaryEntry.structure?.skinsPath || 'skins',
-        chromaPattern: primaryEntry.structure?.chromaPattern,
-        autoDetected: true
-      }
-
-      const normalizedRepo: SkinRepository = {
-        ...DEFAULT_REPOSITORY,
-        branch: primaryEntry.branch || DEFAULT_REPOSITORY.branch,
-        structure: normalizedStructure,
-        lastChecked: primaryEntry.lastChecked,
-        status: primaryEntry.status || DEFAULT_REPOSITORY.status
-      }
-
-      if (defaultRepositoryIndex !== -1) {
-        this.repositories[defaultRepositoryIndex] = normalizedRepo
-      } else {
-        this.repositories.unshift(normalizedRepo)
-      }
+    // Replace the built-in Alban default, while retaining user-added repositories.
+    const previousDefault = this.repositories.findIndex((repo) => repo.id === DEFAULT_REPOSITORY.id)
+    if (previousDefault >= 0) {
+      this.repositories[previousDefault] = { ...DEFAULT_REPOSITORY }
+    } else {
+      this.repositories.unshift({ ...DEFAULT_REPOSITORY })
     }
-
-    // Ensure default repository exists
-    if (leagueSkinsEntries.length === 0) {
-      if (!this.repositories.find((repo) => repo.id === DEFAULT_REPOSITORY.id)) {
-        this.repositories.unshift({ ...DEFAULT_REPOSITORY })
-        hasChanges = true
-      }
-    }
+    hasChanges = true
 
     // Ensure active repository points to a valid entry
     if (!this.repositories.find((repo) => repo.id === this.activeRepositoryId)) {
@@ -288,13 +243,6 @@ export class RepositoryService {
     }
 
     return hasChanges
-  }
-
-  private isLeagueSkinsRepository(repo: SkinRepository): boolean {
-    return (
-      repo.owner?.toLowerCase() === DEFAULT_REPOSITORY.owner.toLowerCase() &&
-      repo.repo?.toLowerCase() === DEFAULT_REPOSITORY.repo.toLowerCase()
-    )
   }
 
   private async autoDetectUndetectedRepositories(): Promise<void> {
@@ -537,6 +485,16 @@ export class RepositoryService {
     isClassic?: boolean
   ): string {
     const repo = this.getActiveRepository()
+    if (isSunshineRepository(repo)) {
+      const language = settingsService.get('language') || 'en_US'
+      const champion = championId
+        ? championDataService.getChampionByIdSync(championId, language)
+        : championDataService.getChampionByNameSync(championName, language)
+      if (!champion || !sunshineCatalogService.current()) {
+        throw new Error('Load the Sunshine champion catalog before downloading skins')
+      }
+      return sunshinePackageUrl(repo, resolveSunshinePackage(champion, skinFile).path)
+    }
     const structure = repo.structure || DEFAULT_REPOSITORY_STRUCTURE
     const skinsPath = isClassic ? 'classic' : structure.skinsPath
 

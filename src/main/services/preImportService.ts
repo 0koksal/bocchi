@@ -12,6 +12,7 @@ import path from 'path'
 import fs from 'fs/promises'
 import { app, BrowserWindow } from 'electron'
 import { settingsService } from './settingsService'
+import { isSunshineRepository, selectedRepository } from './sunshineCatalog'
 
 interface ImportJob {
   skinPath: string       // e.g., %APPDATA%/bocchi/downloaded-skins/Ahri/Spirit Blossom Ahri.fantome
@@ -27,18 +28,18 @@ interface ImportStatus {
 }
 
 class PreImportService {
-  private installedPath: string
-  private downloadedSkinsPath: string
+  private get installedPath(): string {
+    const sunshine = isSunshineRepository(selectedRepository(settingsService.get('repositorySettings')))
+    return path.join(app.getPath('userData'), sunshine ? 'cslol_installed-sunshine' : 'cslol_installed')
+  }
+  private get downloadedSkinsPath(): string {
+    const sunshine = isSunshineRepository(selectedRepository(settingsService.get('repositorySettings')))
+    return path.join(app.getPath('userData'), sunshine ? 'downloaded-skins-sunshine' : 'downloaded-skins')
+  }
   private queue: ImportJob[] = []
   private isProcessing = false
   private status: ImportStatus = { total: 0, completed: 0, inProgress: null, failures: [] }
   private importTimeout = 120000 // 2 min per skin
-
-  constructor() {
-    const userData = app.getPath('userData')
-    this.installedPath = path.join(userData, 'cslol_installed')
-    this.downloadedSkinsPath = path.join(userData, 'downloaded-skins')
-  }
 
   /**
    * Scan downloaded-skins for files not yet imported and queue them.
