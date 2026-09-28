@@ -1,7 +1,7 @@
-- Custom skin download from link and import (RuneForge and DivineSkins supported , .modpkg also supported)
-- Injection Method setting: choose between LTK Patcher (default) and CSLOL with your own cslol-dll.dll
-- Fixed error while downloading skins and added a universal fallback that searches the champion folder on any 404
-- Added Discord Rich Presence toggle in Settings with a confirmation dialog
-- Added 5 new languages: Filipino, Bahasa Melayu, Bulgarian and Português (Portugal) 
-- Added image zoom in the chroma selection dialog
-- Fixed .modpkg drag & drop not being accepted
+- Much faster skin loading at startup — downloaded-skin metadata is now loaded in parallel instead of one file at a time (huge difference with large libraries, e.g. after Download All)
+- Faster applies: overlays are now cached per selection. Re-applying the same selection skips import and overlay building entirely and goes straight to injection; your 3 most recent selections stay cached for quick switching
+- Emotes, Wards and Nexus Finishers now pre-import in the background when selected/downloaded, so first applies are faster (same as champion skins always had)
+- Fixed Finishers being dropped by Smart Apply (they were missing from the smart-apply filters)
+- Download All: defaults now exclude Classic Skins, Emotes, Wards and Finishers — a plain "Download All" only fetches normal champion skins unless you opt in
+- Classic skins are now stored in a dedicated Classic/ folder instead of the champion's regular skin folder, eliminating name collisions that caused skins to be silently skipped during bulk downloads
+- CSLOL injection is selectable again (Settings → Injection Method) with a clear warning that it's currently broken — only use it if you know what you are doing
