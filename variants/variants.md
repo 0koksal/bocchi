@@ -48,11 +48,7 @@ Each variant needs a preview image at `variants/{id}.png` in this folder (transp
     { "id": 82999, "name": "Sahn-Uzal Mordekaiser (Form 3)", "parentSkinNum": 54, "colors": ["#f39609", "#f39609"] }
   ] },
   { "championId": 25, "variants": [
-    { "id": 25999, "name": "Spirit Blossom Morgana (Stage 2)", "parentSkinNum": 80, "colors": ["#FF69B4", "#8B008B"], "previewId": 25999 },
-    { "id": 25989, "name": "Spirit Blossom Morgana (Stage 2 - Mask 3)", "parentSkinNum": 80, "colors": ["#9370DB", "#4B0082"], "previewId": 25999 },
-    { "id": 25990, "name": "Spirit Blossom Morgana (Stage 2 - Mask 2)", "parentSkinNum": 80, "colors": ["#00CED1", "#008B8B"], "previewId": 25999 },
-    { "id": 25991, "name": "Spirit Blossom Morgana (Stage 1 - Mask 3)", "parentSkinNum": 80, "colors": ["#98FB98", "#228B22"], "previewId": 25080 },
-    { "id": 25992, "name": "Spirit Blossom Morgana (Stage 1 - Mask 2)", "parentSkinNum": 80, "colors": ["#FFA500", "#FF8C00"], "previewId": 25080 }
+    { "id": 25999, "name": "Spirit Blossom Morgana (Stage 2)", "parentSkinNum": 80, "colors": ["#FF69B4", "#8B008B"], "previewId": 25999 }
   ] },
   { "championId": 145, "variants": [
     { "id": 145071, "name": "Immortalized Legend Kai'Sa (Stage 2)", "parentSkinNum": 71, "colors": ["#C41E3A", "#FFD700"] },
