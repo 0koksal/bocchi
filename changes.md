@@ -1,7 +1,14 @@
-- Much faster skin loading at startup — downloaded-skin metadata is now loaded in parallel instead of one file at a time (huge difference with large libraries, e.g. after Download All)
-- Faster applies: overlays are now cached per selection. Re-applying the same selection skips import and overlay building entirely and goes straight to injection; your 3 most recent selections stay cached for quick switching
-- Emotes, Wards and Nexus Finishers now pre-import in the background when selected/downloaded, so first applies are faster (same as champion skins always had)
-- Fixed Finishers being dropped by Smart Apply (they were missing from the smart-apply filters)
-- Download All: defaults now exclude Classic Skins, Emotes, Wards and Finishers — a plain "Download All" only fetches normal champion skins unless you opt in
-- Classic skins are now stored in a dedicated Classic/ folder instead of the champion's regular skin folder, eliminating name collisions that caused skins to be silently skipped during bulk downloads
-- CSLOL injection is selectable again (Settings → Injection Method) with a clear warning that it's currently broken — only use it if you know what you are doing
+- Added TFT Tab " Only Little Legends are active for now"
+- Bunch of fix i dont even remember enjoy -_- 
+
+- Fixed "Bad archive" error when downloading skins from DivineSkins — the downloader now detects `.modpkg` files served as `.zip` and handles them correctly
+- Fixed a crash (`importPath is not defined`) that occurred when a marketplace download failed
+- Fixed skin name showing as `Darius.wad.client` in the import dialog and after saving — the app now falls back to the filename when the archive's internal name is a WAD path
+- Fixed "Check for Updates" not detecting available updates on large repos (GitHub compare API was silently truncating results at 300 files) — if the repo HEAD has moved, all installed skins are now flagged for update
+- "Delete all skins" and "Delete all skins for [Champion]" now clear the mod tool cache (`cslol_installed`) so no stale entries are left behind
+- Added "Disable Custom Skins" toggle in the P2P drawer to hide and skip user-imported skins during sessions
+- Added auto-detection of WeGame and Tencent LoL installations, including Unicode folder names
+- Fixed garbled game path detection on Windows 11 24H2+ (replaced `wmic` with `Get-CimInstance`)
+- Added Auto-Detect button in the game path field in the header
+- Fixed colon and special characters in skin names causing 404s on Windows (e.g. `PROJECT: Akali`)
+- Expanded chroma fallback chain to cover 5 layout variants so chroma downloads self-heal after repo restructures
