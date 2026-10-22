@@ -1,14 +1,5 @@
-- Added TFT Tab " Only Little Legends are active for now"
-- Bunch of fix i dont even remember enjoy -_- 
-
-- Fixed "Bad archive" error when downloading skins from DivineSkins — the downloader now detects `.modpkg` files served as `.zip` and handles them correctly
-- Fixed a crash (`importPath is not defined`) that occurred when a marketplace download failed
-- Fixed skin name showing as `Darius.wad.client` in the import dialog and after saving — the app now falls back to the filename when the archive's internal name is a WAD path
-- Fixed "Check for Updates" not detecting available updates on large repos (GitHub compare API was silently truncating results at 300 files) — if the repo HEAD has moved, all installed skins are now flagged for update
-- "Delete all skins" and "Delete all skins for [Champion]" now clear the mod tool cache (`cslol_installed`) so no stale entries are left behind
-- Added "Disable Custom Skins" toggle in the P2P drawer to hide and skip user-imported skins during sessions
-- Added auto-detection of WeGame and Tencent LoL installations, including Unicode folder names
-- Fixed garbled game path detection on Windows 11 24H2+ (replaced `wmic` with `Get-CimInstance`)
-- Added Auto-Detect button in the game path field in the header
-- Fixed colon and special characters in skin names causing 404s on Windows (e.g. `PROJECT: Akali`)
-- Expanded chroma fallback chain to cover 5 layout variants so chroma downloads self-heal after repo restructures
+- Added automatic skin update on launch — Bocchi checks the skin repo on startup and updates any installed skins that are out of date using a fast git sparse checkout (only fetches champion folders you have installed)
+- Added role filter buttons (All / Top / Jungle / Mid / ADC / Support) in the champion list sidebar, above the champion entries — filters champions by lane using live Meraki Analytics position data
+- Added "Refresh" button next to "Champion data: vX.X.X" in the bottom left — force-refreshes the champion catalog from the API without needing to delete JSON files manually
+- LTK patcher fix
+- Updated CSLOL injection warning to clarify it only works on Asian servers
