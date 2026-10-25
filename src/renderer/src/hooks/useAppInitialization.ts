@@ -24,6 +24,7 @@ import {
   autoRandomHighestWinRateSkinEnabledAtom,
   autoRandomHighestPickRateSkinEnabledAtom,
   autoRandomMostPlayedSkinEnabledAtom,
+  arenaBraveryRandomSkinsEnabledAtom,
   autoAcceptEnabledAtom,
   autoPickEnabledAtom,
   autoPickForceAtom,
@@ -53,6 +54,7 @@ export function useAppInitialization() {
     autoRandomHighestPickRateSkinEnabledAtom
   )
   const setAutoRandomMostPlayedSkinEnabled = useSetAtom(autoRandomMostPlayedSkinEnabledAtom)
+  const setArenaBraveryRandomSkinsEnabled = useSetAtom(arenaBraveryRandomSkinsEnabledAtom)
   const setSmartApplyEnabled = useSetAtom(smartApplyEnabledAtom)
   const setAutoApplyEnabled = useSetAtom(autoApplyEnabledAtom)
   const setAutoApplyTriggerTime = useSetAtom(autoApplyTriggerTimeAtom)
@@ -120,7 +122,9 @@ export function useAppInitialization() {
 
         const result = await window.api.checkLtkPatcherUpdate()
         if (result.success && result.updateAvailable) {
-          console.log(`[LTKPatcher] Update available (${result.currentSha?.slice(0,7) ?? 'unknown'} → ${result.latestSha?.slice(0,7) ?? 'unknown'}), downloading...`)
+          console.log(
+            `[LTKPatcher] Update available (${result.currentSha?.slice(0, 7) ?? 'unknown'} → ${result.latestSha?.slice(0, 7) ?? 'unknown'}), downloading...`
+          )
           const downloadResult = await window.api.downloadLtkPatcher()
           if (downloadResult.success) {
             console.log('[LTKPatcher] Binaries updated successfully')
@@ -192,6 +196,7 @@ export function useAppInitialization() {
       window.api.getSettings('autoRandomHighestWinRateSkinEnabled'),
       window.api.getSettings('autoRandomHighestPickRateSkinEnabled'),
       window.api.getSettings('autoRandomMostPlayedSkinEnabled'),
+      window.api.getSettings('arenaBraveryRandomSkinsEnabled'),
       window.api.getSettings('smartApplyEnabled'),
       window.api.getSettings('autoApplyEnabled'),
       window.api.getSettings('autoApplyTriggerTime'),
@@ -213,6 +218,7 @@ export function useAppInitialization() {
         autoRandomHighestWinRateSkin,
         autoRandomHighestPickRateSkin,
         autoRandomMostPlayedSkin,
+        arenaBraveryRandomSkins,
         smartApply,
         autoApply,
         autoApplyTriggerTime,
@@ -234,6 +240,7 @@ export function useAppInitialization() {
         setAutoRandomHighestWinRateSkinEnabled(autoRandomHighestWinRateSkin === true)
         setAutoRandomHighestPickRateSkinEnabled(autoRandomHighestPickRateSkin === true)
         setAutoRandomMostPlayedSkinEnabled(autoRandomMostPlayedSkin === true)
+        setArenaBraveryRandomSkinsEnabled(arenaBraveryRandomSkins === true)
         setSmartApplyEnabled(smartApply !== false) // Default to true
         setAutoApplyEnabled(autoApply !== false) // Default to true
         setAutoApplyTriggerTime((autoApplyTriggerTime as number | undefined) || 5) // Default to 15 seconds
@@ -255,6 +262,7 @@ export function useAppInitialization() {
     setAutoRandomHighestWinRateSkinEnabled,
     setAutoRandomHighestPickRateSkinEnabled,
     setAutoRandomMostPlayedSkinEnabled,
+    setArenaBraveryRandomSkinsEnabled,
     setSmartApplyEnabled,
     setAutoApplyEnabled,
     setAutoApplyTriggerTime,

@@ -37,6 +37,7 @@ export interface SelectedSkin {
   variantId?: string
   isDownloaded?: boolean
   isAutoSelected?: boolean
+  isArenaPrepared?: boolean
   downloadedFilename?: string // Stores the actual filename used when downloading
 }
 

@@ -209,6 +209,10 @@
       "title": "Auto Random Skin",
       "description": "Automatically select a random skin when a champion is detected"
     },
+    "arenaBraveryRandomSkins": {
+      "title": "Arena Bravery random skins",
+      "description": "Prepare a random skin for every champion in Arena before the match. Downloads can be large; enable Auto Apply and wait for preparation to finish."
+    },
     "autoRandomRaritySkin": {
       "title": "Auto Random Rarity Skin",
       "description": "Automatically select a random skin with rarity (Epic, Legendary, etc.) when a champion is detected"

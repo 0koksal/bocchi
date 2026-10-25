@@ -14,7 +14,8 @@ import {
   autoRandomHighestWinRateSkinEnabledAtom,
   autoRandomHighestPickRateSkinEnabledAtom,
   autoRandomMostPlayedSkinEnabledAtom,
-  currentQueueIdAtom
+  currentQueueIdAtom,
+  arenaBraveryRandomSkinsEnabledAtom
 } from '../store/atoms/lcu.atoms'
 import {
   leagueClientEnabledAtom,
@@ -56,6 +57,8 @@ export function useChampionSelectHandler({
   const [autoRandomHighestWinRateSkinEnabled] = useAtom(autoRandomHighestWinRateSkinEnabledAtom)
   const [autoRandomHighestPickRateSkinEnabled] = useAtom(autoRandomHighestPickRateSkinEnabledAtom)
   const [autoRandomMostPlayedSkinEnabled] = useAtom(autoRandomMostPlayedSkinEnabledAtom)
+  const [arenaBraveryRandomSkinsEnabled] = useAtom(arenaBraveryRandomSkinsEnabledAtom)
+  const [currentQueueId] = useAtom(currentQueueIdAtom)
   const [leagueClientEnabled] = useAtom(leagueClientEnabledAtom)
   const [championDetectionEnabled] = useAtom(championDetectionEnabledAtom)
   const setSelectedChampionKey = useSetAtom(selectedChampionKeyAtom)
@@ -75,6 +78,13 @@ export function useChampionSelectHandler({
       setLcuConnected(status.connected)
       gameflowPhaseRef.current = status.gameflowPhase
       setIsInChampSelect(status.gameflowPhase === 'ChampSelect')
+      if (status.connected && status.gameflowPhase === 'Lobby') {
+        window.api.getLobbyData().then((result) => {
+          if (result.success && result.data?.gameConfig?.queueId) {
+            setCurrentQueueId(result.data.gameConfig.queueId)
+          }
+        })
+      }
     })
 
     // Set up event listeners
@@ -107,10 +117,7 @@ export function useChampionSelectHandler({
         setIsChampionLocked(false)
       }
 
-      // Clear queue ID when entering a new champion select from lobby or none
-      // This ensures we don't carry over queue ID from previous games
-      // But we keep it when coming from Matchmaking/ReadyCheck as that's the same game flow
-      if (data.phase === 'ChampSelect' && ['Lobby', 'None'].includes(data.previousPhase)) {
+      if (data.phase === 'Lobby' || data.phase === 'None') {
         setCurrentQueueId(null)
       }
     })
@@ -188,6 +195,9 @@ export function useChampionSelectHandler({
         )
         return
       }
+      if (arenaBraveryRandomSkinsEnabled && (data.queueId === 1700 || currentQueueId === 1700)) {
+        return
+      }
 
       // Handle auto random skin selection
       if (
@@ -211,6 +221,8 @@ export function useChampionSelectHandler({
       autoRandomHighestWinRateSkinEnabled,
       autoRandomHighestPickRateSkinEnabled,
       autoRandomMostPlayedSkinEnabled,
+      arenaBraveryRandomSkinsEnabled,
+      currentQueueId,
       onAutoSelectSkin,
       setLcuSelectedChampion,
       setIsChampionLocked,

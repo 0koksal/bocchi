@@ -24,6 +24,10 @@ Since hoangvu stopped maintaining his project , i decided to fix it so i like th
 - 🔄 **Auto-update** - Stay up-to-date with automatic updates
 - 🎮 **Game Detection** - Automatically detects your League of Legends installation
 
+### Arena Bravery skins
+
+Enable **Arena Bravery random skins** in League Client settings and keep **Auto Apply** on. Bocchi downloads one random skin for every champion after you enable the option, then starts the patcher when you enter an Arena lobby. Wait until the patcher is running before starting a match; Bravery does not reveal its champion in champion select. Preparation uses substantial download space and can take time. The option is off by default.
+
 ## 📸 Screenshots
 
 ![Main Interface](./screenshots/Screenshot_1.jpg)
@@ -67,16 +71,20 @@ npm run build:win
 ```
 
 The built files will be in the `dist/` folder:
+
 - **Installer:** `dist/Bocchi-1.3.0-setup.exe`
 - **Portable:** `dist/win-unpacked/Bocchi.exe`
 
 ## Troubleshooting
 
 ### Electron failed to install
+
 If you get "Electron failed to install correctly", the mirror in `.npmrc` might be unreachable. Remove or comment out the `electron_mirror` line in `.npmrc` and run:
+
 ```bash
 pnpm install
 ```
+
 ### Prerequisites
 
 - Node.js 20+

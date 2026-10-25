@@ -18,6 +18,7 @@ import {
   autoRandomHighestWinRateSkinEnabledAtom,
   autoRandomHighestPickRateSkinEnabledAtom,
   autoRandomMostPlayedSkinEnabledAtom,
+  arenaBraveryRandomSkinsEnabledAtom,
   autoViewSkinsEnabledAtom
 } from '../store/atoms/lcu.atoms'
 import {
@@ -82,6 +83,7 @@ export function SettingsDialog({
   const [autoRandomHighestPickRateSkinEnabled, setAutoRandomHighestPickRateSkinEnabled] =
     useState(false)
   const [autoRandomMostPlayedSkinEnabled, setAutoRandomMostPlayedSkinEnabled] = useState(false)
+  const [arenaBraveryRandomSkinsEnabled, setArenaBraveryRandomSkinsEnabled] = useState(false)
   const [allowMultipleSkinsPerChampion, setAllowMultipleSkinsPerChampion] = useState(false)
   const [includeChromasInRandom, setIncludeChromasInRandom] = useState(false)
   const [autoAcceptEnabled, setAutoAcceptEnabled] = useState(false)
@@ -114,6 +116,7 @@ export function SettingsDialog({
     autoRandomHighestPickRateSkinEnabledAtom
   )
   const setAutoRandomMostPlayedSkinEnabledAtom = useSetAtom(autoRandomMostPlayedSkinEnabledAtom)
+  const setArenaBraveryRandomSkinsEnabledAtom = useSetAtom(arenaBraveryRandomSkinsEnabledAtom)
   const setSmartApplyEnabledAtom = useSetAtom(smartApplyEnabledAtom)
   const setAuxWindowEnabledAtom = useSetAtom(auxWindowEnabledAtom)
   const setAutoApplyEnabledAtom = useSetAtom(autoApplyEnabledAtom)
@@ -226,6 +229,9 @@ export function SettingsDialog({
       )
       setAutoRandomMostPlayedSkinEnabled(
         (settings.autoRandomMostPlayedSkinEnabled as boolean | undefined) === true
+      )
+      setArenaBraveryRandomSkinsEnabled(
+        (settings.arenaBraveryRandomSkinsEnabled as boolean | undefined) === true
       )
       setAllowMultipleSkinsPerChampion(
         (settings.allowMultipleSkinsPerChampion as boolean | undefined) === true
@@ -955,6 +961,25 @@ export function SettingsDialog({
                               </Label>
                             </div>
                           </RadioGroup>
+                        </div>
+                        <div className="flex items-center justify-between space-x-4">
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium text-text-primary">
+                              {t('settings.arenaBraveryRandomSkins.title')}
+                            </h3>
+                            <p className="text-xs text-text-secondary mt-1">
+                              {t('settings.arenaBraveryRandomSkins.description')}
+                            </p>
+                          </div>
+                          <Switch
+                            checked={arenaBraveryRandomSkinsEnabled}
+                            disabled={loading || !championDetection}
+                            onCheckedChange={async (checked) => {
+                              setArenaBraveryRandomSkinsEnabled(checked)
+                              setArenaBraveryRandomSkinsEnabledAtom(checked)
+                              await window.api.setSettings('arenaBraveryRandomSkinsEnabled', checked)
+                            }}
+                          />
                         </div>
 
                         {/* Include Chromas Toggle - show when Auto Random Skin or Rarity is selected */}

@@ -207,6 +207,10 @@
       "title": "Otomatik rastgele skin",
       "description": "Şampiyon tespit edildiğinde otomatik olarak rastgele skin seç"
     },
+    "arenaBraveryRandomSkins": {
+      "title": "Arena Bravery rastgele skinler",
+      "description": "Maçtan önce Arena'daki tüm şampiyonlar için rastgele skin hazırla. İndirme büyük olabilir; Otomatik Uygula'yı açıp hazırlığın bitmesini bekle."
+    },
     "autoRandomRaritySkin": {
       "title": "Otomatik rastgele nadir skin",
       "description": "Şampiyon tespit edildiğinde otomatik olarak nadir (Epic, Legendary, vb.) rastgele skin seç"

@@ -133,7 +133,7 @@ export function useSkinManagement() {
   )
 
   const applySelectedSkins = useCallback(
-    async (overrideChampionIds?: number[]) => {
+    async (overrideChampionIds?: number[], forceAllChampions = false) => {
       if (!gamePath || selectedSkins.length === 0) {
         return
       }
@@ -197,7 +197,7 @@ export function useSkinManagement() {
           // Swiftplay mode: use passed champion IDs directly and always apply smart filtering
           championIdsToUse = overrideChampionIds
           isUsingSmartApply = true // Always filter for Swiftplay regardless of settings
-        } else if (leagueClientEnabled && smartApplyEnabled) {
+        } else if (!forceAllChampions && leagueClientEnabled && smartApplyEnabled) {
           // Regular mode: query team composition from champion select
           const teamCompositionResult = await window.api.getTeamComposition()
           if (
@@ -346,7 +346,9 @@ export function useSkinManagement() {
               const championNameForUrl = getChampionDisplayName(champion)
 
               if (selectedSkin.chromaId) {
-                const downloadName = skinFileName.replace(/\.(zip|fantome)$/i, '').replace(/\s+\d+$/, '')
+                const downloadName = skinFileName
+                  .replace(/\.(zip|fantome)$/i, '')
+                  .replace(/\s+\d+$/, '')
                 const urlResult = await window.api.repositoryConstructUrl(
                   championNameForUrl,
                   skinFileName,

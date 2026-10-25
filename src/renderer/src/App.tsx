@@ -34,6 +34,7 @@ import { useSkinManagement } from './hooks/useSkinManagement'
 import { usePatcherControl } from './hooks/usePatcherControl'
 import { useAppInitialization } from './hooks/useAppInitialization'
 import { useChampionSelectHandler } from './hooks/useChampionSelectHandler'
+import { useArenaBraverySkins } from './hooks/useArenaBraverySkins'
 import { useP2PSkinSync } from './hooks/useP2PSkinSync'
 import { useP2PChampionSync } from './hooks/useP2PChampionSync'
 import { useStyles } from './hooks/useOptimizedState'
@@ -615,6 +616,8 @@ function AppContent(): React.JSX.Element {
     }
   })
 
+  useArenaBraverySkins(championData?.champions, gamePath, applySelectedSkins, loadDownloadedSkins)
+
   // Handle auto-navigation when champion is selected
   useEffect(() => {
     if (lcuSelectedChampion && autoViewSkinsEnabled) {
@@ -741,8 +744,12 @@ function AppContent(): React.JSX.Element {
             // the downloaded entry (e.g. "[User] kassadin tenka.fantome")
             const customSkinName = skin.id.replace(/^custom_/, '')
             ds =
-              downloadedSkins.find((d) => d.skinName.includes('[User]') && d.skinName === customSkinName) ||
-              downloadedSkins.find((d) => d.skinName.includes('[User]') && d.skinName.includes(skin.name))
+              downloadedSkins.find(
+                (d) => d.skinName.includes('[User]') && d.skinName === customSkinName
+              ) ||
+              downloadedSkins.find(
+                (d) => d.skinName.includes('[User]') && d.skinName.includes(skin.name)
+              )
           } else {
             const skinFileName = generateSkinFilename({
               ...skin,

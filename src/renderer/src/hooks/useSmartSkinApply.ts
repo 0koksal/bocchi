@@ -8,7 +8,7 @@ import {
   smartApplyEnabledAtom,
   autoApplyEnabledAtom
 } from '../store/atoms/settings.atoms'
-import { currentQueueIdAtom } from '../store/atoms/lcu.atoms'
+import { arenaBraveryRandomSkinsEnabledAtom, currentQueueIdAtom } from '../store/atoms/lcu.atoms'
 import { PRESELECT_CHAMPION_QUEUE_IDS } from '../constants/queues'
 
 interface TeamComposition {
@@ -49,6 +49,7 @@ export function useSmartSkinApply({
   const [smartApplyEnabled] = useAtom(smartApplyEnabledAtom)
   const [autoApplyEnabled] = useAtom(autoApplyEnabledAtom)
   const [currentQueueId] = useAtom(currentQueueIdAtom)
+  const [arenaBraveryRandomSkinsEnabled] = useAtom(arenaBraveryRandomSkinsEnabledAtom)
   const [isApplying, setIsApplying] = useState(false)
   const lastAppliedTeamKey = useRef<string>('')
 
@@ -73,7 +74,7 @@ export function useSmartSkinApply({
 
           // Queue ID should be available immediately now thanks to lobby monitoring
           // Only stop patcher if it's NOT a preselect queue
-          if (!isPreselectQueue) {
+          if (!isPreselectQueue && !(currentQueueId === 1700 && arenaBraveryRandomSkinsEnabled)) {
             window.api.isPatcherRunning().then((isRunning) => {
               if (isRunning) {
                 window.api.stopPatcher()
@@ -97,6 +98,7 @@ export function useSmartSkinApply({
 
     const unsubscribeReady = window.api.onReadyForSmartApply(
       async (composition: TeamComposition) => {
+        if (currentQueueId === 1700 && arenaBraveryRandomSkinsEnabled) return
         // Check if patcher is already running
         const isPatcherRunning = await window.api.isPatcherRunning()
         if (isPatcherRunning) {
@@ -291,7 +293,8 @@ export function useSmartSkinApply({
     t,
     parentApplyFunction,
     autoSyncedSkins,
-    currentQueueId
+    currentQueueId,
+    arenaBraveryRandomSkinsEnabled
   ])
 
   const applySkins = useCallback(
