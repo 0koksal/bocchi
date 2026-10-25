@@ -1,5 +1,6 @@
-- Added automatic skin update on launch — Bocchi checks the skin repo on startup and updates any installed skins that are out of date using a fast git sparse checkout (only fetches champion folders you have installed)
-- Added role filter buttons (All / Top / Jungle / Mid / ADC / Support) in the champion list sidebar, above the champion entries — filters champions by lane using live Meraki Analytics position data
-- Added "Refresh" button next to "Champion data: vX.X.X" in the bottom left — force-refreshes the champion catalog from the API without needing to delete JSON files manually
-- LTK patcher fix
-- Updated CSLOL injection warning to clarify it only works on Asian servers
+- Fixed "CS:LOL Tools Required" dialog not disappearing after manually copying files into `%APPDATA%\bocchi\cslol-tools\` — Bocchi now checks the default tools folder even when no custom path is saved in settings (previously only worked if Bocchi downloaded the tools itself)
+- Fixed missing preview image in the selected skins drawer for marketplace mods saved with unexpected filename prefixes
+- Fixed marketplace mods failing to apply with "Custom mod file not found" when the file was saved with an unexpected prefix — the patcher now also checks `mkt_` prefixed filenames and does a fuzzy name scan as a last resort, covering all mod categories (map skins, announcers, fonts, SFX, UI, etc.)
+- Fixed profiles folder growing to 100GB+ — Bocchi now keeps at most 2 overlay folders (current + previous) instead of 4; existing users should manually delete old `overlay_*` folders from `%APPDATA%\bocchi\profiles\` to reclaim disk space
+- Fixed Emotes, Wards and Finishers tab names not updating when changing language — names now refresh immediately for all supported locales without needing to switch tabs
+- Fixed unnecessary full skin re-download on every launch after downloading a single skin — Bocchi now stamps the repo revision marker after each individual download so the startup update check correctly skips already-current installs
