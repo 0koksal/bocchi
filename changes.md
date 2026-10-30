@@ -1,6 +1,8 @@
-- Fixed "CS:LOL Tools Required" dialog not disappearing after manually copying files into `%APPDATA%\bocchi\cslol-tools\` — Bocchi now checks the default tools folder even when no custom path is saved in settings (previously only worked if Bocchi downloaded the tools itself)
-- Fixed missing preview image in the selected skins drawer for marketplace mods saved with unexpected filename prefixes
-- Fixed marketplace mods failing to apply with "Custom mod file not found" when the file was saved with an unexpected prefix — the patcher now also checks `mkt_` prefixed filenames and does a fuzzy name scan as a last resort, covering all mod categories (map skins, announcers, fonts, SFX, UI, etc.)
-- Fixed profiles folder growing to 100GB+ — Bocchi now keeps at most 2 overlay folders (current + previous) instead of 4; existing users should manually delete old `overlay_*` folders from `%APPDATA%\bocchi\profiles\` to reclaim disk space
-- Fixed Emotes, Wards and Finishers tab names not updating when changing language — names now refresh immediately for all supported locales without needing to switch tabs
-- Fixed unnecessary full skin re-download on every launch after downloading a single skin — Bocchi now stamps the repo revision marker after each individual download so the startup update check correctly skips already-current installs
+- Added PBE tab with pbe skins
+- Discord RPC fix
+- Merged Emotes, Wards, and Finishers into a single sidebar entry — a pill-style tab switcher (Emotes / Wards / Finishers) now lives in the view header so you can switch between them without cluttering the sidebar
+- Role filter re-enabled for Classic Champions tab so classic champions can be filtered by lane
+- Fixed Classic skin cards incorrectly showing a "downloaded" badge when the skin existed as a regular repo skin but not as a classic skin — the badge now only lights up when the file is actually present in the Classic/ folder
+- Fixed missing thumbnail images for esports emotes with string-based keys (e.g. LLA, LPL team emotes) — images are now matched by icon filename stem so emotes like "LLA: R7 - El Toro Draven" display correctly
+- Fixed role filter in Classic Champions tab having no effect — the guard that was blocking it from applying in classic mode has been removed
+- Few more fixes
