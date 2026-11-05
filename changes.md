@@ -1,8 +1,1 @@
-- Added PBE tab with pbe skins
-- Discord RPC fix
-- Merged Emotes, Wards, and Finishers into a single sidebar entry — a pill-style tab switcher (Emotes / Wards / Finishers) now lives in the view header so you can switch between them without cluttering the sidebar
-- Role filter re-enabled for Classic Champions tab so classic champions can be filtered by lane
-- Fixed Classic skin cards incorrectly showing a "downloaded" badge when the skin existed as a regular repo skin but not as a classic skin — the badge now only lights up when the file is actually present in the Classic/ folder
-- Fixed missing thumbnail images for esports emotes with string-based keys (e.g. LLA, LPL team emotes) — images are now matched by icon filename stem so emotes like "LLA: R7 - El Toro Draven" display correctly
-- Fixed role filter in Classic Champions tab having no effect — the guard that was blocking it from applying in classic mode has been removed
-- Few more fixes
+-Injection system reworked
