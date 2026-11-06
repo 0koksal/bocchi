@@ -1,1 +1,3 @@
--Injection system reworked
+-auto champ ban / pick window problem fixed
+-some errors fixed
+-auto skin download fix
