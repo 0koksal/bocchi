@@ -35,6 +35,8 @@ $script:LeagueElevationFixed = $false
 $script:InjectionMethod = 'ltk'
 $script:UacDisabled = $false
 $script:BuiltinAdmin = $false
+$script:AppBridgeNotRunning = $false
+$script:AppVcRedistMissing = $false
 $script:BocchiData = Join-Path $env:APPDATA 'bocchi'
 $script:LtkData = Join-Path $env:APPDATA 'dev.leaguetoolkit.manager'
 $script:BridgeRoot = Join-Path $script:BocchiData 'official-ltk-bridge'
@@ -1008,6 +1010,16 @@ if ($modToolsProcs.Count -gt 0 -and $bocchiProcs.Count -eq 0) {
     Add-Result 'WARN' 'cslol process' 'mod-tools is running without Bocchi' @() 'End mod-tools.exe in Task Manager, then reopen Bocchi normally.'
 }
 
+# A leftover LTK Manager (or its patcher) while Bocchi is closed blocks the
+# next Apply with "Close the existing Manager/patcher/game before Apply".
+if (($ltkManagerProcs.Count -gt 0 -or $ltkHostProcs.Count -gt 0) -and $bocchiProcs.Count -eq 0) {
+    $lingering = @()
+    foreach ($proc in @($ltkManagerProcs + $ltkHostProcs)) {
+        $lingering += ("{0} (PID {1})" -f $proc.ProcessName, $proc.Id)
+    }
+    Add-Result 'WARN' 'LTK process' 'LTK Manager or its patcher is still running while Bocchi is closed' $lingering 'This leftover instance makes the next Apply fail with "Close the existing Manager/patcher/game before Apply". Open Task Manager (Ctrl+Shift+Esc), go to the Details tab, end ltk-manager.exe and ltk_patcher_host.exe, then reopen Bocchi. Next time close Bocchi with "Quit Bocchi" from the tray so it stops LTK Manager itself.'
+}
+
 # ---------------------------------------------------------------------------
 # Bocchi
 # ---------------------------------------------------------------------------
@@ -1079,6 +1091,8 @@ if (Test-Path -LiteralPath $appErrorsFile) {
 
             $appStatus = if ($ageDays -le 7) { 'WARN' } else { 'INFO' }
             Add-Result $appStatus 'App error history' ("Bocchi recorded $($appErrors.Count) patcher error(s); the latest is $($latest.code) from $latestTime") $appDetails 'Open Bocchi > Settings > Troubleshooting to read what each error means and its fix. Use the matching finding in this report to fix the PC cause.'
+            $script:AppBridgeNotRunning = @($appErrors | Where-Object { [string]$_.code -eq 'BRIDGE_NOT_RUNNING' }).Count -gt 0
+            $script:AppVcRedistMissing = @($appErrors | Where-Object { [string]$_.code -eq 'VC_REDIST_MISSING' }).Count -gt 0
         }
     } catch {
         Add-Result 'INFO' 'App error history' 'troubleshooting.json exists but could not be read'
@@ -1356,10 +1370,12 @@ if ($ltkInstalls.Count -eq 0) {
         }
         $logLabel = ($logNames -join ', ')
 
-        if ($logText -match '(?i)LEAGUE_ELEVATED') {
+        if ($logText -match '(?i)LEAGUE_ELEVATED(?!\s*=\s*false)') {
             Add-Result 'WARN' 'LTK log' 'The LTK log mentions LEAGUE_ELEVATED' @("Log: $logLabel") 'Fix the League elevation finding above, then close League, Riot Client, Bocchi and LTK Manager completely and restart them normally.'
-        } elseif ($logText -match '(?i)MANAGER_ELEVATED') {
+        } elseif ($logText -match '(?i)MANAGER_ELEVATED(?!\s*=\s*false)') {
             Add-Result 'WARN' 'LTK log' 'The LTK log mentions MANAGER_ELEVATED' @("Log: $logLabel") 'LTK Manager is running elevated. Close it and start it normally; if the Windows shell is elevated, fix the account/UAC finding above.'
+        } elseif ($logText -match '(?i)close the existing (manager|patcher|game)') {
+            Add-Result 'WARN' 'LTK log' 'The LTK log says a Manager/patcher/game was still running' @("Log: $logLabel") 'End ltk-manager.exe and ltk_patcher_host.exe in Task Manager (Ctrl+Shift+Esc, Details tab), then reopen Bocchi and click Apply again.'
         } elseif ($logText -match '(?i)(ltk_patcher_host[^\n]*(missing|not found)|host[_ ]missing)') {
             Add-Result 'FAIL' 'LTK log' 'The LTK log says its patcher host is missing' @("Log: $logLabel") 'An antivirus likely removed ltk_patcher_host.exe. Reinstall LTK Manager v1.33.0 and add its folder to your antivirus exclusions.'
         } elseif ($logText -match '(?i)(invalid signature|signature (check )?failed|not signed|untrusted)') {
@@ -1394,6 +1410,23 @@ if ($ltkInstalls.Count -eq 0) {
 # ---------------------------------------------------------------------------
 
 Add-Section 'Other'
+
+# LTK Manager and Bocchi's bridge helper are MSVC binaries. Without the
+# Microsoft Visual C++ 2015-2022 runtime they fail to load with exit code
+# 0xC0000135 (3221225781), and Windows shows "MSVCP140.dll was not found".
+$runtimeMissing = @()
+foreach ($runtimeDll in @('MSVCP140.dll', 'VCRUNTIME140.dll')) {
+    $runtimeFound = $false
+    foreach ($sysDir in @((Join-Path $env:WINDIR 'System32'), (Join-Path $env:WINDIR 'Sysnative'))) {
+        if (Test-Path -LiteralPath (Join-Path $sysDir $runtimeDll)) { $runtimeFound = $true; break }
+    }
+    if (-not $runtimeFound) { $runtimeMissing += $runtimeDll }
+}
+if ($runtimeMissing.Count -gt 0) {
+    Add-Result 'FAIL' 'Visual C++ runtime' ("Missing: " + ($runtimeMissing -join ', ')) @("LTK Manager and Bocchi's bridge helper cannot start without the Microsoft Visual C++ 2015-2022 runtime.") 'Install the Microsoft Visual C++ Redistributable (x64) from https://aka.ms/vs/17/release/vc_redist.x64.exe, then restart the PC and open Bocchi again.'
+} else {
+    Add-Result 'OK' 'Visual C++ runtime' 'The Microsoft Visual C++ 2015-2022 runtime is installed'
+}
 
 $vgk = Get-Service -Name 'vgk' -ErrorAction SilentlyContinue
 $vgc = Get-Service -Name 'vgc' -ErrorAction SilentlyContinue
@@ -1591,6 +1624,37 @@ if ($windowsAdminShell) {
     } else {
         Write-Host '  explorer.exe itself runs elevated. Sign out and sign in normally, or use a regular account.' -ForegroundColor Red
     }
+}
+
+$managerBusy = @($script:Results | Where-Object { $_.Area -eq 'LTK process' -and $_.Status -eq 'WARN' -and $_.Title -match 'still running while Bocchi is closed' }).Count -gt 0
+if ($managerBusy) {
+    Write-Host ''
+    Write-Host 'DIAGNOSIS: MANAGER_BUSY' -ForegroundColor Yellow
+    Write-Host '  A leftover LTK Manager or patcher is still running while Bocchi is closed.' -ForegroundColor Yellow
+    Write-Host '  It makes the next Apply fail with "Close the existing Manager/patcher/game before Apply".' -ForegroundColor Yellow
+    Write-Host '  End ltk-manager.exe and ltk_patcher_host.exe in Task Manager (Details tab), then reopen Bocchi.' -ForegroundColor Yellow
+    Write-Host '  Close Bocchi with "Quit Bocchi" from the tray next time so it stops LTK Manager itself.' -ForegroundColor Yellow
+}
+
+if ($script:AppBridgeNotRunning) {
+    Write-Host ''
+    Write-Host 'DIAGNOSIS: BRIDGE_NOT_RUNNING' -ForegroundColor Yellow
+    Write-Host '  Bocchi recorded that its own bridge helper was not running when it tried to Apply.' -ForegroundColor Yellow
+    Write-Host '  The bridge starts on the first Apply, not when Bocchi opens, so this is usually a' -ForegroundColor Yellow
+    Write-Host '  leftover state from an earlier failed or cancelled Apply.' -ForegroundColor Yellow
+    Write-Host '  Click Apply again in the current Bocchi version (it restarts the bridge automatically).' -ForegroundColor Yellow
+    Write-Host '  If it repeats, quit Bocchi from the tray (Quit Bocchi), reopen it, then Apply.' -ForegroundColor Yellow
+}
+
+$vcRedistMissing = (@($script:Results | Where-Object { $_.Area -eq 'Visual C++ runtime' -and $_.Status -eq 'FAIL' }).Count -gt 0) -or $script:AppVcRedistMissing
+if ($vcRedistMissing) {
+    Write-Host ''
+    Write-Host 'DIAGNOSIS: VC_REDIST_MISSING' -ForegroundColor Red
+    Write-Host '  The Microsoft Visual C++ 2015-2022 runtime is missing on this PC.' -ForegroundColor Red
+    Write-Host '  LTK Manager and Bocchi''s bridge helper cannot start without it, which shows as' -ForegroundColor Red
+    Write-Host '  "MSVCP140.dll was not found" or Bocchi error 3221225781 (0xC0000135).' -ForegroundColor Red
+    Write-Host '  Install it from https://aka.ms/vs/17/release/vc_redist.x64.exe, then restart the PC.' -ForegroundColor Red
+    Write-Host '  If LTK Manager still does not open, reinstall LTK Manager v1.33.0 afterwards.' -ForegroundColor Red
 }
 
 if ($script:SeenFixes.Count -gt 0) {
