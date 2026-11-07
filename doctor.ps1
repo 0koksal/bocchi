@@ -1303,6 +1303,19 @@ if ($ltkInstalls.Count -eq 0) {
             Add-Result 'WARN' 'LTK League path' 'LTK Manager has no League path saved' @() 'Open LTK Manager > Settings and select your League of Legends folder.'
         }
 
+        if ($ltkSettings.builtinMods) {
+            $baseSkins = [string]$ltkSettings.builtinMods.baseSkins
+            if ($baseSkins -eq 'allChampions') {
+                Add-Result 'WARN' 'LTK base skins' 'LTK Manager is set to "Base skins: Every champion"' @() 'Open LTK Manager > Settings > Built-in mods and set Base skins to Off or "Modded champions only". "Every champion" puts every champion archive (about 16 GB) into the overlay, so Apply takes minutes and the game can start before the patcher is ready.'
+            } elseif ($baseSkins) {
+                Add-Result 'OK' 'LTK base skins' "Base skins scope: $baseSkins"
+            }
+            $inking = $ltkSettings.builtinMods.characterInking
+            if ($inking -and $inking.enabled -eq $true -and ([string]$inking.scope) -eq 'all') {
+                Add-Result 'WARN' 'LTK character inking' 'Character inking is enabled for every champion in LTK Manager' @() 'Open LTK Manager > Settings > Built-in mods and turn character inking off, or limit it to the champions you use. Inking every champion slows every build down.'
+            }
+        }
+
         if ($ltkSettings.modStoragePath) {
             $storage = [string]$ltkSettings.modStoragePath
             if (-not (Test-Path -LiteralPath $storage)) {
@@ -1382,6 +1395,8 @@ if ($ltkInstalls.Count -eq 0) {
             Add-Result 'FAIL' 'LTK log' 'The LTK log reports a signature failure' @("Log: $logLabel") 'A patcher file was modified or damaged. Reinstall LTK Manager v1.33.0 from its official release and add it to your antivirus exclusions.'
         } elseif ($logText -match '(?i)(unknown command|unsupported command|outdated|too old)') {
             Add-Result 'WARN' 'LTK log' 'The LTK log reports an outdated LTK Manager' @("Log: $logLabel") 'Update LTK Manager to v1.33.0 or newer, then open Bocchi and click Apply once.'
+        } elseif ($logText -match '(?i)not allowed by ACL|command plugin:library') {
+            Add-Result 'WARN' 'LTK log' 'The LTK log shows a "not allowed by ACL" refusal' @("Log: $logLabel") 'An LTK Manager older than v1.24.1 cannot answer the mod-library commands Bocchi needs. Update or reinstall LTK Manager v1.33.0, then open Bocchi and click Apply again.'
         } elseif ($logText -match '(?i)(access is denied|permission denied|refused)') {
             Add-Result 'INFO' 'LTK log' "Recent access messages in $logLabel" @() 'If patching also fails, check antivirus and Controlled Folder Access.'
         } else {
