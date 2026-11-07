@@ -1,3 +1,4 @@
+-Troubleshooting panel added for further investigation (Settings > Troubleshooting)
 -auto champ ban / pick window problem fixed
 -some errors fixed
 -auto skin download fix
