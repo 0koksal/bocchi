@@ -660,7 +660,7 @@ function Get-LtkInstalls {
 
 Write-Host ''
 Write-Host 'Bocchi Doctor' -ForegroundColor Cyan
-Write-Host "Diagnostics for Bocchi 2.0.51 and LTK Manager - version $($script:DoctorVersion)" -ForegroundColor DarkGray
+Write-Host "Diagnostics for Bocchi 2.0.52 and LTK Manager - version $($script:DoctorVersion)" -ForegroundColor DarkGray
 Write-Host 'Read-only by default. Pass -Fix to remove RUNASADMIN compatibility flags.' -ForegroundColor DarkGray
 
 $isAdmin = Test-IsAdmin
