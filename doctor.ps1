@@ -41,6 +41,15 @@ $script:BocchiData = Join-Path $env:APPDATA 'bocchi'
 $script:LtkData = Join-Path $env:APPDATA 'dev.leaguetoolkit.manager'
 $script:BridgeRoot = Join-Path $script:BocchiData 'official-ltk-bridge'
 
+# Official LTK Manager binaries Bocchi has verified (the same SHA-256 values
+# the bridge pins). A different build may still work, but it has not been
+# tested, so doctor reports it as a warning rather than a failure.
+$script:LtkManagerDigests = @{
+    '67a668db37f66dccc25beb273ff87b66172c134c650f299c6b55f26319d437a6' = '1.33.0'
+    'db83114d1bd95bd207ffd79c14b5f701c9583a2287bf9e330943963c1c4b08de' = '1.32.0'
+}
+$script:LtkHostDigest = '27de1bfdbf37129e42c12b18cc7b4f75c15d39bcd7afefe65c4c33d0e99fe856'
+
 function Add-Section {
     param([string]$Name)
     Write-Host ''
@@ -127,6 +136,16 @@ function Get-BaseName {
     if (-not $Path) { return '' }
     $parts = $Path -split '[\\/]'
     return $parts[$parts.Length - 1]
+}
+
+function Get-Sha256 {
+    param([string]$Path)
+    try {
+        if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
+        return (Get-FileHash -LiteralPath $Path -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
+    } catch {
+        return $null
+    }
 }
 
 function Get-NormalizedPath {
@@ -1273,6 +1292,28 @@ if ($ltkInstalls.Count -eq 0) {
                 Add-Result 'OK' 'LTK signature' "$(Get-BaseName $signedFile) has a valid signature$signerText"
             } else {
                 Add-Result 'FAIL' 'LTK signature' "$(Get-BaseName $signedFile) has an invalid signature ($($signature.Status))" @("File: $signedFile") 'An antivirus or another program may have modified the file. Reinstall LTK Manager v1.33.0 from its official release, then add its folder to your antivirus exclusions.'
+            }
+        }
+
+        if (Test-Path -LiteralPath $install.Manager) {
+            $managerHash = Get-Sha256 $install.Manager
+            if ($managerHash) {
+                if ($script:LtkManagerDigests.ContainsKey($managerHash)) {
+                    Add-Result 'OK' 'LTK build' "ltk-manager.exe matches the verified LTK $($script:LtkManagerDigests[$managerHash]) build" @("SHA-256: $managerHash")
+                } else {
+                    Add-Result 'WARN' 'LTK build' 'ltk-manager.exe is not a build Bocchi has verified' @("SHA-256: $managerHash", "Found via: $($install.Source)") 'It may still work, but it has not been tested. If Apply fails, install the official LTK Manager 1.33.0 from https://github.com/LeagueToolkit/ltk-manager/releases/tag/v1.33.0.'
+                }
+            }
+        }
+
+        if (Test-Path -LiteralPath $install.Patcher) {
+            $hostHash = Get-Sha256 $install.Patcher
+            if ($hostHash) {
+                if ($hostHash -eq $script:LtkHostDigest) {
+                    Add-Result 'OK' 'LTK build' 'ltk_patcher_host.exe matches the verified patcher host'
+                } else {
+                    Add-Result 'WARN' 'LTK build' 'ltk_patcher_host.exe is not the verified patcher host' @("SHA-256: $hostHash") 'An antivirus may have changed it, or this is a different LTK build. Reinstall the official LTK Manager 1.33.0.'
+                }
             }
         }
     }
