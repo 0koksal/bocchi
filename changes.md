@@ -1,1 +1,2 @@
--Troubleshooting added for further investigation
+-Emotes/Wards/Finishers unsupported ltk archive problem fixed,
+-Custom skin skinhack problem fixed
