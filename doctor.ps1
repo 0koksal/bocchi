@@ -26,7 +26,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 # still offers TLS 1.0 to GitHub on some machines.
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
 
-$script:DoctorVersion = '1.0'
+$script:DoctorVersion = '1.1'
 $script:Results = New-Object System.Collections.ArrayList
 $script:SeenFixes = New-Object System.Collections.ArrayList
 $script:NativeAvailable = $false
@@ -1563,33 +1563,49 @@ if ($avProducts.Count -gt 0) {
 if ($Fix) {
     Add-Section 'Fixes'
 
+    Write-Host ''
+    Write-Host 'Applying the "Run as administrator" fix' -ForegroundColor Cyan
+    Write-Host '  Removes the RUNASADMIN compatibility flag from League, Riot, LTK and Bocchi.' -ForegroundColor DarkGray
+
     $targets = @()
     $targets += $leagueRiotRunAs
     $targets += $ltkRunAs
     $targets += $bocchiRunAs
 
     if ($targets.Count -eq 0) {
-        Add-Result 'INFO' 'Fix' 'No RUNASADMIN compatibility entries found; nothing to remove'
+        Write-Host ''
+        Write-Host '  Nothing to fix.' -ForegroundColor Green
+        Write-Host '  No "Run as administrator" compatibility flags are set on League, Riot, LTK or Bocchi.' -ForegroundColor DarkGray
+        Write-Host '  No change was made.' -ForegroundColor DarkGray
+        Add-Result 'OK' 'Fix' 'Nothing to fix: no "Run as administrator" compatibility flags are set'
     } else {
         Write-Host ''
-        Write-Host 'RUNASADMIN entries to remove:' -ForegroundColor Yellow
+        Write-Host ('  Found ' + $targets.Count + ' "Run as administrator" flag(s) to remove:') -ForegroundColor Yellow
+        $number = 0
         foreach ($target in $targets) {
-            Write-Host ("  [$($target.Root)] $($target.Exe)")
-            Write-Host ("      current value: $($target.Layers)") -ForegroundColor DarkGray
+            $number++
+            Write-Host ("    $number. [$($target.Root)] $($target.Exe)") -ForegroundColor Yellow
+            Write-Host ("       current value: $($target.Layers)") -ForegroundColor DarkGray
         }
 
         $proceed = $true
         if (-not $Yes) {
+            Write-Host ''
             $answer = ''
-            try { $answer = Read-Host 'Type YES to remove them' } catch {}
+            try { $answer = Read-Host '  Type YES to remove them, or press Enter to cancel' } catch {}
             if ($answer.Trim().ToUpperInvariant() -ne 'YES') {
                 $proceed = $false
+                Write-Host ''
+                Write-Host '  Cancelled. Nothing was changed.' -ForegroundColor Yellow
                 Add-Result 'INFO' 'Fix' 'Cancelled; nothing was changed'
             }
         }
 
         if ($proceed) {
+            Write-Host ''
+            $removed = 0
             foreach ($target in $targets) {
+                Write-Host ("  Removing RUNASADMIN from $($target.Exe) ...") -ForegroundColor DarkGray
                 try {
                     # Use the .NET registry API so value names with brackets or
                     # wildcard characters are treated literally.
@@ -1607,6 +1623,7 @@ if ($Fix) {
                     } finally {
                         $registryKey.Close()
                     }
+                    $removed++
                     Add-Result 'OK' 'Fix' "Removed RUNASADMIN from $($target.Exe)" @("Registry: $($target.Root)")
                 } catch {
                     $registryKeyText = $target.Key -replace '^HKCU:\\', 'HKCU\' -replace '^HKLM:\\', 'HKLM\'
@@ -1618,12 +1635,17 @@ if ($Fix) {
             $targetNames = @($targets | ForEach-Object { $_.Exe })
             $remaining = @(Get-CompatLayers | Where-Object { $targetNames -contains $_.Exe -and $_.Layers -match '(?i)\bRUNASADMIN\b' })
             $allGone = $remaining.Count -eq 0
+
+            Write-Host ''
             if ($allGone) {
+                Write-Host ('  Fix complete: removed ' + $removed + ' "Run as administrator" flag(s).') -ForegroundColor Green
                 Add-Result 'OK' 'Fix' 'All selected RUNASADMIN entries are gone'
             } else {
+                Write-Host ('  Fix finished with problems: removed ' + $removed + ', still present ' + $remaining.Count + '.') -ForegroundColor Yellow
                 Add-Result 'WARN' 'Fix' "$($remaining.Count) RUNASADMIN entries are still present" @() 'Run this script as administrator, or use the reg delete commands shown above.'
             }
 
+            Write-Host '  Close League, Riot Client, Bocchi and LTK Manager completely, then start them normally.' -ForegroundColor Cyan
             Add-Result 'INFO' 'Fix' 'Close League, Riot Client, Bocchi and LTK Manager completely, then start them normally'
 
             if ($allGone) {
