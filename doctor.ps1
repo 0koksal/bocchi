@@ -1438,6 +1438,8 @@ if ($ltkInstalls.Count -eq 0) {
             Add-Result 'WARN' 'LTK log' 'The LTK log mentions MANAGER_ELEVATED' @("Log: $logLabel") 'LTK Manager is running elevated. Close it and start it normally; if the Windows shell is elevated, fix the account/UAC finding above.'
         } elseif ($logText -match '(?i)(os error 740|requires elevation)') {
             Add-Result 'FAIL' 'LTK log' 'Windows refused to start an LTK program without administrator rights (error 740)' @("Log: $logLabel") 'ltk-manager.exe or ltk_patcher_host.exe is ticked "Run this program as an administrator". Untick it in Properties > Compatibility (use "Change settings for all users" too), close LTK Manager including its tray icon, then reopen Bocchi and click Apply again.'
+        } elseif ($logText -match '(?i)no patcher dll is available' -and $logText -match '(?i)error sending request') {
+            Add-Result 'WARN' 'LTK log' "Something blocked LTK Manager's patcher download" @("Log: $logLabel") 'LTK Manager could not reach its delivery service (patcher.leaguetoolkit.dev): a firewall, antivirus, VPN, proxy or DNS blocker on this PC or network stopped it. Allow ltk-manager.exe through Windows Firewall and your antivirus, turn off any VPN, proxy or DNS blocker, then reopen Bocchi and click Apply again.'
         } elseif ($logText -match '(?i)no patcher dll is available') {
             Add-Result 'WARN' 'LTK log' "LTK Manager's delivery service refused its patcher" @("Log: $logLabel") 'Nothing on this PC is broken. Retry in a few minutes, or from another network (turn off a VPN or proxy). If LTK Manager also fails when you run it on its own, report it to LTK Manager''s issue tracker.'
         } elseif ($logText -match '(?i)close the existing (manager|patcher|game)') {
