@@ -1316,6 +1316,14 @@ if ($ltkInstalls.Count -eq 0) {
             }
         }
 
+        if ($null -ne $ltkSettings.autoHealthCheckEnabled) {
+            if ($ltkSettings.autoHealthCheckEnabled -eq $true) {
+                Add-Result 'INFO' 'LTK mod check' 'LTK Manager will check every mod Bocchi installs on each Apply' @() 'Bocchi turns "Automatically check mods" off on Apply. If it stays on, open LTK Manager > Settings > Library and turn it off: on a hard drive that check can hold the loading screen for minutes.'
+            } else {
+                Add-Result 'OK' 'LTK mod check' 'Automatic mod check is off'
+            }
+        }
+
         if ($ltkSettings.modStoragePath) {
             $storage = [string]$ltkSettings.modStoragePath
             if (-not (Test-Path -LiteralPath $storage)) {
@@ -1387,6 +1395,10 @@ if ($ltkInstalls.Count -eq 0) {
             Add-Result 'WARN' 'LTK log' 'The LTK log mentions LEAGUE_ELEVATED' @("Log: $logLabel") 'Fix the League elevation finding above, then close League, Riot Client, Bocchi and LTK Manager completely and restart them normally.'
         } elseif ($logText -match '(?i)MANAGER_ELEVATED(?!\s*=\s*false)') {
             Add-Result 'WARN' 'LTK log' 'The LTK log mentions MANAGER_ELEVATED' @("Log: $logLabel") 'LTK Manager is running elevated. Close it and start it normally; if the Windows shell is elevated, fix the account/UAC finding above.'
+        } elseif ($logText -match '(?i)(os error 740|requires elevation)') {
+            Add-Result 'FAIL' 'LTK log' 'Windows refused to start an LTK program without administrator rights (error 740)' @("Log: $logLabel") 'ltk-manager.exe or ltk_patcher_host.exe is ticked "Run this program as an administrator". Untick it in Properties > Compatibility (use "Change settings for all users" too), close LTK Manager including its tray icon, then reopen Bocchi and click Apply again.'
+        } elseif ($logText -match '(?i)no patcher dll is available') {
+            Add-Result 'WARN' 'LTK log' "LTK Manager's delivery service refused its patcher" @("Log: $logLabel") 'Nothing on this PC is broken. Retry in a few minutes, or from another network (turn off a VPN or proxy). If LTK Manager also fails when you run it on its own, report it to LTK Manager''s issue tracker.'
         } elseif ($logText -match '(?i)close the existing (manager|patcher|game)') {
             Add-Result 'WARN' 'LTK log' 'The LTK log says a Manager/patcher/game was still running' @("Log: $logLabel") 'End ltk-manager.exe and ltk_patcher_host.exe in Task Manager (Ctrl+Shift+Esc, Details tab), then reopen Bocchi and click Apply again.'
         } elseif ($logText -match '(?i)(ltk_patcher_host[^\n]*(missing|not found)|host[_ ]missing)') {
