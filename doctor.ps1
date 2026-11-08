@@ -26,7 +26,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 # still offers TLS 1.0 to GitHub on some machines.
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
 
-$script:DoctorVersion = '1.1'
+$script:DoctorVersion = '1.2'
 $script:Results = New-Object System.Collections.ArrayList
 $script:SeenFixes = New-Object System.Collections.ArrayList
 $script:NativeAvailable = $false
@@ -679,7 +679,7 @@ function Get-LtkInstalls {
 
 Write-Host ''
 Write-Host 'Bocchi Doctor' -ForegroundColor Cyan
-Write-Host "Diagnostics for Bocchi 2.0.53 and LTK Manager - version $($script:DoctorVersion)" -ForegroundColor DarkGray
+Write-Host "Diagnostics for Bocchi 2.0.54 and LTK Manager - version $($script:DoctorVersion)" -ForegroundColor DarkGray
 Write-Host 'Read-only by default. Pass -Fix to remove RUNASADMIN compatibility flags.' -ForegroundColor DarkGray
 
 $isAdmin = Test-IsAdmin
@@ -1538,6 +1538,20 @@ if ($cfa -eq 1 -or $cfa -eq 2) {
     Add-Result 'WARN' 'Windows Defender' 'Controlled Folder Access is enabled' @() 'It can block Bocchi or LTK Manager from writing mods. Add them under Windows Security > Virus & threat protection > Ransomware protection > Allow an app through Controlled folder access.'
 } else {
     Add-Result 'OK' 'Windows Defender' 'Controlled Folder Access is not blocking writes'
+}
+
+# Smart App Control (Windows 11) allows only binaries Microsoft trusts. Bocchi
+# compiles a small helper (privcheck.exe) into %APPDATA%\bocchi and runs it on
+# every Apply; Smart App Control treats that fresh, unsigned exe as untrusted,
+# blocks it and closes Bocchi itself. It is on by default on many clean Windows
+# 11 installs and can only be turned off, never on again.
+$sac = Get-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy' 'VerifiedAndReputablePolicyState'
+if ($sac -eq 1 -or $sac -eq 2) {
+    $sacDetail = @('Bocchi runs a small helper that it compiles on the fly. Smart App Control blocks unsigned executables like that one, which closes Bocchi the moment you click Apply.')
+    if ($sac -eq 2) { $sacDetail += 'It is in evaluation mode right now and can switch itself on.' }
+    Add-Result 'WARN' 'Smart App Control' 'Smart App Control is on and closes Bocchi when you apply skins' $sacDetail 'Turn it off under Windows Security > App & browser control > Smart App Control > Off. This is permanent (it cannot be turned back on without reinstalling Windows), so the choice is yours.'
+} else {
+    Add-Result 'OK' 'Smart App Control' 'Smart App Control is off'
 }
 
 # Rose support has found 360/Qihoo silently blocking patcher files. Listing the
