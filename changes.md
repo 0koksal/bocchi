@@ -8,3 +8,4 @@
 -Base-skin mods are repaired on import and once for mods already installed, and a skin that borrows another skin's model or name (a skinhack) now gets its own diagnosis,
 -Logs now record every import and skin check, and Troubleshooting can copy or save Bocchi's and LTK Manager's logs together for support,
 -Imported .modpkg files keep their original name instead of "checked.modpkg",
+-Bocchi now refreshes the copy of LTK Manager it runs whenever a newer LTK Manager is installed, so updating LTK Manager no longer leaves Bocchi stuck on an older copy and reporting it as out of date,
