@@ -1,2 +1,10 @@
--Emotes/Wards/Finishers unsupported ltk archive problem fixed,
--Custom skin skinhack problem fixed
+-Troubleshooting is now localised into all 32 app languages, reusing Rose's translations where available,
+-Troubleshooting now groups errors by session, with earlier sessions collapsible,
+-New "LTK Manager is out of date" diagnosis for unsupported League patches,
+-Doctor updated to 1.3 with the outdated-patcher check,
+-New "An earlier Bocchi helper is still running" and "LTK Manager's own settings could not be put back" diagnoses,
+-Apply no longer stops with "Previous bridge supervisor is still active" when Windows reused a process id,
+-Bocchi now restores LTK Manager's own settings from its file when LTK Manager's connection is already closed,
+-Base-skin mods are repaired on import and once for mods already installed, and a skin that borrows another skin's model or name (a skinhack) now gets its own diagnosis,
+-Logs now record every import and skin check, and Troubleshooting can copy or save Bocchi's and LTK Manager's logs together for support,
+-Imported .modpkg files keep their original name instead of "checked.modpkg",
