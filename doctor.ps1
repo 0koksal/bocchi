@@ -26,7 +26,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 # still offers TLS 1.0 to GitHub on some machines.
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
 
-$script:DoctorVersion = '1.2'
+$script:DoctorVersion = '1.3'
 $script:Results = New-Object System.Collections.ArrayList
 $script:SeenFixes = New-Object System.Collections.ArrayList
 $script:NativeAvailable = $false
@@ -37,6 +37,7 @@ $script:UacDisabled = $false
 $script:BuiltinAdmin = $false
 $script:AppBridgeNotRunning = $false
 $script:AppVcRedistMissing = $false
+$script:AppPatcherOutdated = $false
 $script:BocchiData = Join-Path $env:APPDATA 'bocchi'
 $script:LtkData = Join-Path $env:APPDATA 'dev.leaguetoolkit.manager'
 $script:BridgeRoot = Join-Path $script:BocchiData 'official-ltk-bridge'
@@ -1112,6 +1113,7 @@ if (Test-Path -LiteralPath $appErrorsFile) {
             Add-Result $appStatus 'App error history' ("Bocchi recorded $($appErrors.Count) patcher error(s); the latest is $($latest.code) from $latestTime") $appDetails 'Open Bocchi > Settings > Troubleshooting to read what each error means and its fix. Use the matching finding in this report to fix the PC cause.'
             $script:AppBridgeNotRunning = @($appErrors | Where-Object { [string]$_.code -eq 'BRIDGE_NOT_RUNNING' }).Count -gt 0
             $script:AppVcRedistMissing = @($appErrors | Where-Object { [string]$_.code -eq 'VC_REDIST_MISSING' }).Count -gt 0
+            $script:AppPatcherOutdated = @($appErrors | Where-Object { [string]$_.code -eq 'PATCHER_OUTDATED' }).Count -gt 0
         }
     } catch {
         Add-Result 'INFO' 'App error history' 'troubleshooting.json exists but could not be read'
@@ -1750,6 +1752,18 @@ if ($script:AppBridgeNotRunning) {
     Write-Host '  leftover state from an earlier failed or cancelled Apply.' -ForegroundColor Yellow
     Write-Host '  Click Apply again in the current Bocchi version (it restarts the bridge automatically).' -ForegroundColor Yellow
     Write-Host '  If it repeats, quit Bocchi from the tray (Quit Bocchi), reopen it, then Apply.' -ForegroundColor Yellow
+}
+
+if ($script:AppPatcherOutdated) {
+    Write-Host ''
+    Write-Host 'DIAGNOSIS: PATCHER_OUTDATED' -ForegroundColor Yellow
+    Write-Host '  Bocchi recorded that LTK Manager''s patcher does not support this League patch' -ForegroundColor Yellow
+    Write-Host '  ("Unsupported Game Build" / PatcherOutOfDate). Your PC and Bocchi are fine; only' -ForegroundColor Yellow
+    Write-Host '  LTK Manager is behind.' -ForegroundColor Yellow
+    Write-Host '  Open LTK Manager from the Start menu, install the update it offers, then close it' -ForegroundColor Yellow
+    Write-Host '  (also from the system tray) and click Apply again in Bocchi.' -ForegroundColor Yellow
+    Write-Host '  If it is already up to date, it has not caught up with this patch yet: retry after' -ForegroundColor Yellow
+    Write-Host '  its next update.' -ForegroundColor Yellow
 }
 
 $vcRedistMissing = (@($script:Results | Where-Object { $_.Area -eq 'Visual C++ runtime' -and $_.Status -eq 'FAIL' }).Count -gt 0) -or $script:AppVcRedistMissing
