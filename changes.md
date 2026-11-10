@@ -1,11 +1,7 @@
-- Troubleshooting is now localised into all 32 app languages.
-- Troubleshooting now groups errors by session, with earlier sessions collapsible
-- New "LTK Manager is out of date" diagnosis for unsupported League patches
-- Doctor updated to 1.3 with the outdated-patcher check
-- New "An earlier Bocchi helper is still running" and "LTK Manager's own settings could not be put back" diagnoses
-- Apply no longer stops with "Previous bridge supervisor is still active" when Windows reused a process id
-- Bocchi now restores LTK Manager's own settings from its file when LTK Manager's connection is already closed
-- Base-skin mods are repaired on import and once for mods already installed, and a skin that borrows another skin's model or name (a skinhack) now gets its own diagnosis
-- Logs now record every import and skin check, and Troubleshooting can copy or save Bocchi's and LTK Manager's logs together for support
-- Imported .modpkg files keep their original name instead of "checked.modpkg"
-- Bocchi now refreshes the copy of LTK Manager it runs whenever a newer LTK Manager is installed, so updating LTK Manager no longer leaves Bocchi stuck on an older copy and reporting it as out of date
+- Base-skin and skinhack repairs now also apply to .modpkg mods imported from a file or downloaded from the marketplace, not just .fantome
+- Apply no longer stops with "Manager cleanup incomplete" when LTK Manager restarts itself under Explorer: Bocchi now follows the surviving manager instead of closing the launcher it started
+- Stale LTK Manager processes are now cleaned up on machines where the WMI/CIM service is unhealthy
+- Apply no longer fails with "Manager did not finish stopping" on a slow PC: a full overlay rebuild is waited out as long as it keeps making progress, a stuck build now says so instead of blaming the stop, and the first Apply on a large library is no longer cut off by a five-minute timeout
+- Base-skin and skinhack repairs now also cover the repository and classic skins in the downloaded-skins folder, which the once-only repair pass used to skip, so LTK Manager no longer rejects the whole overlay for one of them
+- Bocchi now re-checks and repairs a skin right before Apply when it was never checked before (a skin copied in by a bulk download, for example), so a base-slot skin can no longer reach the overlay unrepaired
+- Skins now open in release order, oldest to newest, by default: the Sort By menu leads with "Oldest to Newest" and "Newest to Oldest" (replacing "Skin #"), and the win-rate, pick-rate and play-count options are gone
