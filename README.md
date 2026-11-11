@@ -160,7 +160,7 @@ Use at your own risk. Skins are client-side only and do not provide any competit
 
 If you find Bocchi helpful and want to support its development:
 
-You can find my crypto wallets inside app if you want to donate to keep app updated.
+You can support me thru [GITHUB SPONSORS](https://github.com/sponsors/0koksal)
 
 Your support helps keep the project alive and motivates continued development!
 
