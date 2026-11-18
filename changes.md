@@ -15,5 +15,5 @@
 - PBE chromas now download and land where Apply looks for them: the PBE download path is read correctly, so a chroma no longer fails with "Invalid GitHub URL format" and the file is stored under PBE/<champion>/ instead of a folder named "skins"
 - PBE chromas now show their own preview image: the PBE index carries each chroma's preview path, so skins whose internal name differs from the display name no longer fall back to the base skin's splash
 - PBE skins no longer report "Update Available", and the silent startup update no longer fails on them: PBE skins are versioned by the PBE index, not by the repository HEAD
-- Auto pick/ban settings now have an Arena plan under Top: Arena queues (1700, 1710 and 1720) use their own picks and bans instead of the Top plan
+- Auto pick/ban settings now have an Arena plan next to Top: Arena queues (1700, 1710 and 1720) use their own picks and bans instead of the Top plan
 - Arena's Bravery is now a pick in that plan: choose it in the main pick slot and Bocchi locks the random champion, falling back to the listed picks if the client refuses it
