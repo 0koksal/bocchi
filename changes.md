@@ -1,12 +1,6 @@
 - Base-slot skins are now repaired by rebuilding the skeleton and mesh (an unused root joint, an unused copy of the last vertex) instead of appending blank bytes at the end: the repaired model draws and animates the same while differing from the game's own, and skins repaired by an earlier Bocchi are re-checked and rebuilt once on the next Apply
 - Base-slot skins also stop naming another skin in their bank units: `Skin<n>`-tagged event names are unlisted from the unit event lists, so LTK Manager's skin-hack check finds no other-skin evidence; the events stay in the shipped banks, and the base-tag aliases the repair merges in keep playing them
-- Base-skin and skinhack repairs now also apply to .modpkg mods imported from a file or downloaded from the marketplace, not just .fantome
-- Apply no longer stops with "Manager cleanup incomplete" when LTK Manager restarts itself under Explorer: Bocchi now follows the surviving manager instead of closing the launcher it started
-- Stale LTK Manager processes are now cleaned up on machines where the WMI/CIM service is unhealthy
-- Apply no longer fails with "Manager did not finish stopping" on a slow PC: a full overlay rebuild is waited out as long as it keeps making progress, a stuck build now says so instead of blaming the stop, and the first Apply on a large library is no longer cut off by a five-minute timeout
-- Base-skin and skinhack repairs now also cover the repository and classic skins in the downloaded-skins folder, which the once-only repair pass used to skip, so LTK Manager no longer rejects the whole overlay for one of them
-- Bocchi now re-checks and repairs a skin right before Apply when it was never checked before (a skin copied in by a bulk download, for example), so a base-slot skin can no longer reach the overlay unrepaired
-- Skins now open in release order, oldest to newest, by default: the Sort By menu leads with "Oldest to Newest" and "Newest to Oldest" (replacing "Skin #"), and the win-rate, pick-rate and play-count options are gone
+
 - Apply is much faster on a large library: the skins checked before Apply are now checked a few at a time instead of one by one, and the whole check can be turned off in Settings for the fastest possible Apply
 - Applying a selection that still needs downloads no longer looks frozen: the selection bar now shows live progress — "Downloading n/total", then "Checking skins n/total", then "Preparing skins..." — with a spinner and progress bar for the whole run-up to the overlay build
 - Download All is about twice as fast: the file-by-file download now keeps 24 files in flight instead of 8 (which left most of the connection idle) and retries a file GitHub drops instead of losing it for the rest of the run
