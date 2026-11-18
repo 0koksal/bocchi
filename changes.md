@@ -1,3 +1,5 @@
+- Base-slot skins are now repaired by rebuilding the skeleton and mesh (an unused root joint, an unused copy of the last vertex) instead of appending blank bytes at the end: the repaired model draws and animates the same while differing from the game's own, and skins repaired by an earlier Bocchi are re-checked and rebuilt once on the next Apply
+- Base-slot skins also stop naming another skin in their bank units: `Skin<n>`-tagged event names are unlisted from the unit event lists, so LTK Manager's skin-hack check finds no other-skin evidence; the events stay in the shipped banks, and the base-tag aliases the repair merges in keep playing them
 - Base-skin and skinhack repairs now also apply to .modpkg mods imported from a file or downloaded from the marketplace, not just .fantome
 - Apply no longer stops with "Manager cleanup incomplete" when LTK Manager restarts itself under Explorer: Bocchi now follows the surviving manager instead of closing the launcher it started
 - Stale LTK Manager processes are now cleaned up on machines where the WMI/CIM service is unhealthy
@@ -5,3 +7,13 @@
 - Base-skin and skinhack repairs now also cover the repository and classic skins in the downloaded-skins folder, which the once-only repair pass used to skip, so LTK Manager no longer rejects the whole overlay for one of them
 - Bocchi now re-checks and repairs a skin right before Apply when it was never checked before (a skin copied in by a bulk download, for example), so a base-slot skin can no longer reach the overlay unrepaired
 - Skins now open in release order, oldest to newest, by default: the Sort By menu leads with "Oldest to Newest" and "Newest to Oldest" (replacing "Skin #"), and the win-rate, pick-rate and play-count options are gone
+- Apply is much faster on a large library: the skins checked before Apply are now checked a few at a time instead of one by one, and the whole check can be turned off in Settings for the fastest possible Apply
+- Applying a selection that still needs downloads no longer looks frozen: the selection bar now shows live progress — "Downloading n/total", then "Checking skins n/total", then "Preparing skins..." — with a spinner and progress bar for the whole run-up to the overlay build
+- Download All is about twice as fast: the file-by-file download now keeps 24 files in flight instead of 8 (which left most of the connection idle) and retries a file GitHub drops instead of losing it for the rest of the run
+- Download All no longer promises "~135 MB" and then pulls 4.3 GB: the estimate now reflects the real repository size, and the concurrency picker goes up to 24 with 24 as the default
+- The PBE tab now carries the 16.24 set: Victorious Riven, Santa Yorick, Snow Day Volibear and Winter Wonder Nami with their 37 chromas
+- PBE chromas now download and land where Apply looks for them: the PBE download path is read correctly, so a chroma no longer fails with "Invalid GitHub URL format" and the file is stored under PBE/<champion>/ instead of a folder named "skins"
+- PBE chromas now show their own preview image: the PBE index carries each chroma's preview path, so skins whose internal name differs from the display name no longer fall back to the base skin's splash
+- PBE skins no longer report "Update Available", and the silent startup update no longer fails on them: PBE skins are versioned by the PBE index, not by the repository HEAD
+- Auto pick/ban settings now have an Arena plan under Top: Arena queues (1700, 1710 and 1720) use their own picks and bans instead of the Top plan
+- Arena's Bravery is now a pick in that plan: choose it in the main pick slot and Bocchi locks the random champion, falling back to the listed picks if the client refuses it
