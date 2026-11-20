@@ -27,7 +27,7 @@ import { gameflowMonitor } from './services/gameflowMonitor'
 import { teamCompositionMonitor } from './services/teamCompositionMonitor'
 import { preselectLobbyMonitor } from './services/preselectLobbyMonitor'
 import { skinApplyService } from './services/skinApplyService'
-import { resolveSkinLitePaths, inspectSkinLite } from './services/skinLiteService'
+import { resolveSkinOverridePaths, inspectSkinOverride } from './services/skinOverrideService'
 import { autoBanPickService } from './services/autoBanPickService'
 import { multiRitoFixesService } from './services/multiRitoFixesService'
 import { skinMigrationService } from './services/skinMigrationService'
@@ -1202,23 +1202,23 @@ function setupIpcHandlers(): void {
 
       // 2. Prepare preset for patcher
       console.log('[Patcher] Successfully processed skins:', successfulSkins)
-      // SkinLite: make each skin override whatever skin is equipped in game (cached variants,
+      // SkinOverride: make each skin override whatever skin is equipped in game (cached variants,
       // the original files are never modified)
-      // Per-skin flag (set in the selected skins drawer) wins over the global setting
-      const skinLiteDefault = settingsService.get('skinLiteMode') === true
-      const skinLitePaths = await resolveSkinLitePaths(
+      // Skin Override applies when the Settings switch is on AND the skin opted in (drawer chip)
+      const skinOverrideOn = settingsService.get('skinOverrideMode') === true
+      const skinOverridePaths = await resolveSkinOverridePaths(
         skinInfosToProcess.map((result, i) => ({
           localPath: result.status === 'fulfilled' ? result.value.localPath : undefined,
           championKey: splitSkinKey(filteredSkins[i])[0],
-          enabled: skinContextMap.get(filteredSkins[i])?.skinLite ?? skinLiteDefault
+          enabled: skinOverrideOn && skinContextMap.get(filteredSkins[i])?.skinOverride === true
         }))
       )
       const validPaths = successfulSkins
-        .flatMap((s) => skinLitePaths.get(s.localPath) ?? [s.localPath])
+        .flatMap((s) => skinOverridePaths.get(s.localPath) ?? [s.localPath])
         .filter((path) => path != null)
 
       // Update Discord RPC to show active skins
-      // SkinLite companions are extra mods, not extra skins
+      // SkinOverride companions are extra mods, not extra skins
       discordRpcService.setInGame(successfulSkins.filter((s) => s.localPath != null).length)
 
       if (validPaths.length === 0) {
@@ -1552,19 +1552,19 @@ function setupIpcHandlers(): void {
         }
 
         console.log('[SmartApply] Successfully processed skins:', successfulSkins)
-        // SkinLite: make each skin override whatever skin is equipped in game (cached variants,
+        // SkinOverride: make each skin override whatever skin is equipped in game (cached variants,
         // the original files are never modified)
-        // Per-skin flag (set in the selected skins drawer) wins over the global setting
-        const skinLiteDefault = settingsService.get('skinLiteMode') === true
-        const skinLitePaths = await resolveSkinLitePaths(
+        // Skin Override applies when the Settings switch is on AND the skin opted in (drawer chip)
+        const skinOverrideOn = settingsService.get('skinOverrideMode') === true
+        const skinOverridePaths = await resolveSkinOverridePaths(
           skinInfosToProcess.map((result, i) => ({
             localPath: result.status === 'fulfilled' ? result.value.localPath : undefined,
             championKey: splitSkinKey(skinKeys[i])[0],
-            enabled: filteredSkins[i]?.skinLite ?? skinLiteDefault
+            enabled: skinOverrideOn && filteredSkins[i]?.skinOverride === true
           }))
         )
         const validPaths = successfulSkins
-          .flatMap((s) => skinLitePaths.get(s.localPath) ?? [s.localPath])
+          .flatMap((s) => skinOverridePaths.get(s.localPath) ?? [s.localPath])
           .filter((path) => path != null)
 
         if (validPaths.length === 0) {
@@ -2217,9 +2217,9 @@ function setupIpcHandlers(): void {
     return app.getVersion()
   })
 
-  // SkinLite: can this mod be shown over any equipped skin? (false for non-skin mods)
-  ipcMain.handle('check-skinlite', async (_, modPath: string, championKey?: string) => {
-    return inspectSkinLite(modPath, championKey)
+  // SkinOverride: can this mod be shown over any equipped skin? (false for non-skin mods)
+  ipcMain.handle('check-skin-override', async (_, modPath: string, championKey?: string) => {
+    return inspectSkinOverride(modPath, championKey)
   })
 
   // Custom skin images

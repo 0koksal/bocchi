@@ -307,8 +307,8 @@ export interface IApi {
     isClassic?: boolean
   ) => Promise<{ success: boolean; url?: string; error?: string }>
 
-  // SkinLite
-  checkSkinLite: (
+  // SkinOverride
+  checkSkinOverride: (
     modPath: string,
     championKey?: string
   ) => Promise<{ applicable: boolean; reason?: string; sourceSkinNum?: number }>

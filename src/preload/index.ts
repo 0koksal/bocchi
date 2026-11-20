@@ -239,9 +239,9 @@ const api = {
   // External links
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
 
-  // SkinLite
-  checkSkinLite: (modPath: string, championKey?: string) =>
-    ipcRenderer.invoke('check-skinlite', modPath, championKey),
+  // SkinOverride
+  checkSkinOverride: (modPath: string, championKey?: string) =>
+    ipcRenderer.invoke('check-skin-override', modPath, championKey),
 
   // Custom skin images
   getCustomSkinImage: (modPath: string) => ipcRenderer.invoke('get-custom-skin-image', modPath),

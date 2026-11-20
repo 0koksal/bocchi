@@ -1,4 +1,4 @@
-# SkinLite — show a custom skin over any equipped skin
+# Skin Override — show a custom skin over any equipped skin
 
 ## The problem
 
@@ -15,9 +15,9 @@ The game reads `skin0.bin` only when the **base skin is equipped**. If the playe
 equipped (skin5, skin12, a chroma…), the game loads `skinN.bin` instead and the mod never shows. The
 current workaround is "select the default skin before the game starts".
 
-## What SkinLite does
+## What Skin Override does
 
-For every other skin index `N` of the champion, SkinLite creates a copy of each `skin0` bin that has
+For every other skin index `N` of the champion, Skin Override creates a copy of each `skin0` bin that has
 been re-identified as `skinN`:
 
 | In the bin | `skin0` → `skinN` |
@@ -47,10 +47,10 @@ How the memory stays low: scanning only reads the WAD header, the entry table an
 that turn out to be PROP bins. STORE-d zip entries and raw wads are read in place with ranged reads;
 deflated entries are streamed once and everything that is not a bin (models, textures, audio) is
 dropped as it goes by. The result is cached, so this happens once per skin (and again only if the
-file changes). The Settings/drawer check (`inspectSkinLite`) uses the same cheap scan and is memoized.
+file changes). The Settings/drawer check (`inspectSkinOverride`) uses the same cheap scan and is memoized.
 
 Raw `.wad` imports have no package to attach a companion to, so they get a standalone copy (`full`
-mode). `createSkinLiteVariant(path, { mode: 'full' })` also produces one standalone package
+mode). `createSkinOverrideVariant(path, { mode: 'full' })` also produces one standalone package
 (original + bins), which is what to hand to another launcher.
 
 No game files and no per-skin data are needed, so it works for **every** package automatically — remote
@@ -61,15 +61,15 @@ patches as long as the package itself does.
 
 | File | Change |
 | --- | --- |
-| `src/main/services/skinLiteService.ts` | **New.** `createSkinLiteVariant`, `resolveSkinLitePaths`, `inspectSkinLite` |
+| `src/main/services/skinOverrideService.ts` | **New.** `createSkinOverrideVariant`, `resolveSkinOverridePaths`, `inspectSkinOverride` |
 | `src/main/services/modRepairService.ts` | Exports `parseWad`, `WadEntry`, `WAD_COMPRESSION`, `writeStoreZip`, `ZipInputEntry` (were module-private; no behaviour change) |
-| `src/main/index.ts` | `run-patcher` and `smart-apply-skins`: when the `skinLiteMode` setting is on, each resolved skin path becomes `[original, companion]` right before `modToolsWrapper.applyPreset` |
-| `src/renderer/src/components/SettingsDialog.tsx` | New toggle bound to the `skinLiteMode` setting |
-| `src/renderer/src/locales/en_US/translation.json` | `settings.skinLiteMode.*` strings (other locales fall back to `en_US`) |
+| `src/main/index.ts` | `run-patcher` and `smart-apply-skins`: when the `skinOverrideMode` setting is on, each resolved skin path becomes `[original, companion]` right before `modToolsWrapper.applyPreset` |
+| `src/renderer/src/components/SettingsDialog.tsx` | Skin Override switch (`skinOverrideMode`) in Skin Management |
+| `src/renderer/src/locales/en_US/translation.json` | `settings.skinOverrideMode.*` strings (other locales fall back to `en_US`) |
 
 Design notes:
 
-- **Original files are never modified.** Companions live in `userData/skinlite-cache/` and are
+- **Original files are never modified.** Companions live in `userData/skin-override-cache/` and are
   generated at apply time. Turning the setting off simply stops using them.
 - **Cache key** = source path + size + mtime + skin list + mode. It is embedded in the file name
   (`Name.sl-<key>.companion.fantome`), so a re-downloaded/updated skin gets a new name and
@@ -87,20 +87,18 @@ Design notes:
 
 ## UI
 
-- **Settings -> SkinLite** is the global default (`skinLiteMode`).
-- **Selected skins drawer**: every skin card has a small **SkinLite** chip (amber = on, shown on hover
-  when off). Clicking it sets a per-skin flag (`SelectedSkin.skinLite`) that overrides the global
-  default for that skin only. `undefined` means "follow the global setting".
-- **Non-skin mods**: the chip is only offered for custom mods that `inspectSkinLite` (IPC
-  `check-skinlite`) finds skin0 bins in. Texture/sound/other mods never show it, and even if the global
-  default is on they are applied unchanged.
-- Apply time (`run-patcher`, `smart-apply-skins`): `enabled = skin.skinLite ?? skinLiteMode`, passed to
-  `resolveSkinLitePaths`.
+- **Settings -> Skin Management -> Skin Override** (`skinOverrideMode`) turns the feature on. Off by default.
+- **Selected skins drawer**: once the switch is on, every skin card shows an **Override** chip (top-left
+  of the image). Clicking it sets `SelectedSkin.skinOverride` for that skin only. **Every skin is off by
+  default**, so users choose which skins use it.
+- At apply time (`run-patcher`, `smart-apply-skins`) a skin is overridden when
+  `skinOverrideMode && skin.skinOverride === true`.
+- **Non-skin mods**: the chip is only offered for custom mods that `inspectSkinOverride` (IPC
+  `check-skin-override`) finds skin0 bins in. Texture/sound/other mods never show it and are always
+  applied unchanged.
 
-Further ideas that are not part of this PR:
-
-1. Run it in `fileImportService` after `repairModFile` and surface `report.reason` for imports.
-2. Add the chip to the multi-select mode and the P2P room skins list.
+Ideas not in this PR: run the check in `fileImportService` and show the reason on import, and add the
+chip to multi-select mode / P2P room skins.
 
 ## Verification
 
@@ -114,6 +112,6 @@ Further ideas that are not part of this PR:
 
 **Not verified:** actually playing a match with an owned skin equipped. The transform is built on how
 the game selects `skinN.bin`; please confirm in a practice game (equip an owned skin such as skin5 with
-SkinLite on, apply, and check the custom skin shows). Anything that depends on data outside the four bin
+Skin Override on, apply, and check the custom skin shows). Anything that depends on data outside the four bin
 types above (e.g. skin-specific VFX bins that are not linked through the skin bin) could still load the
 equipped skin's version.

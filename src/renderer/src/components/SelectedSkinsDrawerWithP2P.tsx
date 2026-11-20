@@ -121,17 +121,17 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
   const [, setShowPresetsDialog] = useAtom(presetDialogOpenAtom)
   const presetCount = useAtomValue(presetCountAtom)
 
-  // SkinLite: the global default comes from Settings; a per-skin flag overrides it
-  const [globalSkinLite, setGlobalSkinLite] = useState(false)
+  // Skin Override: the Settings switch turns the feature on (and shows the chip); each skin opts in
+  const [globalSkinOverride, setGlobalSkinOverride] = useState(false)
   useEffect(() => {
     window.api
-      .getSettings('skinLiteMode')
-      .then((value) => setGlobalSkinLite(value === true))
+      .getSettings('skinOverrideMode')
+      .then((value) => setGlobalSkinOverride(value === true))
       .catch(() => {})
   }, [isExpanded])
-  const isSkinLiteOn = (skin: SelectedSkin) => skin.skinLite ?? globalSkinLite
+  const isSkinOverrideOn = (skin: SelectedSkin) => skin.skinOverride === true
 
-  // Custom mods are not always skins: only offer SkinLite when the mod has skin0 bins to re-identify
+  // Custom mods are not always skins: only offer SkinOverride when the mod has skin0 bins to re-identify
   const isCustomMod = (skin: SelectedSkin) =>
     skin.championKey === 'Custom' || skin.skinId.startsWith('custom_[User] ')
   const getCustomModPath = (skin: SelectedSkin): string | undefined => {
@@ -144,25 +144,26 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
     return downloadedSkins.find((ds) => ds.skinName.replace(/\.(zip|fantome)$/i, '') === modFileBase)
       ?.localPath
   }
-  const [skinLiteApplicable, setSkinLiteApplicable] = useState<Record<string, boolean>>({})
-  const skinLiteChecked = useRef(new Set<string>())
+  const [skinOverrideApplicable, setSkinOverrideApplicable] = useState<Record<string, boolean>>({})
+  const skinOverrideChecked = useRef(new Set<string>())
   useEffect(() => {
     for (const skin of selectedSkins) {
       if (!isCustomMod(skin)) continue
       const modPath = getCustomModPath(skin)
-      if (!modPath || skinLiteChecked.current.has(modPath)) continue
-      skinLiteChecked.current.add(modPath)
+      if (!modPath || skinOverrideChecked.current.has(modPath)) continue
+      skinOverrideChecked.current.add(modPath)
       window.api
-        .checkSkinLite(modPath, skin.championKey)
-        .then((r) => setSkinLiteApplicable((prev) => ({ ...prev, [modPath]: r.applicable })))
-        .catch(() => skinLiteChecked.current.delete(modPath))
+        .checkSkinOverride(modPath, skin.championKey)
+        .then((r) => setSkinOverrideApplicable((prev) => ({ ...prev, [modPath]: r.applicable })))
+        .catch(() => skinOverrideChecked.current.delete(modPath))
     }
   }, [selectedSkins, downloadedSkins])
   // Repository skins are always skins; custom mods only when the check above says so
-  const canSkinLite = (skin: SelectedSkin) => {
+  const canSkinOverride = (skin: SelectedSkin) => {
+    if (!globalSkinOverride) return false
     if (!isCustomMod(skin)) return true
     const modPath = getCustomModPath(skin)
-    return !!modPath && skinLiteApplicable[modPath] === true
+    return !!modPath && skinOverrideApplicable[modPath] === true
   }
 
   // Multi-select (delete-only) state
@@ -371,10 +372,10 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
   const skinKey = (skin: SelectedSkin) =>
     `${skin.championKey}__${skin.skinId}__${skin.chromaId || ''}__${skin.variantId || ''}`
 
-  const toggleSkinLite = (skin: SelectedSkin) => {
+  const toggleSkinOverride = (skin: SelectedSkin) => {
     const key = skinKey(skin)
     setSelectedSkins((prev) =>
-      prev.map((s) => (skinKey(s) === key ? { ...s, skinLite: !isSkinLiteOn(s) } : s))
+      prev.map((s) => (skinKey(s) === key ? { ...s, skinOverride: !isSkinOverrideOn(s) } : s))
     )
   }
 
@@ -1052,22 +1053,22 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
                                           {t('skins.autoSelected')}
                                         </div>
                                       )}
-                                      {/* SkinLite: show this skin over whatever skin is equipped in game */}
-                                      {canSkinLite(skin) && (
+                                      {/* SkinOverride: show this skin over whatever skin is equipped in game */}
+                                      {canSkinOverride(skin) && (
                                         <button
-                                          className={`absolute bottom-0.5 left-0.5 z-20 flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium shadow-sm transition-opacity ${
-                                            isSkinLiteOn(skin)
+                                          className={`absolute ${skin.isAutoSelected ? 'top-5' : 'top-0.5'} left-0.5 z-20 flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium shadow-sm transition-colors ${
+                                            isSkinOverrideOn(skin)
                                               ? 'bg-amber-500 text-white opacity-100'
-                                              : 'bg-black/60 text-white/80 opacity-0 group-hover:opacity-100'
+                                              : 'bg-black/60 text-white/80 hover:bg-black/80'
                                           }`}
                                           title={
-                                            isSkinLiteOn(skin) ? t('skins.skinLite.disable') : t('skins.skinLite.enable')
+                                            isSkinOverrideOn(skin) ? t('skins.skinOverride.disable') : t('skins.skinOverride.enable')
                                           }
-                                          onClick={() => toggleSkinLite(skin)}
+                                          onClick={() => toggleSkinOverride(skin)}
                                           disabled={loading}
                                         >
                                           <Sparkles className="w-2.5 h-2.5" />
-                                          {t('skins.skinLite.badge')}
+                                          {t('skins.skinOverride.badge')}
                                         </button>
                                       )}
                                       <button

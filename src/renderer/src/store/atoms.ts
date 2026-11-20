@@ -38,7 +38,7 @@ export interface SelectedSkin {
   isDownloaded?: boolean
   isAutoSelected?: boolean
   downloadedFilename?: string // Stores the actual filename used when downloading
-  skinLite?: boolean // Per-skin SkinLite override; undefined follows the global setting
+  skinOverride?: boolean // Per-skin SkinOverride override; undefined follows the global setting
 }
 
 // Auto-synced skin from P2P room member

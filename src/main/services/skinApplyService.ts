@@ -11,7 +11,7 @@ interface SelectedSkin {
   chromaId?: string
   isDownloaded?: boolean
   isAutoSynced?: boolean
-  skinLite?: boolean
+  skinOverride?: boolean
 }
 
 interface FilteredSkins {

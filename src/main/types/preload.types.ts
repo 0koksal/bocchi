@@ -14,7 +14,7 @@ export interface SelectedSkin {
   isDownloaded?: boolean
   isAutoSelected?: boolean
   downloadedFilename?: string
-  skinLite?: boolean // Per-skin SkinLite override; undefined follows the global setting
+  skinOverride?: boolean // Per-skin SkinOverride override; undefined follows the global setting
 }
 
 export interface AutoSyncedSkin extends SelectedSkin {

@@ -86,7 +86,7 @@ export function SettingsDialog({
   const [includeChromasInRandom, setIncludeChromasInRandom] = useState(false)
   const [autoAcceptEnabled, setAutoAcceptEnabled] = useState(false)
   const [autoFixModIssues, setAutoFixModIssues] = useState(false)
-  const [skinLiteMode, setSkinLiteMode] = useState(false)
+  const [skinOverrideMode, setSkinOverrideMode] = useState(false)
   const [minimizeToTray, setMinimizeToTray] = useState(false)
   const [auxWindowEnabled, setAuxWindowEnabled] = useState(true)
   const [discordRpcEnabled, setDiscordRpcEnabled] = useState(true)
@@ -237,7 +237,7 @@ export function SettingsDialog({
 
       setAutoAcceptEnabled((settings.autoAcceptEnabled as boolean | undefined) === true)
       setAutoFixModIssues((settings.autoFixModIssues as boolean | undefined) === true)
-      setSkinLiteMode((settings.skinLiteMode as boolean | undefined) === true)
+      setSkinOverrideMode((settings.skinOverrideMode as boolean | undefined) === true)
       setMinimizeToTray((settings.minimizeToTray as boolean | undefined) === true)
       setAuxWindowEnabled((settings.auxWindowEnabled as boolean | undefined) !== false)
       setDiscordRpcEnabled((settings.discordRpcEnabled as boolean | undefined) !== false)
@@ -502,12 +502,12 @@ export function SettingsDialog({
     }
   }
 
-  const handleSkinLiteModeChange = async (checked: boolean) => {
-    setSkinLiteMode(checked)
+  const handleSkinOverrideModeChange = async (checked: boolean) => {
+    setSkinOverrideMode(checked)
     try {
-      await window.api.setSettings('skinLiteMode', checked)
+      await window.api.setSettings('skinOverrideMode', checked)
     } catch (error) {
-      console.error('Failed to save SkinLite setting:', error)
+      console.error('Failed to save SkinOverride setting:', error)
     }
   }
 
@@ -1114,19 +1114,19 @@ export function SettingsDialog({
               />
             </div>
 
-            {/* SkinLite Setting */}
+            {/* SkinOverride Setting */}
             <div className="flex items-center justify-between space-x-4">
               <div className="flex-1">
                 <h3 className="text-sm font-medium text-text-primary">
-                  {t('settings.skinLiteMode.title')}
+                  {t('settings.skinOverrideMode.title')}
                 </h3>
                 <p className="text-xs text-text-secondary mt-1">
-                  {t('settings.skinLiteMode.description')}
+                  {t('settings.skinOverrideMode.description')}
                 </p>
               </div>
               <Switch
-                checked={skinLiteMode}
-                onCheckedChange={handleSkinLiteModeChange}
+                checked={skinOverrideMode}
+                onCheckedChange={handleSkinOverrideModeChange}
                 disabled={loading}
               />
             </div>
