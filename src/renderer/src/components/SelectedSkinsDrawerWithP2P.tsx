@@ -1056,34 +1056,28 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
                                       )}
                                       {/* SkinOverride: show this skin over whatever skin is equipped in game */}
                                       {canSkinOverride(skin) && (
-                                        <div
-                                          className={`absolute inset-0 z-20 pointer-events-none rounded ${
-                                            isSkinOverrideOn(skin) ? 'ring-[3px] ring-inset ring-amber-400' : ''
+                                        <button
+                                          className={`absolute ${skin.isAutoSelected ? 'top-5' : 'top-1'} left-1 z-20 flex items-center gap-0.5 rounded-md border py-0.5 pl-1 pr-1.5 text-[10px] font-bold leading-tight shadow-md transition-colors ${
+                                            isSkinOverrideOn(skin)
+                                              ? 'border-white bg-amber-400 text-gray-900 hover:bg-amber-300'
+                                              : 'border-white/55 bg-slate-900/90 text-white hover:bg-slate-900'
                                           }`}
+                                          title={
+                                            isSkinOverrideOn(skin)
+                                              ? t('skins.skinOverride.disable')
+                                              : t('skins.skinOverride.enable')
+                                          }
+                                          onClick={() => toggleSkinOverride(skin)}
+                                          disabled={loading}
                                         >
-                                          <button
-                                            className={`pointer-events-auto absolute ${skin.isAutoSelected ? 'top-6' : 'top-1.5'} left-1.5 flex items-center gap-1 rounded-lg border-2 py-1 pl-1.5 pr-2 text-xs font-bold leading-none shadow-lg transition-colors ${
-                                              isSkinOverrideOn(skin)
-                                                ? 'border-white bg-amber-400 text-gray-900 hover:bg-amber-300'
-                                                : 'border-white/60 bg-slate-900/90 text-white hover:bg-slate-900'
-                                            }`}
-                                            title={
-                                              isSkinOverrideOn(skin)
-                                                ? t('skins.skinOverride.disable')
-                                                : t('skins.skinOverride.enable')
-                                            }
-                                            onClick={() => toggleSkinOverride(skin)}
-                                            disabled={loading}
-                                          >
-                                            {isSkinOverrideOn(skin) ? (
-                                              <Check className="h-3.5 w-3.5" strokeWidth={4} />
-                                            ) : (
-                                              <Circle className="h-3.5 w-3.5" strokeWidth={3.5} />
-                                            )}
-                                            {t('skins.skinOverride.badge')}
-                                          </button>
-                                        </div>
-                                      ) }
+                                          {isSkinOverrideOn(skin) ? (
+                                            <Check className="h-2.5 w-2.5" strokeWidth={4} />
+                                          ) : (
+                                            <Circle className="h-2.5 w-2.5" strokeWidth={3.5} />
+                                          )}
+                                          {t('skins.skinOverride.badge')}
+                                        </button>
+                                      )}
                                       <button
                                         className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                                         onClick={() => removeSkin(skin)}
