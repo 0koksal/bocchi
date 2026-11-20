@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useAtom, useAtomValue } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import { selectedSkinsAtom, selectedSkinsDrawerExpandedAtom, p2pRoomAtom } from '../store/atoms'
@@ -130,6 +130,40 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
       .catch(() => {})
   }, [isExpanded])
   const isSkinLiteOn = (skin: SelectedSkin) => skin.skinLite ?? globalSkinLite
+
+  // Custom mods are not always skins: only offer SkinLite when the mod has skin0 bins to re-identify
+  const isCustomMod = (skin: SelectedSkin) =>
+    skin.championKey === 'Custom' || skin.skinId.startsWith('custom_[User] ')
+  const getCustomModPath = (skin: SelectedSkin): string | undefined => {
+    if (skin.championKey === 'Custom') {
+      return downloadedSkins.find(
+        (ds) => ds.championName === 'Custom' && ds.skinName.includes(skin.skinName)
+      )?.localPath
+    }
+    const modFileBase = skin.skinId.replace('custom_', '').replace(/\.(zip|fantome)$/i, '')
+    return downloadedSkins.find((ds) => ds.skinName.replace(/\.(zip|fantome)$/i, '') === modFileBase)
+      ?.localPath
+  }
+  const [skinLiteApplicable, setSkinLiteApplicable] = useState<Record<string, boolean>>({})
+  const skinLiteChecked = useRef(new Set<string>())
+  useEffect(() => {
+    for (const skin of selectedSkins) {
+      if (!isCustomMod(skin)) continue
+      const modPath = getCustomModPath(skin)
+      if (!modPath || skinLiteChecked.current.has(modPath)) continue
+      skinLiteChecked.current.add(modPath)
+      window.api
+        .checkSkinLite(modPath, skin.championKey)
+        .then((r) => setSkinLiteApplicable((prev) => ({ ...prev, [modPath]: r.applicable })))
+        .catch(() => skinLiteChecked.current.delete(modPath))
+    }
+  }, [selectedSkins, downloadedSkins])
+  // Repository skins are always skins; custom mods only when the check above says so
+  const canSkinLite = (skin: SelectedSkin) => {
+    if (!isCustomMod(skin)) return true
+    const modPath = getCustomModPath(skin)
+    return !!modPath && skinLiteApplicable[modPath] === true
+  }
 
   // Multi-select (delete-only) state
   const [multiSelectMode, setMultiSelectMode] = useState(false)
@@ -1019,21 +1053,23 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
                                         </div>
                                       )}
                                       {/* SkinLite: show this skin over whatever skin is equipped in game */}
-                                      <button
-                                        className={`absolute bottom-0.5 left-0.5 z-20 flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium shadow-sm transition-opacity ${
-                                          isSkinLiteOn(skin)
-                                            ? 'bg-amber-500 text-white opacity-100'
-                                            : 'bg-black/60 text-white/80 opacity-0 group-hover:opacity-100'
-                                        }`}
-                                        title={
-                                          isSkinLiteOn(skin) ? t('skins.skinLite.disable') : t('skins.skinLite.enable')
-                                        }
-                                        onClick={() => toggleSkinLite(skin)}
-                                        disabled={loading}
-                                      >
-                                        <Sparkles className="w-2.5 h-2.5" />
-                                        {t('skins.skinLite.badge')}
-                                      </button>
+                                      {canSkinLite(skin) && (
+                                        <button
+                                          className={`absolute bottom-0.5 left-0.5 z-20 flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium shadow-sm transition-opacity ${
+                                            isSkinLiteOn(skin)
+                                              ? 'bg-amber-500 text-white opacity-100'
+                                              : 'bg-black/60 text-white/80 opacity-0 group-hover:opacity-100'
+                                          }`}
+                                          title={
+                                            isSkinLiteOn(skin) ? t('skins.skinLite.disable') : t('skins.skinLite.enable')
+                                          }
+                                          onClick={() => toggleSkinLite(skin)}
+                                          disabled={loading}
+                                        >
+                                          <Sparkles className="w-2.5 h-2.5" />
+                                          {t('skins.skinLite.badge')}
+                                        </button>
+                                      )}
                                       <button
                                         className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                                         onClick={() => removeSkin(skin)}

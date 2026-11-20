@@ -239,6 +239,10 @@ const api = {
   // External links
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
 
+  // SkinLite
+  checkSkinLite: (modPath: string, championKey?: string) =>
+    ipcRenderer.invoke('check-skinlite', modPath, championKey),
+
   // Custom skin images
   getCustomSkinImage: (modPath: string) => ipcRenderer.invoke('get-custom-skin-image', modPath),
   getCustomSkinImages: (modPaths: string[]) =>

@@ -27,7 +27,7 @@ import { gameflowMonitor } from './services/gameflowMonitor'
 import { teamCompositionMonitor } from './services/teamCompositionMonitor'
 import { preselectLobbyMonitor } from './services/preselectLobbyMonitor'
 import { skinApplyService } from './services/skinApplyService'
-import { resolveSkinLitePaths } from './services/skinLiteService'
+import { resolveSkinLitePaths, inspectSkinLite } from './services/skinLiteService'
 import { autoBanPickService } from './services/autoBanPickService'
 import { multiRitoFixesService } from './services/multiRitoFixesService'
 import { skinMigrationService } from './services/skinMigrationService'
@@ -2214,6 +2214,11 @@ function setupIpcHandlers(): void {
   // App info
   ipcMain.handle('get-app-version', () => {
     return app.getVersion()
+  })
+
+  // SkinLite: can this mod be shown over any equipped skin? (false for non-skin mods)
+  ipcMain.handle('check-skinlite', async (_, modPath: string, championKey?: string) => {
+    return inspectSkinLite(modPath, championKey)
   })
 
   // Custom skin images

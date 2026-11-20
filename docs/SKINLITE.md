@@ -64,15 +64,16 @@ Design notes:
 - **Selected skins drawer**: every skin card has a small **SkinLite** chip (amber = on, shown on hover
   when off). Clicking it sets a per-skin flag (`SelectedSkin.skinLite`) that overrides the global
   default for that skin only. `undefined` means "follow the global setting".
+- **Non-skin mods**: the chip is only offered for custom mods that `inspectSkinLite` (IPC
+  `check-skinlite`) finds skin0 bins in. Texture/sound/other mods never show it, and even if the global
+  default is on they are applied unchanged.
 - Apply time (`run-patcher`, `smart-apply-skins`): `enabled = skin.skinLite ?? skinLiteMode`, passed to
   `resolveSkinLitePaths`.
 
 Further ideas that are not part of this PR:
 
-1. Show whether a skin is *applicable* (`createSkinLiteVariant(...).applicable`, `sourceSkinNum`) on the
-   chip, e.g. grey it out for mods without skin0 bins.
-2. Run it in `fileImportService` after `repairModFile` and surface `report.reason` for imports.
-3. Add the chip to the multi-select mode and the P2P room skins list.
+1. Run it in `fileImportService` after `repairModFile` and surface `report.reason` for imports.
+2. Add the chip to the multi-select mode and the P2P room skins list.
 
 ## Verification
 

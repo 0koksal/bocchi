@@ -234,14 +234,26 @@ interface WadResult {
   reason?: string
 }
 
-function skinLiteWad(
-  data: Buffer,
-  skinNums: number[],
-  hintChamps: string[],
-  compress: Compressor
-): WadResult {
+interface Template {
+  char: string
+  kind: 'skins' | 'animations'
+  buf: Buffer
+  header: BinHeader
+}
+
+interface WadScan {
+  info: NonNullable<ReturnType<typeof parseWad>>
+  byHash: Map<bigint, number>
+  chars: Set<string>
+  templates: Template[]
+  /** Skin the package was rebased from (e.g. 28), if its skin0 bin links to one. */
+  sourceSkinNum?: number
+}
+
+/** Find the skin0 bins SkinLite can re-identify inside a WAD (no output is produced). */
+function scanWad(data: Buffer, hintChamps: string[]): WadScan | { reason: string } {
   const info = parseWad(data)
-  if (!info) return { wad: null, generated: 0, reason: 'not a v3 WAD' }
+  if (!info) return { reason: 'not a v3 WAD' }
 
   const byHash = new Map<bigint, number>()
   info.entries.forEach((e, i) => byHash.set(e.hash, i))
@@ -266,12 +278,6 @@ function skinLiteWad(
   })
 
   // 2. Locate the skin0 templates inside the WAD.
-  interface Template {
-    char: string
-    kind: 'skins' | 'animations'
-    buf: Buffer
-    header: BinHeader
-  }
   const templates: Template[] = []
   for (const char of chars) {
     for (const kind of ['skins', 'animations'] as const) {
@@ -280,9 +286,7 @@ function skinLiteWad(
       if (cached) templates.push({ char, kind, ...cached })
     }
   }
-  if (templates.length === 0) {
-    return { wad: null, generated: 0, reason: 'no skin0 bins in package' }
-  }
+  if (templates.length === 0) return { reason: 'no skin0 bins in package' }
 
   // 3. The skin the package was rebased from must not be overridden: its real bin is the
   //    dependency of our skin0 bin, and replacing it would make it link to itself.
@@ -295,6 +299,18 @@ function skinLiteWad(
       }
     }
   }
+  return { info, byHash, chars, templates, sourceSkinNum }
+}
+
+function skinLiteWad(
+  data: Buffer,
+  skinNums: number[],
+  hintChamps: string[],
+  compress: Compressor
+): WadResult {
+  const scan = scanWad(data, hintChamps)
+  if ('reason' in scan) return { wad: null, generated: 0, reason: scan.reason }
+  const { info, byHash, chars, templates, sourceSkinNum } = scan
 
   // 4. Add a re-identified copy of every template for every other skin index.
   const allChars = [...chars]
@@ -491,4 +507,44 @@ export async function resolveSkinLitePaths(
     })
   )
   return out
+}
+
+/**
+ * Cheap check used by the UI: can SkinLite do anything with this package?
+ * False for mods that are not rebased skins (no skin0 bins), e.g. texture or sound mods.
+ */
+export async function inspectSkinLite(
+  srcPath: string,
+  championKey?: string
+): Promise<{ applicable: boolean; reason?: string; sourceSkinNum?: number }> {
+  try {
+    await ensureXXHashReady()
+    const lower = srcPath.toLowerCase()
+    const hints = championKey && championKey !== 'Custom' ? [championKey] : []
+    const wads: Buffer[] = []
+    if (lower.endsWith('.wad.client') || lower.endsWith('.wad')) {
+      wads.push(await fs.readFile(srcPath))
+    } else if (lower.endsWith('.fantome') || lower.endsWith('.zip')) {
+      const zip = new StreamZip.async({ file: srcPath })
+      try {
+        for (const entry of Object.values(await zip.entries())) {
+          const name = entry.name.replaceAll('\\', '/').toUpperCase()
+          if (!entry.isDirectory && name.startsWith('WAD/') && /\.WAD(\.CLIENT)?$/.test(name)) {
+            wads.push(Buffer.from(await zip.entryData(entry)))
+          }
+        }
+      } finally {
+        await zip.close()
+      }
+    } else {
+      return { applicable: false, reason: 'unsupported file type' }
+    }
+    for (const wad of wads) {
+      const scan = scanWad(wad, hints)
+      if (!('reason' in scan)) return { applicable: true, sourceSkinNum: scan.sourceSkinNum }
+    }
+    return { applicable: false, reason: 'no skin0 bins in package' }
+  } catch (err) {
+    return { applicable: false, reason: 'error: ' + (err instanceof Error ? err.message : String(err)) }
+  }
 }

@@ -307,6 +307,12 @@ export interface IApi {
     isClassic?: boolean
   ) => Promise<{ success: boolean; url?: string; error?: string }>
 
+  // SkinLite
+  checkSkinLite: (
+    modPath: string,
+    championKey?: string
+  ) => Promise<{ applicable: boolean; reason?: string; sourceSkinNum?: number }>
+
   // Custom skin images
   getCustomSkinImage: (
     modPath: string
