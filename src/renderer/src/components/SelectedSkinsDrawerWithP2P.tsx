@@ -23,7 +23,8 @@ import {
   GitMerge,
   Save,
   Brush,
-  Sparkles
+  Check,
+  Circle
 } from 'lucide-react'
 import SortableList, { SortableItem, SortableKnob } from 'react-easy-sort'
 import { arrayMoveImmutable } from 'array-move'
@@ -1055,22 +1056,34 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
                                       )}
                                       {/* SkinOverride: show this skin over whatever skin is equipped in game */}
                                       {canSkinOverride(skin) && (
-                                        <button
-                                          className={`absolute ${skin.isAutoSelected ? 'top-5' : 'top-0.5'} left-0.5 z-20 flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium shadow-sm transition-colors ${
-                                            isSkinOverrideOn(skin)
-                                              ? 'bg-amber-500 text-white opacity-100'
-                                              : 'bg-black/60 text-white/80 hover:bg-black/80'
+                                        <div
+                                          className={`absolute inset-0 z-20 pointer-events-none rounded ${
+                                            isSkinOverrideOn(skin) ? 'ring-[3px] ring-inset ring-amber-400' : ''
                                           }`}
-                                          title={
-                                            isSkinOverrideOn(skin) ? t('skins.skinOverride.disable') : t('skins.skinOverride.enable')
-                                          }
-                                          onClick={() => toggleSkinOverride(skin)}
-                                          disabled={loading}
                                         >
-                                          <Sparkles className="w-2.5 h-2.5" />
-                                          {t('skins.skinOverride.badge')}
-                                        </button>
-                                      )}
+                                          <button
+                                            className={`pointer-events-auto absolute ${skin.isAutoSelected ? 'top-6' : 'top-1.5'} left-1.5 flex items-center gap-1 rounded-lg border-2 py-1 pl-1.5 pr-2 text-xs font-bold leading-none shadow-lg transition-colors ${
+                                              isSkinOverrideOn(skin)
+                                                ? 'border-white bg-amber-400 text-gray-900 hover:bg-amber-300'
+                                                : 'border-white/60 bg-slate-900/90 text-white hover:bg-slate-900'
+                                            }`}
+                                            title={
+                                              isSkinOverrideOn(skin)
+                                                ? t('skins.skinOverride.disable')
+                                                : t('skins.skinOverride.enable')
+                                            }
+                                            onClick={() => toggleSkinOverride(skin)}
+                                            disabled={loading}
+                                          >
+                                            {isSkinOverrideOn(skin) ? (
+                                              <Check className="h-3.5 w-3.5" strokeWidth={4} />
+                                            ) : (
+                                              <Circle className="h-3.5 w-3.5" strokeWidth={3.5} />
+                                            )}
+                                            {t('skins.skinOverride.badge')}
+                                          </button>
+                                        </div>
+                                      ) }
                                       <button
                                         className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                                         onClick={() => removeSkin(skin)}

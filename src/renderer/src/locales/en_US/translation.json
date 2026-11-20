@@ -475,8 +475,8 @@
     "notDownloaded": "Not Downloaded",
     "skinOverride": {
       "badge": "Override",
-      "enable": "Skin Override off: click to show this skin even when another skin is equipped",
-      "disable": "Skin Override on: click to turn it off for this skin"
+      "enable": "Skin Override OFF for this skin. Click to show it even when another skin is equipped.",
+      "disable": "Skin Override ON for this skin. Click to turn it off."
     },
     "repository": "Repository Skins",
     "customImports": "Custom Imports",
