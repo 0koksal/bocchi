@@ -601,9 +601,9 @@ function writeBin(bin: BinFile): Buffer {
 
 // ── WAD handling ─────────────────────────────────────────────────────────────
 
-const WAD_COMPRESSION = { RAW: 0, GZIP: 1, ZSTD: 3, ZSTD_CHUNKED: 4 } as const
+export const WAD_COMPRESSION = { RAW: 0, GZIP: 1, ZSTD: 3, ZSTD_CHUNKED: 4 } as const
 
-interface WadEntry {
+export interface WadEntry {
   hash: bigint
   offset: number
   compressedSize: number
@@ -612,7 +612,7 @@ interface WadEntry {
   tail: Buffer // subchunk index (3 bytes) + checksum (8 bytes), copied verbatim
 }
 
-function parseWad(data: Buffer): { major: number; minor: number; entries: WadEntry[] } | null {
+export function parseWad(data: Buffer): { major: number; minor: number; entries: WadEntry[] } | null {
   if (data.length < 4 || data[0] !== 0x52 || data[1] !== 0x57) return null // "RW"
   const major = data[2]
   const minor = data[3]
@@ -708,12 +708,12 @@ function crc32(buf: Buffer): number {
   return (c ^ 0xffffffff) >>> 0
 }
 
-interface ZipInputEntry {
+export interface ZipInputEntry {
   name: string
   data: Buffer
 }
 
-function writeStoreZip(entries: ZipInputEntry[]): Buffer {
+export function writeStoreZip(entries: ZipInputEntry[]): Buffer {
   const local: Buffer[] = []
   const central: Buffer[] = []
   let offset = 0

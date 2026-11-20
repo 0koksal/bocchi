@@ -27,6 +27,7 @@ import { gameflowMonitor } from './services/gameflowMonitor'
 import { teamCompositionMonitor } from './services/teamCompositionMonitor'
 import { preselectLobbyMonitor } from './services/preselectLobbyMonitor'
 import { skinApplyService } from './services/skinApplyService'
+import { resolveSkinLitePaths } from './services/skinLiteService'
 import { autoBanPickService } from './services/autoBanPickService'
 import { multiRitoFixesService } from './services/multiRitoFixesService'
 import { skinMigrationService } from './services/skinMigrationService'
@@ -1201,7 +1202,20 @@ function setupIpcHandlers(): void {
 
       // 2. Prepare preset for patcher
       console.log('[Patcher] Successfully processed skins:', successfulSkins)
-      const validPaths = successfulSkins.map((s) => s.localPath).filter((path) => path != null)
+      // SkinLite: make each skin override whatever skin is equipped in game (cached variants,
+      // the original files are never modified)
+      const skinLitePaths =
+        settingsService.get('skinLiteMode') === true
+          ? await resolveSkinLitePaths(
+              skinInfosToProcess.map((result, i) => ({
+                localPath: result.status === 'fulfilled' ? result.value.localPath : undefined,
+                championKey: splitSkinKey(filteredSkins[i])[0]
+              }))
+            )
+          : new Map<string, string>()
+      const validPaths = successfulSkins
+        .map((s) => skinLitePaths.get(s.localPath) ?? s.localPath)
+        .filter((path) => path != null)
 
       // Update Discord RPC to show active skins
       discordRpcService.setInGame(validPaths.length)
@@ -1537,7 +1551,20 @@ function setupIpcHandlers(): void {
         }
 
         console.log('[SmartApply] Successfully processed skins:', successfulSkins)
-        const validPaths = successfulSkins.map((s) => s.localPath).filter((path) => path != null)
+        // SkinLite: make each skin override whatever skin is equipped in game (cached variants,
+        // the original files are never modified)
+        const skinLitePaths =
+          settingsService.get('skinLiteMode') === true
+            ? await resolveSkinLitePaths(
+                skinInfosToProcess.map((result, i) => ({
+                  localPath: result.status === 'fulfilled' ? result.value.localPath : undefined,
+                  championKey: splitSkinKey(skinKeys[i])[0]
+                }))
+              )
+            : new Map<string, string>()
+        const validPaths = successfulSkins
+          .map((s) => skinLitePaths.get(s.localPath) ?? s.localPath)
+          .filter((path) => path != null)
 
         if (validPaths.length === 0) {
           console.error('[SmartApply] No valid skin paths found!')

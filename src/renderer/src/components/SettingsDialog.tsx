@@ -86,6 +86,7 @@ export function SettingsDialog({
   const [includeChromasInRandom, setIncludeChromasInRandom] = useState(false)
   const [autoAcceptEnabled, setAutoAcceptEnabled] = useState(false)
   const [autoFixModIssues, setAutoFixModIssues] = useState(false)
+  const [skinLiteMode, setSkinLiteMode] = useState(false)
   const [minimizeToTray, setMinimizeToTray] = useState(false)
   const [auxWindowEnabled, setAuxWindowEnabled] = useState(true)
   const [discordRpcEnabled, setDiscordRpcEnabled] = useState(true)
@@ -236,6 +237,7 @@ export function SettingsDialog({
 
       setAutoAcceptEnabled((settings.autoAcceptEnabled as boolean | undefined) === true)
       setAutoFixModIssues((settings.autoFixModIssues as boolean | undefined) === true)
+      setSkinLiteMode((settings.skinLiteMode as boolean | undefined) === true)
       setMinimizeToTray((settings.minimizeToTray as boolean | undefined) === true)
       setAuxWindowEnabled((settings.auxWindowEnabled as boolean | undefined) !== false)
       setDiscordRpcEnabled((settings.discordRpcEnabled as boolean | undefined) !== false)
@@ -497,6 +499,15 @@ export function SettingsDialog({
       await window.api.setSettings('autoFixModIssues', checked)
     } catch (error) {
       console.error('Failed to save auto fix mod issues setting:', error)
+    }
+  }
+
+  const handleSkinLiteModeChange = async (checked: boolean) => {
+    setSkinLiteMode(checked)
+    try {
+      await window.api.setSettings('skinLiteMode', checked)
+    } catch (error) {
+      console.error('Failed to save SkinLite setting:', error)
     }
   }
 
@@ -1099,6 +1110,23 @@ export function SettingsDialog({
               <Switch
                 checked={autoFixModIssues}
                 onCheckedChange={handleAutoFixModIssuesChange}
+                disabled={loading}
+              />
+            </div>
+
+            {/* SkinLite Setting */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-text-primary">
+                  {t('settings.skinLiteMode.title')}
+                </h3>
+                <p className="text-xs text-text-secondary mt-1">
+                  {t('settings.skinLiteMode.description')}
+                </p>
+              </div>
+              <Switch
+                checked={skinLiteMode}
+                onCheckedChange={handleSkinLiteModeChange}
                 disabled={loading}
               />
             </div>

@@ -241,6 +241,10 @@
       "title": "Auto-fix mod issues on import",
       "description": "Automatically fix missing health bars, materials, and VFX when importing mods"
     },
+    "skinLiteMode": {
+      "title": "SkinLite (show custom skins over equipped skins)",
+      "description": "Custom skins also replace the skin you have equipped in game, so you can keep an owned skin selected and still see your custom skin. Works with skin packages built on the base skin; other mods are applied unchanged."
+    },
     "modToolsTimeout": {
       "title": "Mod Tools Timeout",
       "description": "Maximum time to wait for mod import and overlay creation operations",
