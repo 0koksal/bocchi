@@ -1214,11 +1214,12 @@ function setupIpcHandlers(): void {
         }))
       )
       const validPaths = successfulSkins
-        .map((s) => skinLitePaths.get(s.localPath) ?? s.localPath)
+        .flatMap((s) => skinLitePaths.get(s.localPath) ?? [s.localPath])
         .filter((path) => path != null)
 
       // Update Discord RPC to show active skins
-      discordRpcService.setInGame(validPaths.length)
+      // SkinLite companions are extra mods, not extra skins
+      discordRpcService.setInGame(successfulSkins.filter((s) => s.localPath != null).length)
 
       if (validPaths.length === 0) {
         console.error('[Patcher] No valid skin paths found!')
@@ -1563,7 +1564,7 @@ function setupIpcHandlers(): void {
           }))
         )
         const validPaths = successfulSkins
-          .map((s) => skinLitePaths.get(s.localPath) ?? s.localPath)
+          .flatMap((s) => skinLitePaths.get(s.localPath) ?? [s.localPath])
           .filter((path) => path != null)
 
         if (validPaths.length === 0) {
