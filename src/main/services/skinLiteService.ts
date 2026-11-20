@@ -471,16 +471,16 @@ export async function getSkinNumsForChampion(championKey: string): Promise<numbe
 /**
  * Build SkinLite variants for a batch of resolved skin files (used right before applying).
  * Returns originalPath -> variantPath for every package SkinLite could handle; callers fall
- * back to the original path for everything else.
+ * back to the original path for everything else. Items with `enabled: false` are skipped.
  */
 export async function resolveSkinLitePaths(
-  items: Array<{ localPath?: string | null; championKey?: string }>
+  items: Array<{ localPath?: string | null; championKey?: string; enabled?: boolean }>
 ): Promise<Map<string, string>> {
   const cacheDir = path.join(app.getPath('userData'), 'skinlite-cache')
   const out = new Map<string, string>()
   await Promise.all(
-    items.map(async ({ localPath, championKey }) => {
-      if (!localPath) return
+    items.map(async ({ localPath, championKey, enabled = true }) => {
+      if (!localPath || !enabled) return
       const known = !!championKey && championKey !== 'Custom'
       const report = await createSkinLiteVariant(localPath, {
         championKey: known ? championKey : undefined,

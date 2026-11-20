@@ -1204,15 +1204,15 @@ function setupIpcHandlers(): void {
       console.log('[Patcher] Successfully processed skins:', successfulSkins)
       // SkinLite: make each skin override whatever skin is equipped in game (cached variants,
       // the original files are never modified)
-      const skinLitePaths =
-        settingsService.get('skinLiteMode') === true
-          ? await resolveSkinLitePaths(
-              skinInfosToProcess.map((result, i) => ({
-                localPath: result.status === 'fulfilled' ? result.value.localPath : undefined,
-                championKey: splitSkinKey(filteredSkins[i])[0]
-              }))
-            )
-          : new Map<string, string>()
+      // Per-skin flag (set in the selected skins drawer) wins over the global setting
+      const skinLiteDefault = settingsService.get('skinLiteMode') === true
+      const skinLitePaths = await resolveSkinLitePaths(
+        skinInfosToProcess.map((result, i) => ({
+          localPath: result.status === 'fulfilled' ? result.value.localPath : undefined,
+          championKey: splitSkinKey(filteredSkins[i])[0],
+          enabled: skinContextMap.get(filteredSkins[i])?.skinLite ?? skinLiteDefault
+        }))
+      )
       const validPaths = successfulSkins
         .map((s) => skinLitePaths.get(s.localPath) ?? s.localPath)
         .filter((path) => path != null)
@@ -1553,15 +1553,15 @@ function setupIpcHandlers(): void {
         console.log('[SmartApply] Successfully processed skins:', successfulSkins)
         // SkinLite: make each skin override whatever skin is equipped in game (cached variants,
         // the original files are never modified)
-        const skinLitePaths =
-          settingsService.get('skinLiteMode') === true
-            ? await resolveSkinLitePaths(
-                skinInfosToProcess.map((result, i) => ({
-                  localPath: result.status === 'fulfilled' ? result.value.localPath : undefined,
-                  championKey: splitSkinKey(skinKeys[i])[0]
-                }))
-              )
-            : new Map<string, string>()
+        // Per-skin flag (set in the selected skins drawer) wins over the global setting
+        const skinLiteDefault = settingsService.get('skinLiteMode') === true
+        const skinLitePaths = await resolveSkinLitePaths(
+          skinInfosToProcess.map((result, i) => ({
+            localPath: result.status === 'fulfilled' ? result.value.localPath : undefined,
+            championKey: splitSkinKey(skinKeys[i])[0],
+            enabled: filteredSkins[i]?.skinLite ?? skinLiteDefault
+          }))
+        )
         const validPaths = successfulSkins
           .map((s) => skinLitePaths.get(s.localPath) ?? s.localPath)
           .filter((path) => path != null)

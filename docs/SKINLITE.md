@@ -58,18 +58,21 @@ Design notes:
 - New WAD entries are zstd-compressed with `zstd-napi` (already used by `nativeOverlay.ts`), entries are
   kept sorted by hash, and all original entries are copied byte-for-byte.
 
-## Integrating it in the UI
+## UI
 
-The setting is already exposed as a global toggle in **Settings**. Further options, all small:
+- **Settings -> SkinLite** is the global default (`skinLiteMode`).
+- **Selected skins drawer**: every skin card has a small **SkinLite** chip (amber = on, shown on hover
+  when off). Clicking it sets a per-skin flag (`SelectedSkin.skinLite`) that overrides the global
+  default for that skin only. `undefined` means "follow the global setting".
+- Apply time (`run-patcher`, `smart-apply-skins`): `enabled = skin.skinLite ?? skinLiteMode`, passed to
+  `resolveSkinLitePaths`.
 
-1. **Per-skin badge/toggle** — call `skinLiteService.createSkinLiteVariant(localPath, …)` for a single
-   skin and show `report.applicable` (and `report.sourceSkinNum`) in the skin card, e.g. a "SkinLite"
-   chip, so users can see which skins support it.
-2. **Per-skin override** — store a `skinLite: boolean` on `SelectedSkin` and pass it through
-   `resolveSkinLitePaths` instead of reading the global setting.
-3. **Import dialog** — after `repairModFile` in `fileImportService.ts`, run `createSkinLiteVariant` and
-   surface `report.reason` when a custom mod is not applicable.
-4. **Opt-in per champion** — useful if someone wants SkinLite only for specific champions.
+Further ideas that are not part of this PR:
+
+1. Show whether a skin is *applicable* (`createSkinLiteVariant(...).applicable`, `sourceSkinNum`) on the
+   chip, e.g. grey it out for mods without skin0 bins.
+2. Run it in `fileImportService` after `repairModFile` and surface `report.reason` for imports.
+3. Add the chip to the multi-select mode and the P2P room skins list.
 
 ## Verification
 

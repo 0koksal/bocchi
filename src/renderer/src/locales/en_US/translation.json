@@ -243,7 +243,7 @@
     },
     "skinLiteMode": {
       "title": "SkinLite (show custom skins over equipped skins)",
-      "description": "Custom skins also replace the skin you have equipped in game, so you can keep an owned skin selected and still see your custom skin. Works with skin packages built on the base skin; other mods are applied unchanged."
+      "description": "Custom skins also replace the skin you have equipped in game, so you can keep an owned skin selected and still see your custom skin. Works with skin packages built on the base skin; other mods are applied unchanged. You can override this for each skin with the SkinLite chip in the selected skins list."
     },
     "modToolsTimeout": {
       "title": "Mod Tools Timeout",
@@ -473,6 +473,11 @@
     "toDownload": "({{count}} to download)",
     "downloaded": "Downloaded Skins",
     "notDownloaded": "Not Downloaded",
+    "skinLite": {
+      "badge": "SkinLite",
+      "enable": "SkinLite off: click to show this skin over any equipped skin",
+      "disable": "SkinLite on: click to apply only when the default skin is equipped"
+    },
     "repository": "Repository Skins",
     "customImports": "Custom Imports",
     "total": "Total: {{count}} skins",

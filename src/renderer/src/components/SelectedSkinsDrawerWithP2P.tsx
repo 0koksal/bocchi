@@ -22,7 +22,8 @@ import {
   Search,
   GitMerge,
   Save,
-  Brush
+  Brush,
+  Sparkles
 } from 'lucide-react'
 import SortableList, { SortableItem, SortableKnob } from 'react-easy-sort'
 import { arrayMoveImmutable } from 'array-move'
@@ -119,6 +120,16 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
   const [, setPresets] = useAtom(presetsAtom)
   const [, setShowPresetsDialog] = useAtom(presetDialogOpenAtom)
   const presetCount = useAtomValue(presetCountAtom)
+
+  // SkinLite: the global default comes from Settings; a per-skin flag overrides it
+  const [globalSkinLite, setGlobalSkinLite] = useState(false)
+  useEffect(() => {
+    window.api
+      .getSettings('skinLiteMode')
+      .then((value) => setGlobalSkinLite(value === true))
+      .catch(() => {})
+  }, [isExpanded])
+  const isSkinLiteOn = (skin: SelectedSkin) => skin.skinLite ?? globalSkinLite
 
   // Multi-select (delete-only) state
   const [multiSelectMode, setMultiSelectMode] = useState(false)
@@ -325,6 +336,13 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
   // Helpers for multi-select
   const skinKey = (skin: SelectedSkin) =>
     `${skin.championKey}__${skin.skinId}__${skin.chromaId || ''}__${skin.variantId || ''}`
+
+  const toggleSkinLite = (skin: SelectedSkin) => {
+    const key = skinKey(skin)
+    setSelectedSkins((prev) =>
+      prev.map((s) => (skinKey(s) === key ? { ...s, skinLite: !isSkinLiteOn(s) } : s))
+    )
+  }
 
   const toggleMultiSelectMode = () => {
     setMultiSelectMode((prev) => {
@@ -1000,6 +1018,22 @@ export const SelectedSkinsDrawer: React.FC<SelectedSkinsDrawerProps> = ({
                                           {t('skins.autoSelected')}
                                         </div>
                                       )}
+                                      {/* SkinLite: show this skin over whatever skin is equipped in game */}
+                                      <button
+                                        className={`absolute bottom-0.5 left-0.5 z-20 flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium shadow-sm transition-opacity ${
+                                          isSkinLiteOn(skin)
+                                            ? 'bg-amber-500 text-white opacity-100'
+                                            : 'bg-black/60 text-white/80 opacity-0 group-hover:opacity-100'
+                                        }`}
+                                        title={
+                                          isSkinLiteOn(skin) ? t('skins.skinLite.disable') : t('skins.skinLite.enable')
+                                        }
+                                        onClick={() => toggleSkinLite(skin)}
+                                        disabled={loading}
+                                      >
+                                        <Sparkles className="w-2.5 h-2.5" />
+                                        {t('skins.skinLite.badge')}
+                                      </button>
                                       <button
                                         className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                                         onClick={() => removeSkin(skin)}
