@@ -290,15 +290,19 @@ function scanWad(data: Buffer, hintChamps: string[]): WadScan | { reason: string
 
   // 3. The skin the package was rebased from must not be overridden: its real bin is the
   //    dependency of our skin0 bin, and replacing it would make it link to itself.
+  //    Standalone packages (a full copy of the skin inside skin0.bin) have no skins/skinN.bin
+  //    link, so fall back to the animation bin they point at (animations/skinN.bin).
   let sourceSkinNum: number | undefined
+  let animationHint: number | undefined
   for (const t of templates) {
     for (const dep of t.header.dependencies) {
       const m = BIN_DEP_RE.exec(dep)
-      if (m && m[2].toLowerCase() === 'skins' && m[1].toLowerCase() === t.char && +m[3] !== 0) {
-        sourceSkinNum = +m[3]
-      }
+      if (!m || m[1].toLowerCase() !== t.char || +m[3] === 0) continue
+      if (m[2].toLowerCase() === 'skins') sourceSkinNum = +m[3]
+      else animationHint = +m[3]
     }
   }
+  sourceSkinNum ??= animationHint
   return { info, byHash, chars, templates, sourceSkinNum }
 }
 
